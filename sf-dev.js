@@ -1,4 +1,5 @@
 const env = require('./src-sv/sv-env');
+const colors = require('colors');
 const express = require('express');
 const app = express();
 const server = require('http').createServer(app);
@@ -13,7 +14,7 @@ app.use("/", (req, res, next) => {
 	sendPlainText(res, "<b>Hello World</b>");
 });
 
-trace("Hello World! ...");
+trace("Hello World! " + (new Date().toString().red));
 
 server.listen('9000', function (err) {
 	if(err) throw err;
