@@ -9,7 +9,7 @@ function now() {
 	return new Date().toString();
 }
 function sendPlainText(res, text) {
-	trace("Hello World! " + (now().red));
+	trace("Hello World! ".red + now());
 
 	res.header('content-type','text/plain');
 	res.send(text);
