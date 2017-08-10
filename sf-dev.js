@@ -9,6 +9,8 @@ function now() {
 	return new Date().toString();
 }
 function sendPlainText(res, text) {
+	trace("Hello World! " + (now().red));
+
 	res.header('content-type','text/plain');
 	res.send(text);
 }
@@ -20,6 +22,5 @@ app.use("/", (req, res, next) => {
 server.listen('9000', function (err) {
 	if(err) throw err;
 
-	trace("Hello World! " + (now().red));
 	trace(`Started SF-DEV on '9000' in environment: ${env()}`);
 });
