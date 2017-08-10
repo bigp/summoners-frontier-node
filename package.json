@@ -1,0 +1,12 @@
+{
+  "name": "SummonersFrontier-NodeJS",
+  "version": "1.0.0",
+  "description": "Server-side for SF game.",
+  "main": "app.js",
+  "repository": "https://github.com/bigp/summoners-frontier-node.git",
+  "author": "Pierre Chamberlain <bigp@pierrechamberlain.ca>",
+  "license": "MIT",
+  "devDependencies": {
+    "express": "^4.15.4"
+  }
+}
