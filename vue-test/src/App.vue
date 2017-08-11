@@ -4,9 +4,11 @@
     <div id="content">
       <!-- <img src="./assets/logo.png"> -->
       <Panel title="Test Cases">
+        <br/>
         <label>
-          <input type="checkbox" v-model="useAuthorization"></input>
-          Use Authorization
+          Authorization Code<br/>
+          <input type="input" v-model="authCode"></input>
+
         </label>
 
         <div v-for="(access, accessKey) in testCases">
@@ -48,7 +50,7 @@
     components: {TestButton, Panel},
     data () {
       return {
-		  useAuthorization: false,
+		  authCode: 'sf-dev',
           title: 'SF-DEV Console'
       }
     },
@@ -74,8 +76,10 @@
 					url: url,
                     method: 'GET',
 					beforeSend(xhr) {
-						var code = btoa('sf-dev');
-						_this.useAuthorization && xhr.setRequestHeader('Authorization', code);
+						var code = btoa(_this.authCode);
+						if(!_.isNullOrEmpty(_this.authCode)) {
+							xhr.setRequestHeader('Authorization', code);
+                        }
                     },
 					success(result) {
 						_this.onResult(result, url);

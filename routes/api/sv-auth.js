@@ -6,6 +6,9 @@ const ERRORS = _.mapValues({
 	NOT_AUTHORIZED(res) {
 		res.send("Not Authorized!");
 	},
+	INCORRECT_AUTHCODE(res) {
+		res.send("Incorrect Authorization!");
+	},
 	BANNED(res) {
 		res.send("Banned User!");
 	}
@@ -18,11 +21,15 @@ const ERRORS = _.mapValues({
 
 function isAuthorized(req) {
 	const authCode64 = req.headers.authorization;
-	if(!authCode64 || authCode64.trim().length===0) return false;
+	if(!authCode64 || authCode64.trim().length===0) return ERRORS.NOT_AUTHORIZED;
 
 	//Check if the player is authorized...
 	const authCode = authCode64.fromBase64();
-	trace(authCode64 + " : " + authCode);
+
+	if(authCode!==$$$.env.AUTH_CODE) {
+		return ERRORS.INCORRECT_AUTHCODE;
+	}
+
 	return true;
 }
 
@@ -30,9 +37,10 @@ module.exports = {
 	ERRORS: ERRORS,
 
 	isAuthMiddleware(req, res, next) {
-		if(!isAuthorized(req)) return ERRORS.NOT_AUTHORIZED(res);
+		var authOK = isAuthorized(req);
+		if(authOK===true) return next();
 
-		next();
+		authOK(res);
 	},
 
 	configHeaders(res) {
