@@ -4,7 +4,7 @@
 module.exports = function() {
 	var host = window.location.toString();
 	host = host.substr(0, host.indexOf('/', 10));
-	var api = host.replace(/[0-9]+/, '9000') + '/api';
+	var api = host.replace(/:[0-9]+/, ':9000') + '/api';
 
 	return {
 		PUBLIC: {
