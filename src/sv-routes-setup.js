@@ -51,11 +51,6 @@ function applyTopRoute() {
 	$$$.app.use("/", $$$.express.static($$$.paths.__public));
 	$$$.app.use("/dist", $$$.express.static($$$.paths.__vueDist));
 
-
-	var test = "Pierre Hello!";
-	trace(test.toBase64());
-	trace(test.toBase64().fromBase64());
-
 	$$$.server.listen($$$.env.PORT, function (err) {
 		if (err) throw err;
 

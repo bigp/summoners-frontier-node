@@ -1,8 +1,11 @@
 /**
  * Created by Chamberlain on 8/10/2017.
  */
-const __fullSplit = process.argv[1].__.split('/');
+const path = require('path');
+const __fullSplit = __dirname.__.split('/');
 const paths = {};
+
+trace(__dirname);
 
 paths.__filename = __fullSplit.last();
 paths.__dir = __fullSplit.slice(0, __fullSplit.length-1).join('/');
