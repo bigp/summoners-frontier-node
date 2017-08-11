@@ -48,14 +48,25 @@ $$$.files.dirs($$$.paths.__routes, (err, files, names) => {
 });
 
 function applyTopRoute() {
-	$$$.app.use("/", $$$.express.static($$$.paths.__public));
-	$$$.app.use("/dist", $$$.express.static($$$.paths.__vueDist));
+	$$$.app.use('/$', (req, res, next) => {
+		$$$.files.read($$$.paths.__vueIndex, (err, indexContent) => {
+			//Swap all occurences of 'localhost:####' to the actual host this is called on:
+			var actualHost = req.get('host');
+			indexContent = indexContent.replace(/localhost:[0-9]*/g, actualHost);
+
+			res.send(indexContent);
+		});
+	});
+
+	$$$.app.use('/', $$$.express.static($$$.paths.__public));
+	$$$.app.use('/dist', $$$.express.static($$$.paths.__vueDist));
+
 
 	$$$.server.listen($$$.env.PORT, function (err) {
 		if (err) throw err;
 
 		if(!$$$.has('ready')) {
-			return trace("No 'ready' listeners set.".red);
+			return trace('No "ready" listeners set.'.red);
 		}
 
 		$$$.emit('ready');

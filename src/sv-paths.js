@@ -16,5 +16,6 @@ paths.__public = paths.__dir + '/public';
 paths.__routes = paths.__dir + '/routes';
 paths.__vue = paths.__dir + '/vue-test';
 paths.__vueDist = paths.__vue + '/dist';
+paths.__vueIndex = paths.__vue + '/index.html';
 
 module.exports = paths;

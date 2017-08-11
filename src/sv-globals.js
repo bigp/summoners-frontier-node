@@ -50,6 +50,7 @@ _.extend($$$, {
 	env: require('./sv-env')(paths),
 	express: express,
 	app: app,
+	fs: fs,
 	server: require('http').createServer(app),
 	paths: paths,
 	now() {
@@ -61,6 +62,10 @@ _.extend($$$, {
 	},
 
 	files: {
+		read(file, cb) {
+			fs.readFile(file, {encoding:'utf8'}, cb);
+		},
+
 		readDir(dir, cb) {
 			dir = dir.__;
 
