@@ -6,7 +6,14 @@
   "repository": "https://github.com/bigp/summoners-frontier-node.git",
   "author": "Pierre Chamberlain <bigp@pierrechamberlain.ca>",
   "license": "MIT",
+  "scripts": {
+    "start": "nodemon sf-dev.js"
+  },
   "devDependencies": {
     "express": "^4.15.4"
+  },
+  "dependencies": {
+    "async": "^2.5.0",
+    "body-parser": "^1.17.2"
   }
 }

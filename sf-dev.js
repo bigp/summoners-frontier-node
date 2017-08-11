@@ -1,26 +1,11 @@
-const env = require('./src-sv/sv-env');
-const colors = require('colors');
-const express = require('express');
-const app = express();
-const server = require('http').createServer(app);
-const trace = console.log.bind(console);
+require('./src/sv-globals');
 
-function now() {
-	return new Date().toString();
-}
-function sendPlainText(res, text) {
-	trace("Hello World! ".red + now());
+const routes = require('./src/sv-routes-setup');
 
-	res.header('content-type','text/plain');
-	res.send(text);
-}
-
-app.use("/", (req, res, next) => {
-	sendPlainText(res, "<b>Hello World</b> " + now());
-});
-
-server.listen('9000', function (err) {
-	if(err) throw err;
-
-	trace(`Started SF-DEV on '9000' in environment: ${env()}`);
+$$$.on('ready', () => {
+	trace(
+		`Started SF-DEV on port ${$$$.env.PORT} 
+		(${routes.length} routes) 
+		in environment`.noLines.cyan + ` [${$$$.env().toUpperCase()}]`
+	);
 });
