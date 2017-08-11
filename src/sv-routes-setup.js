@@ -12,14 +12,16 @@ const timeDayMS = 24 * timeHourMS;
 $$$.app.use(bodyParser.urlencoded({ extended: false }));
 $$$.app.use(bodyParser.json());
 $$$.app.set('trust proxy', 1);
-// $$$.app.use( session({
-// 	secret: $$$.env.SECRET || 'secret',
-// 	resave: false,
-// 	saveUninitialized: true,
-// 	cookie: {maxAge: timeDayMS}
-// }));
 
 const routes = [];
+
+const http = require('http');
+_.addProps( http.IncomingMessage.prototype, {
+	'fullURL': {
+		get() { return this.protocol + '://' + this.get('host') + this.originalUrl; }
+	}
+});
+
 
 $$$.files.dirs($$$.paths.__routes, (err, files, names) => {
 	if(err) throw err;
@@ -34,7 +36,7 @@ $$$.files.dirs($$$.paths.__routes, (err, files, names) => {
 		routeModule(route);
 
 		route.get('/*', (req, res) => {
-			$$$.sendPlainText(res, 'testing ' + __filename);
+			res.status(404).send(`${__filename.toUpperCase()}: Unhandled request: ` + req.fullURL);
 		});
 
 		$$$.app.use(__route, route);
@@ -48,6 +50,11 @@ $$$.files.dirs($$$.paths.__routes, (err, files, names) => {
 function applyTopRoute() {
 	$$$.app.use("/", $$$.express.static($$$.paths.__public));
 	$$$.app.use("/dist", $$$.express.static($$$.paths.__vueDist));
+
+
+	var test = "Pierre Hello!";
+	trace(test.toBase64());
+	trace(test.toBase64().fromBase64());
 
 	$$$.server.listen($$$.env.PORT, function (err) {
 		if (err) throw err;

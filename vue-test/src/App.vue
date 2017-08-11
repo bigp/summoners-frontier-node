@@ -4,9 +4,19 @@
     <div id="content">
       <!-- <img src="./assets/logo.png"> -->
       <Panel title="Test Cases">
-        <div v-for="(test, key) in testCases">
-          <TestButton @click.native="doTest(test)" class="letter-spaced">api/{{key}}</TestButton>
+        <label>
+          <input type="checkbox" v-model="useAuthorization"></input>
+          Use Authorization
+        </label>
+
+        <div v-for="(access, accessKey) in testCases">
+          <center><h4 class="accessKey">- {{accessKey}} -</h4></center>
+          <div v-for="(testURL, key) in access">
+            <TestButton @click.native="doTest(testURL)" class="letter-spaced">api/{{key}}</TestButton>
+          </div>
         </div>
+
+
       </Panel>
 
       <Panel title="Results" class="results">
@@ -38,6 +48,7 @@
     components: {TestButton, Panel},
     data () {
       return {
+		  useAuthorization: false,
           title: 'SF-DEV Console'
       }
     },
@@ -61,6 +72,11 @@
 
 				$.ajax({
 					url: url,
+                    method: 'GET',
+					beforeSend(xhr) {
+						var code = btoa('sf-dev');
+						_this.useAuthorization && xhr.setRequestHeader('Authorization', code);
+                    },
 					success(result) {
 						_this.onResult(result, url);
                     },
@@ -137,6 +153,10 @@
       padding: 5px;
       border: solid 1px #000;
     }
+  }
+
+  .accessKey {
+    margin-top: 10px;
   }
 
 </style>

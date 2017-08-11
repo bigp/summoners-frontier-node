@@ -7,23 +7,27 @@ module.exports = function() {
 	var api = host.replace(/[0-9]+/, '9000') + '/api';
 
 	return {
-		test() {
-			return api + '/test';
+		PUBLIC: {
+			test() {
+				return api + '/test';
+			},
+			'test-banned'() {
+				return api + '/test-banned';
+			},
+			'unsec-user'() {
+				return api + '/unsec-user';
+			}
 		},
-		'test-banned'() {
-			return api + '/test-banned';
-		},
-		'not-found'() {
-			return api + '/not_found';
-		},
-		users() {
-			return api + '/users';
-		},
-		user() {
-			return api + '/user';
-		},
-		'unsec-user'() {
-			return api + '/unsec-user';
+		SECURE: {
+			'not-found'() {
+				return api + '/not_found';
+			},
+			users() {
+				return api + '/users';
+			},
+			user() {
+				return api + '/user';
+			},
 		}
 	};
 }

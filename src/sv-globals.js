@@ -35,6 +35,15 @@ _.extend( events.prototype, {
 	}
 });
 
+_.extend(String.prototype,  {
+	toBase64() {
+		return new Buffer(this.toString()).toString('base64');
+	},
+	fromBase64() {
+		return new Buffer(this.toString(), 'base64').toString('ascii');
+	}
+});
+
 const $$$ = global.$$$ = new events();
 
 _.extend($$$, {

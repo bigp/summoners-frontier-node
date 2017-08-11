@@ -63,10 +63,23 @@ p.insert = (function() {
 })();
 
 /////////////////
-
 p = String.prototype;
 
-var defineProps = Object.defineProperties;
+_.addProps = Object.defineProperties;
+
+_.addProps(p, {
+	'__': {
+		get() {
+			var str = this.toString().replace(/\\/g, "/");
+			return str.endsWith("/") ? str.substr(0, str.length - 1) : str;
+		}
+	},
+	'noLines': {
+		get() {
+			return this.split('\n').map(n => n.trim()).join(' ');
+		}
+	}
+});
 
 p.has = function has(str) {
 	return this.indexOf(str)>-1;
@@ -89,20 +102,6 @@ p.rep = function rep(obj) {
 
 	return str;
 };
-
-defineProps(p, {
-	'__': {
-		get() {
-			var str = this.toString().replace(/\\/g, "/");
-			return str.endsWith("/") ? str.substr(0, str.length - 1) : str;
-		}
-	},
-	'noLines': {
-		get() {
-			return this.split('\n').map(n => n.trim()).join(' ');
-		}
-	}
-});
 
 p.toPath = function() {
 	return {

@@ -3,31 +3,48 @@
  */
 
 const auth = require('./sv-auth');
+const cors = require('cors');
 
 module.exports = function(route) {
+	route.use(cors());
 
-	route.use('/*', (req, res, next) => {
-		res.header('content-type','text/plain');
-		res.header('Access-Control-Allow-Origin','*');
+	PUBLIC_ROUTES();
 
-		next();
-	});
+	route.use('/*', auth.isAuthMiddleware);
 
-	route.get('/test', (req, res) => {
-		res.send("Test OK.");
-	});
+	SECURE_ROUTES();
 
-	route.get('/test-banned', (req, res) => {
-		auth.ERRORS.BANNED(res);
-	});
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////
 
-	route.use('/*', (req, res, next) => {
-		if(!auth.isAuthorized(req, res)) return;
+	function PUBLIC_ROUTES() {
+		route.use('/*', (req, res, next) => {
+			//This sets cross-origin / verbs allowed to call:
+			auth.configHeaders(res);
+			next();
+		});
 
-		next();
-	});
+		route.get('/test', (req, res) => {
+			res.send("Test OK.");
+		});
 
-	route.get('/users', (req, res) => {
-		res.send("Users...");
-	});
-}
+		route.get('/test-banned', (req, res) => {
+			auth.ERRORS.BANNED(res);
+		});
+
+		route.use('/unsec-user', (req, res) => {
+			res.send("<i class='purple'>Unsecure user operation...</i>");
+		});
+	}
+
+	function SECURE_ROUTES() {
+		route.get('/users', (req, res) => {
+			res.send("Users (many)...");
+		});
+
+		route.get('/user', (req, res) => {
+			res.send("User (single)...");
+		});
+	}
+};
