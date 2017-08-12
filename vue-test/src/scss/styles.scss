@@ -51,13 +51,10 @@
           $clr + #111 * $e);
 }
 
-.red {
-  color: #f00;
-}
-
-.purple {
-  color: #9a6fff;
-}
+.red { color: #f00; }
+.red-lite { color: #f88; }
+.purple { color: #9a6fff; }
+.green { color: #0f0; }
 
 .letter-spaced {
   letter-spacing: 0.05em;

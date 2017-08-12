@@ -1,11 +1,14 @@
 require('./src/sv-globals');
 
-const routes = require('./src/sv-routes-setup');
+const routeSetup = require('./src/sv-routes-setup');
+const mongoSetup = require('./src/sv-mongo-setup');
+
+mongoSetup();
 
 $$$.on('ready', () => {
 	trace(
 		`Started SF-DEV on port ${$$$.env.PORT} 
-		(${routes.length} routes) 
+		(${routeSetup.length} routes) 
 		in environment`.noLines.cyan + ` [${$$$.env().toUpperCase()}]`
 	);
 });

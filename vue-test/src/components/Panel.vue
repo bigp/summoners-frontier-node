@@ -12,14 +12,13 @@
 
     .panel {
         @include round(10px);
+        @include dark-shadow();
         position: relative;
         display: inline-block;
         padding: 15px 5px 5px 5px;
         background: $bgColor;
         margin-top: 10px;
         margin-right: 10px;
-
-        @include dark-shadow();
     }
 
     .panel-title {

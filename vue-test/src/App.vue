@@ -34,16 +34,9 @@
 
   const testCases = require('./lib/test-cases');
 
-
   $('ready', () => {
 	  $$$.resultsOutput = $('.results .output')
   });
-
-  function showResult(msg) {
-	  TweenMax.to($$$.resultsOutput, 0.5, {alpha: 1});
-
-	  $$$.resultsOutput.append(msg + "<br/>");
-  }
 
   export default {
     name: 'app',
@@ -90,18 +83,36 @@
         },
 
 		onResult(result, url) {
-        	showResult(url);
-			showResult(result);
+			showUrlAndMessage(url, 'green', result);
         },
 
         onError(err, url) {
 			const errMessage = `<i class='red'><b>${err.statusText}</b> - ${err.responseText}</i>`;
 
-			showResult(url);
-			showResult(errMessage);
+			showUrlAndMessage(url, 'red-lite', errMessage);
         }
     }
   }
+
+  function showResult(msg) {
+	  TweenMax.to($$$.resultsOutput, 0.5, {alpha: 1});
+
+	  $$$.resultsOutput.append(msg + "<br/>");
+  }
+
+  function getShortURL(url) {
+	  return {
+		  url: url,
+		  shortURL: 'http://...' + url.substr(url.indexOf('/', 10))
+	  };
+  }
+
+  function showUrlAndMessage(url, css, msg) {
+	  var urlObj = getShortURL(url);
+	  showResult(`<i class="${css}"><b>URL:</b> ${urlObj.shortURL}</i>`);
+	  showResult(msg.replace(url, urlObj.shortURL));
+  }
+
 </script>
 
 <style lang="scss">
@@ -143,7 +154,7 @@
   }
 
   .results {
-    min-width: 400px;
+    min-width: 600px;
     min-height: 100%;
     position: relative;
 
@@ -152,7 +163,7 @@
       display: block;
       @include rect(15px);
       background: #222;
-      color: #0f0;
+      color: #fff;
       text-shadow: none;
       padding: 5px;
       border: solid 1px #000;

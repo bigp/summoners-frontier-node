@@ -85,6 +85,13 @@ p.has = function has(str) {
 	return this.indexOf(str)>-1;
 };
 
+p.remove = function remove(str, all) {
+	if(all===true) {
+		return this.split(str).join('');
+	}
+	return this.replace(str, '');
+};
+
 p.rep = function rep(obj) {
 	var regex, str = this.toString();
 	
