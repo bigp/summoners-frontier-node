@@ -28,6 +28,9 @@ module.exports = function() {
 			user() {
 				return api + '/user';
 			},
+			user_last() {
+				return api + '/user/last';
+			},
 			user_pierre() {
 				return api + '/user?name=Pierre';
 			},

@@ -8,7 +8,12 @@
         <label>
           Authorization Code<br/>
           <input type="input" v-model="authCode"></input>
+        </label>
 
+        <br/>
+        <label>
+          User ID<br/>
+          <input type="input" v-model="userID"></input>
         </label>
 
         <div v-for="(access, accessKey) in testCases">
@@ -45,6 +50,7 @@
     data () {
       return {
 		  authCode: 'sf-dev',
+		  userID: '',
           title: 'SF-DEV Console'
       }
     },
@@ -55,7 +61,7 @@
 
     methods: {
         doTest(test) {
-			traceClear();
+			traceClear && traceClear();
 
 			const _this = this;
 			const testResult = test();
@@ -71,6 +77,7 @@
 			const urlObj = _.isString(testResult) ? {url: testResult} : testResult;
 
 			$.ajax(_.extend(urlObj, {
+				//type: 'json',
 				beforeSend(xhr) {
 					const code = btoa(_this.authCode);
 					if(!_.isNullOrEmpty(_this.authCode)) {
@@ -85,6 +92,9 @@
         },
 
 		onResult(result, url) {
+			result = JSON.stringify( JSON.parse(result), null, '  ' );
+        	//if(_.isObject(result)) result = _.jsonPretty(result);
+        	//trace(result);
 			showUrlAndMessage(url, 'green', result);
         },
 
@@ -110,6 +120,8 @@
   }
 
   function showUrlAndMessage(url, css, msg) {
+	  msg = msg.toString();
+	  trace(msg);
 	  var urlObj = getShortURL(url);
 	  showResult(`<i class="${css}"><b>URL:</b> ${urlObj.shortURL}</i>`);
 	  showResult(msg.replace(url, urlObj.shortURL));
@@ -161,6 +173,8 @@
     position: relative;
 
     .output {
+      //overflow: ;
+      white-space: pre;
       position: absolute;
       display: block;
       @include rect(15px);

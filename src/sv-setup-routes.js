@@ -50,8 +50,6 @@ $$$.files.dirs($$$.paths.__routes, (err, files, names) => {
 });
 
 function setTopLevelRoutes() {
-	trace('applyTopRoute');
-
 	routes.forEach(route => {
 		//Apply Page-Not-Found error for unknown routes:
 		route.get('/*', (req, res) => {

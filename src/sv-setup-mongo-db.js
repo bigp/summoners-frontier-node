@@ -55,14 +55,13 @@ function onMongoConnected(err) {
 		const __modelRoute = '/' + name;
 		const __modelRoutes = '/' + plural;
 
-		trace("Add routes: " + __modelRoute + " & " + __modelRoutes);
-
 		const METHODS = {
 			///////////////////////// ONE:
 
 			GET_ONE(model, req, res, next) {
 				model.findOne().exec((err, data) => {
-					res.send("GET ONE!!!");
+					if(err) return next();
+					res.send(data);
 				});
 			},
 
@@ -113,8 +112,15 @@ function onMongoConnected(err) {
 
 		// Add the singular & plural form of the router
 		// They each do something different for each HTTP VERB types
+		api.use(__modelRoute+ "/last", (req, res, next) => {
+			model.findOne().sort({$natural:-1}).exec( (err, data) => {
+				if(err) return next();
+				res.send(data);
+			})
+		});
 		api.use(__modelRoute, modelRouter('_ONE'));
 		api.use(__modelRoutes, modelRouter('_MANY'));
+
 
 	}, onMongoReady);
 }
