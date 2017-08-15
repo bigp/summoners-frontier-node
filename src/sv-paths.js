@@ -15,6 +15,7 @@ paths.__private = paths.__dir + '/.private';
 paths.__data = paths.__dir + '/.private/data';
 paths.__public = paths.__dir + '/public';
 paths.__routes = paths.__dir + '/src/routes';
+paths.__tests = paths.__dir + '/src/tests';
 paths.__vue = paths.__dir + '/vue-test';
 paths.__vueDist = paths.__dir + '/vue-test/dist';
 paths.__vueIndex = paths.__dir + '/vue-test/index.html';

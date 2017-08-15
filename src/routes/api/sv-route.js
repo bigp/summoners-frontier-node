@@ -15,8 +15,6 @@ module.exports = function(route) {
 	SECURE_ROUTES();
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
-	////////////////////////////////////////////////////////////////////////////////////////////////
-	////////////////////////////////////////////////////////////////////////////////////////////////
 
 	function PUBLIC_ROUTES() {
 		route.use('/*', (req, res, next) => {
@@ -39,12 +37,14 @@ module.exports = function(route) {
 	}
 
 	function SECURE_ROUTES() {
-		route.get('/users', (req, res) => {
-			res.send("Users (many)...");
-		});
-
-		route.get('/user', (req, res) => {
-			res.send("User (single)...");
-		});
+		// authorizedRoute.get('/users', (req, res, next) => {
+		// 	trace("Users (many)...");
+		// 	next();
+		// });
+		//
+		// authorizedRoute.get('/user', (req, res, next) => {
+		// 	trace("User (single)...");
+		// 	next();
+		// });
 	}
 };

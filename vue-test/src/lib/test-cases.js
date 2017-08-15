@@ -16,7 +16,7 @@ module.exports = function() {
 			},
 			'unsec-user'() {
 				return api + '/unsec-user';
-			}
+			},
 		},
 		SECURE: {
 			'not-found'() {
@@ -28,6 +28,21 @@ module.exports = function() {
 			user() {
 				return api + '/user';
 			},
+			user_pierre() {
+				return api + '/user?name=Pierre';
+			},
+			user_post() {
+				return {
+					url: api + '/user',
+					method: 'post',
+					data: {
+						user: {
+							name: "John",
+							email: "john@gmail.com"
+						}
+					}
+				}
+			}
 		}
 	};
 }

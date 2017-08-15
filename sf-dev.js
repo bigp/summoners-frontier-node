@@ -1,14 +1,18 @@
 require('./src/sv-globals');
 
-const routeSetup = require('./src/sv-routes-setup');
-const mongoSetup = require('./src/sv-mongo-setup');
+const routeSetup = require('./src/sv-setup-routes');
+const mongoSetup = require('./src/sv-setup-mongo-db');
 
-mongoSetup();
-
+$$$.on('routes-ready', mongoSetup);
+$$$.on('mongo-ready', routeSetup.setTopLevelRoutes);
 $$$.on('ready', () => {
 	trace(
 		`Started SF-DEV on port ${$$$.env.PORT} 
 		(${routeSetup.length} routes) 
 		in environment`.noLines.cyan + ` [${$$$.env().toUpperCase()}]`
 	);
+
+	if(_.isTruthy($$$.env.TEST)) {
+		const chaiTests = require('./src/sv-setup-chai-tests');
+	}
 });

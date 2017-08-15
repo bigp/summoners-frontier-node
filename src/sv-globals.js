@@ -53,6 +53,7 @@ _.extend($$$, {
 	fs: fs,
 	server: require('http').createServer(app),
 	paths: paths,
+
 	now() {
 		return new Date().toString();
 	},
@@ -82,33 +83,36 @@ _.extend($$$, {
 
 					cb(null, files);
 				})
-				.catch(cb);
+				.catch(err => {
+					traceError(`Problem while reading dir...\n  ${dir}:\n` + err.stack);
+					cb(err);
+				});
 
 		},
 
 		filter(dir, listFilters, cb) {
 			if(!_.isArray(listFilters)) listFilters = [listFilters];
 
+			var totalDone = 0;
+			const results = [];
+			const promises = [];
+
 			//Correct the filters if they are strings / regexp types:
 			listFilters = listFilters
-				.map( filter => {
+				.map( (filter, id) => {
 					if(_.isString(filter)) {
 						//Assume it's a file-extension matcher:
 						return f => f.has(filter);
 					} else if(_.isRegExp(filter)) {
 						return f => filter.test(f);
+					} else if(_.isPromise(filter())) {
+						// Determine promises ahead of time:
+						promises.push(id);
 					}
 
 					return filter;
 				})
 				.filter( filter => _.isFunction(filter) );
-
-			var totalDone = 0;
-			const results = [];
-			const promises = [];
-
-			// Determine promises ahead of time:
-			listFilters.forEach( (filter, f) => _.isPromise(filter()) && promises.push(f));
 
 
 			// Read the dir:
@@ -138,7 +142,11 @@ _.extend($$$, {
 				if(promises.has(ff)) {
 					filter(file)
 						.then( result => _nextFilter(file, f, ff + 1, result))
-						.catch(err => _done() );
+						.catch(err => {
+							traceError("Problem while running $$$.files.filter in file: " + file);
+							trace(err);
+							_done();
+						} );
 				} else {
 					if(filter(data)) {
 						return _nextFilter(file, f, ff + 1);
@@ -159,6 +167,20 @@ _.extend($$$, {
 
 		dirs(dir, cb) {
 			this.filter(dir, [ fs.stat, stat => stat && stat.isDirectory() ], cb);
+		},
+
+		forEachFiles(dir, filters, cbEach, cb) {
+			this.filter(dir, filters, (err, files, names) => {
+				if(!cb && err) throw err;
+
+				files.forEach((file, id) => cbEach(file, names[id]));
+
+				cb(err, files);
+			});
+		},
+
+		forEachJS(dir, cbEach, cb) {
+			this.forEachFiles(dir, ".js", cbEach, cb);
 		}
 	}
 });

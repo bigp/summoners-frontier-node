@@ -14,7 +14,7 @@
         <div v-for="(access, accessKey) in testCases">
           <center><h4 class="accessKey">- {{accessKey}} -</h4></center>
           <div v-for="(testURL, key) in access">
-            <TestButton @click.native="doTest(testURL)" class="letter-spaced">api/{{key}}</TestButton>
+            <TestButton @click.native="doTest(testURL)" class="letter-spaced">{{key}}</TestButton>
           </div>
         </div>
 
@@ -38,6 +38,7 @@
 	  $$$.resultsOutput = $('.results .output')
   });
 
+
   export default {
     name: 'app',
     components: {TestButton, Panel},
@@ -56,30 +57,31 @@
         doTest(test) {
 			traceClear();
 
-			var _this = this;
-			var url = test( this.onResult );
+			const _this = this;
+			const testResult = test();
 
 			TweenMax.set($$$.resultsOutput, {alpha: 0});
 			$$$.resultsOutput.html('');
 
-			if(_.isString(url)) {
-				trace("AJAX: " + url);
+			if(!testResult) {
+				trace("???");
+				return;
+			}
 
-				$.ajax({
-					url: url,
-                    method: 'GET',
-					beforeSend(xhr) {
-						var code = btoa(_this.authCode);
-						if(!_.isNullOrEmpty(_this.authCode)) {
-							xhr.setRequestHeader('Authorization', code);
-                        }
-                    },
-					success(result) {
-						_this.onResult(result, url);
-                    },
-                    error(err) { _this.onError(err, url); }
-                })
-            }
+			const urlObj = _.isString(testResult) ? {url: testResult} : testResult;
+
+			$.ajax(_.extend(urlObj, {
+				beforeSend(xhr) {
+					const code = btoa(_this.authCode);
+					if(!_.isNullOrEmpty(_this.authCode)) {
+						xhr.setRequestHeader('Authorization', code);
+					}
+				},
+				success(result) {
+					_this.onResult(result, urlObj.url);
+				},
+				error(err) { _this.onError(err, urlObj.url); }
+            }));
         },
 
 		onResult(result, url) {

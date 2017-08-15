@@ -15,14 +15,18 @@ $$$.app.set('trust proxy', 1);
 
 const routes = [];
 
+$$$.routes = {};
+
 const http = require('http');
+
+//Add methods to Request objects (Express's built-in type)
 _.addProps( http.IncomingMessage.prototype, {
 	'fullURL': {
 		get() { return this.protocol + '://' + this.get('host') + this.originalUrl; }
 	}
 });
 
-
+//Create a unique route for each sub-folders found in "/routes" path:
 $$$.files.dirs($$$.paths.__routes, (err, files, names) => {
 	if(err) throw err;
 
@@ -32,22 +36,30 @@ $$$.files.dirs($$$.paths.__routes, (err, files, names) => {
 		const __routeModule = fullpath + '/sv-route.js';
 		const routeModule = require(__routeModule);
 		const route = $$$.express.Router();
+		route.__filename = __filename;
 
 		routeModule(route);
-
-		route.get('/*', (req, res) => {
-			res.status(404).send(`${__filename.toUpperCase()}: Unhandled request: ` + req.fullURL);
-		});
 
 		$$$.app.use(__route, route);
 
 		routes.push(route);
+		$$$.routes[__filename] = route;
 	});
 
-	applyTopRoute();
+	$$$.emit('routes-ready');
 });
 
-function applyTopRoute() {
+function setTopLevelRoutes() {
+	trace('applyTopRoute');
+
+	routes.forEach(route => {
+		//Apply Page-Not-Found error for unknown routes:
+		route.get('/*', (req, res) => {
+			const ROUTE_NAME = route.__filename.toUpperCase();
+			res.status(404).send(`${ROUTE_NAME}: Unhandled request: ` + req.fullURL);
+		});
+	})
+
 	$$$.app.use('/$', (req, res, next) => {
 		$$$.files.read($$$.paths.__vueIndex, (err, indexContent) => {
 			//Swap all occurences of 'localhost:####' to the actual host this is called on:
@@ -65,12 +77,15 @@ function applyTopRoute() {
 	$$$.server.listen($$$.env.PORT, function (err) {
 		if (err) throw err;
 
-		if(!$$$.has('ready')) {
+		if(!$$$.has('server-started')) {
 			return trace('No "ready" listeners set.'.red);
 		}
 
-		$$$.emit('ready');
+		$$$.emit('server-started');
 	});
 }
 
-module.exports = routes;
+module.exports = {
+	routes: routes,
+	setTopLevelRoutes: setTopLevelRoutes
+};
