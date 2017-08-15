@@ -4,18 +4,21 @@
 
 module.exports = function(mongoose) {
 	const Schema  = mongoose.Schema;
-	const ERROR_MAXLENGTH= '`{PATH}` field must be {MAXLENGTH} chars, you used {VALUE}.';
-	const String128 = {type: String, trim: true, maxlength: [128, ERROR_MAXLENGTH]};
-	const String256 = {type: String, trim: true, maxlength: [256, ERROR_MAXLENGTH]};
+	const CustomTypes  = mongoose.CustomTypes;
 
 	return {
-		//plural: 'users',
+		plural: 'users',
 		methods: {},
-
+		whitelist: ['name', 'email', 'username'],
 		schema: {
-			name: String128,
-			username: String128,
-			email: String256
+			name: CustomTypes.String128({required:true}),
+			username: CustomTypes.String128({required:true, unique: 'Already have a user with this username ({VALUE})'}),
+			email: CustomTypes.String256({required:true, unique: 'Already have a user with this email ({VALUE})'}),
+			something: CustomTypes.DateRequired(),
+			login: {
+				previous: CustomTypes.DateRequired(),
+				current: CustomTypes.DateRequired(),
+			}
 		}
 	};
 };

@@ -20,7 +20,7 @@ module.exports = function() {
 		},
 		SECURE: {
 			'not-found'() {
-				return api + '/not_found';
+				return api + '/not-found';
 			},
 			users() {
 				return api + '/users';

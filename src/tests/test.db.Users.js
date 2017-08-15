@@ -1,16 +1,20 @@
 /**
  * Created by Chamberlain on 8/14/2017.
  */
-require('../sv-chai-globals');
+const chaiG = require('../sv-chai-globals');
 
+const mongoose = chaiG.mongoose;
+const request = chaiG.request;
+const assert = chaiG.chai.assert;
+const catcher = chaiG.catcher;
+const sendAPI = chaiG.sendAPI;
 const User = $$$.schemas.User;
+const TestUsers = chaiG.TestUsers;
 
 describe('=MONGO= Users', () => {
 	var db;
 
-	try {
-		db = mongoose.connection.db
-	} catch(err) {}
+	try { db = mongoose.connection.db } catch(err) {}
 
 	it('Mongoose Init', () => {
 		assert.exists(mongoose);
@@ -22,7 +26,7 @@ describe('=MONGO= Users', () => {
 		User.resetCount((err, nextCount) => {
 			if(err) throw err;
 
-			assert.equal(nextCount, 0, 'Cleaned up the User auto-counter.');
+			assert.equal(nextCount, 1, 'Cleaned up the User auto-counter.');
 
 			done();
 		})
@@ -39,31 +43,41 @@ describe('=MONGO= Users', () => {
 	});
 
 	it('Create "Pierre"', done => {
-		const Pierre = new User({
-			name: "Pierre",
-			email: "chamberlainpi@gmail.com"
-		});
+		const Pierre = new User({ name: "Pierre", email: "chamberlainpi@gmail.com", username: "pierre" });
 
-		Pierre.save( (err) => {
+		Pierre.save( (err, data) => {
+			if(err) throw err;
+
+			TestUsers.pierre = data;
+
+			assert.exists(Pierre);
+			assert.equal(Pierre.name, "Pierre", "Should be correct name.");
+			assert.equal(Pierre.email, "chamberlainpi@gmail.com", "Should be correct email.");
+
+			done();
+		});
+	});
+
+	it('Create 2nd "Pierre"', done => {
+		const Pierre = new User({ name: "Pierre", email: "pierre2@gmail.com", username: "pierre" });
+
+		Pierre.save( (err, data) => {
 			if(err) throw err;
 
 			assert.exists(Pierre);
-			assert.exists(Pierre.toObject());
-			assert.equal(Pierre.name, "Pierre", "Should be correct name.");
-			assert.equal(Pierre.email, "chamberlainpi@gmail.com", "Should be correct email.")
+			assert.equal(Pierre.email, "pierre2@gmail.com", "Should be correct email.");
 
 			done();
 		});
 	});
 
 	it('Create "Peter"', done => {
-		const Peter = new User({
-			name: "Peter",
-			email: "peter@gmail.com"
-		});
+		const Peter = new User({ name: "Peter", email: "peter@gmail.com", username: "peter" });
 
-		Peter.save( (err) => {
+		Peter.save( (err, data) => {
 			if(err) throw err;
+
+			TestUsers.peter = data;
 
 			assert.equal(Peter.name, "Peter", "Should be correct name.");
 
@@ -107,9 +121,9 @@ describe('=MONGO= Users', () => {
 			if(err) throw err;
 
 			assert.isArray(data);
-			assert.equal(data.length, 2);
+			assert.equal(data.length, 3);
 			assert.equal(data[0].name, 'Pierre');
-			assert.equal(data[1].name, 'Peter');
+			assert.equal(data[2].name, 'Peter');
 
 			done();
 		});
@@ -120,7 +134,7 @@ describe('=MONGO= Users', () => {
 			if(err) throw err;
 
 			assert.isArray(data);
-			assert.equal(data.length, 1);
+			assert.equal(data.length, 2);
 			assert.equal(data[0].name, 'Pierre');
 
 			done();
@@ -139,4 +153,3 @@ describe('=MONGO= Users', () => {
 		});
 	});
 });
-
