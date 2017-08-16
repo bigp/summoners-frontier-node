@@ -3,20 +3,20 @@
  */
 
 const ERRORS = _.mapValues({
-	NOT_AUTHORIZED(res) {
-		res.send("Not Authorized!");
+	NOT_AUTHORIZED() {
+		return "Not Authorized!";
 	},
-	INCORRECT_AUTHCODE(res) {
-		res.send("Incorrect Authorization!");
+	INCORRECT_AUTHCODE() {
+		return "Incorrect Authorization!";
 	},
-	BANNED(res) {
-		res.send("Banned User!");
+	BANNED() {
+		return "Banned User!";
 	}
-}, function mapErrorStatus(cb) {
-	return (res) => {
-		res.status(401);
-		cb(res);
-	}
+}, cbError => (res) => {
+	res.status(401);
+	if(cbError.length===1) return cbError(res);
+
+	$$$.send.error(res, cbError());
 });
 
 function isAuthorized(req) {
@@ -46,6 +46,6 @@ module.exports = {
 	configHeaders(res) {
 		res.header('Access-Control-Allow-Origin','*');
 		res.header('Access-Control-Allow-Credentials','true');
-		res.header('content-type','text/plain');
+		res.header('content-type','application/json'); //text/plain
 	}
 };

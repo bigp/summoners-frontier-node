@@ -24,15 +24,11 @@ module.exports = function(route) {
 		});
 
 		route.get('/test', (req, res) => {
-			res.send("Test OK.");
+			$$$.send.result(res, "Test OK.");
 		});
 
 		route.get('/test-banned', (req, res) => {
 			auth.ERRORS.BANNED(res);
-		});
-
-		route.use('/unsec-user', (req, res) => {
-			res.send("<i class='purple'>Unsecure user operation...</i>");
 		});
 	}
 

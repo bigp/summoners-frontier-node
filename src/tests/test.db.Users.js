@@ -8,7 +8,7 @@ const request = chaiG.request;
 const assert = chaiG.chai.assert;
 const catcher = chaiG.catcher;
 const sendAPI = chaiG.sendAPI;
-const User = $$$.schemas.User;
+const User = $$$.models.User;
 const TestUsers = chaiG.TestUsers;
 
 describe('=MONGO= Users', () => {

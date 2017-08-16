@@ -13,10 +13,7 @@ module.exports = function() {
 			},
 			'test-banned'() {
 				return api + '/test-banned';
-			},
-			'unsec-user'() {
-				return api + '/unsec-user';
-			},
+			}
 		},
 		SECURE: {
 			'not-found'() {
@@ -27,6 +24,12 @@ module.exports = function() {
 			},
 			user() {
 				return api + '/user';
+			},
+			user_by_id() {
+				return api + '/user?id=' + $$$.app.userID;
+			},
+			user_by_username() {
+				return api + '/user?username=' + $$$.app.userID;
 			},
 			user_last() {
 				return api + '/user/last';
@@ -41,6 +44,7 @@ module.exports = function() {
 					data: {
 						user: {
 							name: "John",
+							username: 'john' + Date.now(),
 							email: "john@gmail.com"
 						}
 					}

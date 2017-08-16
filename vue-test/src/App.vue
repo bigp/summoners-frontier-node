@@ -1,3 +1,119 @@
+<script>
+	import TestButton from './components/TestButton.vue'
+	import Panel from './components/Panel.vue'
+
+	const testCases = require('./lib/test-cases');
+
+	$('ready', () => {
+		$$$.resultsOutput = $('.results .output-text')
+	});
+
+	function pretty(json) {
+		return JSON.stringify(json, null, '  ');
+    }
+
+	function sendAjax(urlObj, callbacks) {
+		$.ajax(_.merge(urlObj, callbacks, {
+			contentType: "application/json; charset=utf-8",
+			dataType   : "json",
+			beforeSend(xhr) {
+				if(_.isNullOrEmpty($$$.app.authCode)) return;
+
+				const code = btoa($$$.app.authCode);
+				xhr.setRequestHeader('Authorization', code);
+			}
+		}));
+    }
+
+
+	setTimeout(() => {
+		trace($$$.app.testCases);
+		$$$.app.doTest($$$.app.testCases.SECURE.users);
+	}, 250);
+
+
+	export default {
+		name: 'app',
+		components: {TestButton, Panel},
+		data () {
+			return {
+				authCode: 'sf-dev',
+				userID: '',
+				title: 'SF-DEV Console'
+			}
+		},
+
+		mounted() {
+			$$$.app = this;
+		},
+
+		computed: {
+			testCases() { return testCases(); }
+		},
+
+		methods: {
+			doTest(test) {
+				traceClear && traceClear();
+
+				const _this = this;
+				const testResult = test();
+
+				TweenMax.set($$$.resultsOutput, {alpha: 0});
+				$$$.resultsOutput.html('');
+
+				if(!testResult) {
+					return traceError("???");
+				}
+
+				const urlObj = _.isString(testResult) ? {url: testResult} : testResult;
+				if(_.isObject(urlObj.data)) {
+					urlObj.data = JSON.stringify(urlObj.data);
+				}
+
+				sendAjax(urlObj, {
+					success(result) {
+						_this.onResult(result, urlObj.url);
+					},
+					error(err) { _this.onError(err, urlObj.url); }
+				});
+			},
+
+			onResult(data, url) {
+				trace(data);
+				showUrlAndMessage(url, 'green', pretty(data) );
+			},
+
+			onError(err, url) {
+				const jsonStr = err.responseJSON ? pretty(err.responseJSON) : err.responseText;
+				const errMessage = `<i class='red'><b>${err.statusText}</b> - ${jsonStr}</i>`;
+
+				showUrlAndMessage(url, 'red-lite', errMessage);
+			}
+		}
+	}
+
+	function showResult(msg) {
+		TweenMax.to($$$.resultsOutput, 0.5, {alpha: 1});
+
+		$$$.resultsOutput.append(msg + "<br/>");
+	}
+
+	function getShortURL(url) {
+		return {
+			url: url,
+			shortURL: 'http://...' + url.substr(url.indexOf('/', 10))
+		};
+	}
+
+	function showUrlAndMessage(url, css, msg) {
+		msg = msg.toString();
+		var urlObj = getShortURL(url);
+		showResult(`<i class="${css}"><b>URL:</b> ${urlObj.shortURL}</i>`);
+		showResult(msg.replace(url, urlObj.shortURL));
+	}
+
+</script>
+
 <template>
   <div id="app">
     <div id="titlebar"><h3>{{title}}</h3></div>
@@ -27,167 +143,84 @@
       </Panel>
 
       <Panel title="Results" class="results">
-        <div class="output"></div>
+        <div class="output">
+          <div class="ghost-block"></div>
+          <div class="output-text"></div>
+        </div>
       </Panel>
     </div>
   </div>
 </template>
 
-<script>
-  import TestButton from './components/TestButton.vue'
-  import Panel from './components/Panel.vue'
-
-  const testCases = require('./lib/test-cases');
-
-  $('ready', () => {
-	  $$$.resultsOutput = $('.results .output')
-  });
-
-
-  export default {
-    name: 'app',
-    components: {TestButton, Panel},
-    data () {
-      return {
-		  authCode: 'sf-dev',
-		  userID: '',
-          title: 'SF-DEV Console'
-      }
-    },
-
-    computed: {
-        testCases() { return testCases(); }
-    },
-
-    methods: {
-        doTest(test) {
-			traceClear && traceClear();
-
-			const _this = this;
-			const testResult = test();
-
-			TweenMax.set($$$.resultsOutput, {alpha: 0});
-			$$$.resultsOutput.html('');
-
-			if(!testResult) {
-				trace("???");
-				return;
-			}
-
-			const urlObj = _.isString(testResult) ? {url: testResult} : testResult;
-
-			$.ajax(_.extend(urlObj, {
-				//type: 'json',
-				beforeSend(xhr) {
-					const code = btoa(_this.authCode);
-					if(!_.isNullOrEmpty(_this.authCode)) {
-						xhr.setRequestHeader('Authorization', code);
-					}
-				},
-				success(result) {
-					_this.onResult(result, urlObj.url);
-				},
-				error(err) { _this.onError(err, urlObj.url); }
-            }));
-        },
-
-		onResult(result, url) {
-			result = JSON.stringify( JSON.parse(result), null, '  ' );
-        	//if(_.isObject(result)) result = _.jsonPretty(result);
-        	//trace(result);
-			showUrlAndMessage(url, 'green', result);
-        },
-
-        onError(err, url) {
-			const errMessage = `<i class='red'><b>${err.statusText}</b> - ${err.responseText}</i>`;
-
-			showUrlAndMessage(url, 'red-lite', errMessage);
-        }
-    }
-  }
-
-  function showResult(msg) {
-	  TweenMax.to($$$.resultsOutput, 0.5, {alpha: 1});
-
-	  $$$.resultsOutput.append(msg + "<br/>");
-  }
-
-  function getShortURL(url) {
-	  return {
-		  url: url,
-		  shortURL: 'http://...' + url.substr(url.indexOf('/', 10))
-	  };
-  }
-
-  function showUrlAndMessage(url, css, msg) {
-	  msg = msg.toString();
-	  trace(msg);
-	  var urlObj = getShortURL(url);
-	  showResult(`<i class="${css}"><b>URL:</b> ${urlObj.shortURL}</i>`);
-	  showResult(msg.replace(url, urlObj.shortURL));
-  }
-
-</script>
-
 <style lang="scss">
 
-  @import '~scss/styles';
-  @import url('https://fonts.googleapis.com/css?family=Ubuntu');
+    @import '~scss/styles';
+    @import url('https://fonts.googleapis.com/css?family=Ubuntu');
 
-  $titleBarBGColor: #996bc9;
-  $titleBarHeight: 50px;
-  $contentBGColor: #c8aac2;
+    $titleBarBGColor: #996bc9;
+    $titleBarHeight: 50px;
+    $contentBGColor: #c8aac2;
 
-  #app {
-    font-family: 'Ubuntu', sans-serif;
-  }
-
-  #titlebar {
-    @include rect();
-
-    height: $titleBarHeight;
-    line-height: $titleBarHeight;
-    padding: 4px 15px;
-    text-shadow: 1px 1px 0px white-alpha(), 0px 0px 16px white-alpha();
-
-    background: grad-5($titleBarBGColor);
-  }
-
-  #content {
-    @include rect();
-    top: $titleBarHeight;
-    padding: 10px;
-    vertical-align: top;
-
-    .panel {
-      vertical-align: top;
-      min-height: 200px;
+    #app {
+        font-family: 'Ubuntu', sans-serif;
     }
 
-    background: grad-3($contentBGColor, 0, 2, 10);
-  }
+    #titlebar {
+        @include rect();
 
-  .results {
-    min-width: 600px;
-    min-height: 100%;
-    position: relative;
+        height: $titleBarHeight;
+        line-height: $titleBarHeight;
+        padding: 4px 15px;
+        text-shadow: 1px 1px 0px white-alpha(), 0px 0px 16px white-alpha();
 
-    .output {
-      //overflow: ;
-      white-space: pre;
-      position: absolute;
-      display: block;
-      @include rect(15px);
-      background: #222;
-      color: #fff;
-      text-shadow: none;
-      padding: 5px;
-      border: solid 1px #000;
+        background: grad-5($titleBarBGColor);
     }
-  }
 
-  .accessKey {
-    margin-top: 10px;
-  }
+    #content {
+        @include rect();
+        top: $titleBarHeight;
+        padding: 10px;
+        vertical-align: top;
 
+        .panel {
+            vertical-align: top;
+        }
+
+        background: grad-3($contentBGColor, 0, 2, 10);
+    }
+
+    .results {
+        //position: fixed;
+        //right: 1px;
+        min-width: 200px;
+
+        .output {
+            overflow: hidden;
+            display: block;
+            background: #222;
+            color: #fff;
+            padding: 5px;
+            margin-top: 5px;
+            border: solid 1px #fff;
+            text-shadow: none;
+
+            .ghost-block, .output-text {
+                vertical-align: top;
+                position: relative;
+                display: inline-block;
+            }
+            .ghost-block {
+                height: 50px;
+                width: 1px;
+            }
+
+            .output-text {
+                white-space: pre;
+            }
+        }
+    }
+
+    .accessKey {
+        margin-top: 10px;
+    }
 </style>

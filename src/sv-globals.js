@@ -58,8 +58,47 @@ _.extend($$$, {
 		return new Date().toString();
 	},
 
-	sendPlainText(res, text) {
-		res.send(text);
+	make: {
+		routeFromModule(routePath, name) {
+			const routeModule = require(routePath);
+			const route = $$$.express.Router();
+			route._name = name;
+
+			routeModule(route);
+
+			return route;
+		}
+	},
+
+	send: {
+		error(res, errMessage, data) {
+			res.status(500).send({
+				dateSent: new Date(),
+				data: data,
+				error: errMessage,
+			});
+			return false;
+		},
+
+		result(res, data) {
+			res.status(200).send({
+				dateSent: new Date(),
+				data: data
+			});
+			return false;
+		},
+
+		empty(res) {
+			this.result(res, {empty:true});
+		},
+
+		plainText(res, text) {
+			res.send(text);
+		},
+
+		notImplemented(res) {
+			this.error(res, 'Not implemented yet: ' + res.req.method);
+		},
 	},
 
 	files: {

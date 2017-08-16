@@ -8,8 +8,8 @@ const request = chaiG.request;
 const assert = chaiG.chai.assert;
 const catcher = chaiG.catcher;
 const sendAPI = chaiG.sendAPI;
-const User = $$$.schemas.User;
 const TestUsers = chaiG.TestUsers;
+const User = $$$.models.User;
 
 describe('=REST= User', () => {
 	it('Get User (first)', done => {
@@ -155,7 +155,7 @@ describe('=REST= User', () => {
 				done();
 			})
 			.catch(catcher(done));
-	})
+	});
 
 	it('Add User (FAIL with same name)', done => {
 		sendAPI('/user', 'post', {
@@ -163,7 +163,7 @@ describe('=REST= User', () => {
 				user: {
 					name: 'Jon',
 					username: 'Jon123',
-					email: 'jon@gmail.com'
+					email: 'old-jon@gmail.com'
 				}
 			}
 		})
@@ -186,16 +186,51 @@ describe('=REST= User', () => {
 					id: 1,
 					name: 'Jon',
 					username: 'Jon123',
-					email: 'jon@gmail.com'
+					email: 'new-jon@gmail.com'
 				}
 			}
 		})
 			.then(data => {
+				assert.notExists(data);
 				done();
 			})
 			.catch(err => {
 				assert.exists(err);
 				done();
 			});
+	});
+
+	it('Add User (FAIL with duplicate)', done => {
+		sendAPI('/user', 'post', {
+			body: {
+				user: {
+					name: 'Jon',
+					username: 'Jon123',
+					email: 'new-jon@gmail.com'
+				}
+			}
+		})
+			.then(data => {
+				assert.notExists(data);
+				done();
+			})
+			.catch(err => {
+				assert.exists(err);
+				done();
+			});
+	});
+
+	it('Get Users (ALL)', done => {
+		sendAPI('/users')
+			.then(data => {
+				//trace(data);
+				// assert.exists(data, 'JSON data exists');
+				// assert.equal(data.length, 3, 'data.length correct?');
+				// assert.equal(data[0].name, 'Pierre', 'Still Pierre');
+				// assert.equal(data[1].name, 'Pierre', 'Still Pierre');
+				// assert.equal(data[2].name, 'Peter', 'Still Peter');
+				done();
+			})
+			.catch(catcher(done));
 	});
 });

@@ -12,9 +12,6 @@ const timeDayMS = 24 * timeHourMS;
 $$$.app.use(bodyParser.urlencoded({ extended: false }));
 $$$.app.use(bodyParser.json());
 $$$.app.set('trust proxy', 1);
-
-const routes = [];
-
 $$$.routes = {};
 
 const http = require('http');
@@ -31,30 +28,22 @@ $$$.files.dirs($$$.paths.__routes, (err, files, names) => {
 	if(err) throw err;
 
 	files.forEach( (fullpath, f) => {
-		const __filename = names[f];
-		const __route = '/'+__filename;
-		const __routeModule = fullpath + '/sv-route.js';
-		const routeModule = require(__routeModule);
-		const route = $$$.express.Router();
-		route.__filename = __filename;
+		const name = names[f];
+		const route = $$$.make.routeFromModule(fullpath + '/sv-route.js', name);
 
-		routeModule(route);
-
-		$$$.app.use(__route, route);
-
-		routes.push(route);
-		$$$.routes[__filename] = route;
+		$$$.app.use('/'+name, route);
+		$$$.routes[name] = route;
 	});
 
 	$$$.emit('routes-ready');
 });
 
 function setTopLevelRoutes() {
-	routes.forEach(route => {
+	_.mapValues($$$.routes, route => {
 		//Apply Page-Not-Found error for unknown routes:
-		route.get('/*', (req, res) => {
-			const ROUTE_NAME = route.__filename.toUpperCase();
-			res.status(404).send(`${ROUTE_NAME}: Unhandled request: ` + req.fullURL);
+		route.use('/*', (req, res) => {
+			const ROUTE_NAME = route._name.toUpperCase();
+			res.status(404).send(`[${ROUTE_NAME}] Unknown request: ` + req.fullURL);
 		});
 	})
 
@@ -84,6 +73,7 @@ function setTopLevelRoutes() {
 }
 
 module.exports = {
-	routes: routes,
+	routes: $$$.routes,
+	numRoutes: () => _.keys($$$.routes).length,
 	setTopLevelRoutes: setTopLevelRoutes
 };

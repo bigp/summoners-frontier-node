@@ -21,7 +21,13 @@ const chaiG = module.exports = {
 			'Authorization': 'sf-dev'.toBase64()
 		};
 
-		return chaiG.request[method](chaiG.__api + urlEnd, options);
+		return chaiG.request[method](chaiG.__api + urlEnd, options)
+			.then(data => {
+				if(data && data.data) {
+					return data.data;
+				}
+				return data;
+			});
 	},
 
 	catcher(done) {
