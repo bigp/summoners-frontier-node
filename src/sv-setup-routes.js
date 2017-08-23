@@ -14,6 +14,9 @@ $$$.app.use(bodyParser.json());
 $$$.app.set('trust proxy', 1);
 $$$.routes = {};
 
+const morganLogger = require("./sv-setup-morgan-logger");
+morganLogger.setupLogger($$$.app);
+
 const http = require('http');
 
 //Add methods to Request objects (Express's built-in type)

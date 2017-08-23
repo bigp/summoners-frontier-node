@@ -26,7 +26,7 @@ function onMongoConnected(err) {
 	$$$.models = {};
 
 	$$$.files.forEachJS($$$.paths.__mongoSchemas, (schemaFile, name) => {
-		name = name.remove('model.').remove('.js');
+		name = name.remove('model-').remove('.js');
 
 		//Finally, let's create our Model, so we can instantiate and use it:
 		const Model = mgHelpers.createModel(schemaFile, name);

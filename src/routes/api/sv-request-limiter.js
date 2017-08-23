@@ -17,7 +17,7 @@ const MODULE = {
 		entry.numRequests = Math.min(CONFIG.cap, entry.numRequests + 1);
 
 		if(entry.numRequests > entry.maxRequest) entry.maxRequest = entry.numRequests;
-		
+
 		if (entry.numRequests > CONFIG.limit) {
 			entry.isLimited = true;
 			return true;

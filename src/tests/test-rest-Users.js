@@ -3,8 +3,6 @@
  */
 const chaiG = require('../sv-chai-globals');
 
-const mongoose = chaiG.mongoose;
-const request = chaiG.request;
 const assert = chaiG.chai.assert;
 const catcher = chaiG.catcher;
 const sendAPI = chaiG.sendAPI;
