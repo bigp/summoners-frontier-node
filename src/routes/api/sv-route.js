@@ -4,7 +4,6 @@
 
 const auth = require('./sv-auth');
 const cors = require('cors');
-const requestLimiter = require('./sv-request-limiter')();
 
 module.exports = function(route) {
 	route.use(cors());
@@ -12,15 +11,6 @@ module.exports = function(route) {
 	PUBLIC_ROUTES();
 
 	route.use('/*', auth.isAuthMiddleware);
-	route.use('/*', (req, res, next) => {
-		if(req.isAdmin) return next();
-
-		if(requestLimiter.isTooMuch(req)) {
-			return auth.ERRORS.REQUEST_LIMIT(res);
-		}
-
-		next();
-	});
 
 	SECURE_ROUTES();
 

@@ -6,7 +6,7 @@ const chaiG = module.exports = {
 	chaiHTTP: require('chai-http'),
 	request: require('request-promise'),
 	mongoose: require('mongoose'),
-	__api: "http://localhost:9000/api",
+	__api: `http://localhost:${$$$.env.PORT}/api`,
 	TestUsers: {},
 
 	sendAPI(urlEnd, method, options) {

@@ -3,6 +3,8 @@
  */
 
 
+const requestLimiter = require('./sv-request-limiter')();
+
 const ERRORS = _.mapValues({
 	NOT_AUTHORIZED() {
 		return "Not Authorized!";
@@ -14,13 +16,11 @@ const ERRORS = _.mapValues({
 		return "Banned User!";
 	},
 	REQUEST_LIMIT(res) {
-		return $$$.send.error(res,"Reached API-Request limit, please wait a while for your next request: " + res.req.ip);
+		return "Reached API-Request limit, please wait a while for your next request: " + res.req.ip;
 	}
-}, cbError => (res) => {
-	res.status(401);
-	if(cbError.length===1) return cbError(res);
-
-	$$$.send.error(res, cbError());
+}, (cbError, name) => {
+	const errorTitle = name.replace(/_/g, ' ');
+	return (res) => $$$.send.errorCustom(res, cbError(res), errorTitle);
 });
 
 function isAuthorized(req) {
@@ -33,19 +33,19 @@ function isAuthorized(req) {
 	const authCode = authSplit[0];
 	const authDate = new Date().toLocaleDateString();
 
-	req.authCodes = authSplit;
+	// To login as Admin, the Authorization must match the AUTH_ADMIN + current date:
+	const auth = req.authInfo = {
+		codes: authSplit,
+		isAdmin: authCode===$$$.env.AUTH_ADMIN && authSplit[1]===authDate,
+		isAuth: authCode===$$$.env.AUTH_CODE,
+	};
 
-	if(authCode===$$$.env.AUTH_ADMIN && authSplit[1]===authDate) {
-		req.isAuth = true;
-		req.isAdmin = true;
-		return true;
-	}
-
-	if(authCode!==$$$.env.AUTH_CODE) {
+	//If not authorized at all, respond error:
+	if(!auth.isAdmin && !auth.isAuth) {
 		return ERRORS.INCORRECT_AUTHCODE;
 	}
 
-	req.isAuth = true;
+	auth.isAuth = true;
 
 	return true;
 }
@@ -54,7 +54,12 @@ module.exports = {
 	ERRORS: ERRORS,
 
 	isAuthMiddleware(req, res, next) {
-		var authOK = isAuthorized(req);
+		const authOK = isAuthorized(req);
+
+		if(!req.authInfo.isAdmin && requestLimiter.isTooMuch(req)) {
+			return ERRORS.REQUEST_LIMIT(res);
+		}
+
 		if(authOK===true) return next();
 
 		authOK(res);

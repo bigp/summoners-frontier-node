@@ -2,6 +2,7 @@
  * Created by Chamberlain on 8/22/2017.
  */
 
+const morganLogger = require($$$.paths.__src + '/sv-setup-morgan-logger');
 const activeRequests = [];
 
 var CONFIG = {limit: 5, cap: 10, isLogged: true};
@@ -20,6 +21,7 @@ const MODULE = {
 
 		if (entry.numRequests > CONFIG.limit) {
 			entry.isLimited = true;
+			morganLogger.error(`Limiting Requests for {IP: ${entry.ip}, Max-Reached: ${entry.maxRequest}}`);
 			return true;
 		}
 
@@ -33,7 +35,7 @@ const MODULE = {
 			if((--entry.numRequests)>0) continue;
 
 			if(CONFIG.isLogged && entry.isLimited) {
-				trace("Released request count on IP: " + entry.ip + " : " + entry.maxRequest);
+				morganLogger.warn(`Released request count on {IP: ${entry.ip}, Max-Reached: ${entry.maxRequest}}`);
 			}
 
 			activeRequests.splice(a, 1);

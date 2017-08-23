@@ -146,7 +146,7 @@ function onMongoConnected(err) {
 				const methodName = req.method + methodSuffix;
 				const method = METHODS[methodName];
 
-				if(!req.isAdmin && badVerbs.has(methodName)) {
+				if(!req.authInfo.isAdmin && badVerbs.has(methodName)) {
 					sendError(res, `"${name}" model does not allow this operation (${methodName})`);
 				}
 

@@ -80,6 +80,11 @@ _.extend($$$, {
 			return false;
 		},
 
+		errorCustom(res, errMessage, errTitle) {
+			res.statusMessage = errTitle;
+			return this.error(res, errMessage);
+		},
+
 		result(res, data) {
 			res.status(200).send({
 				dateSent: new Date(),

@@ -6,6 +6,7 @@ const fs = require('fs');
 const morgan = require('morgan');
 const path = require('path');
 const rfs = require('rotating-file-stream');
+const EOL = require('os').EOL;
 
 function pad(str, width, z, after) {
 	if(str.length >= width) return str;
@@ -16,18 +17,31 @@ function pad(str, width, z, after) {
 	return zzz + str;
 }
 
+function createLog(filename) {
+	return rfs(filename, {
+		size:     '10M',	// rotate every 10 MegaBytes written
+		interval: '1d', 	// rotate daily
+		compress: 'gzip',	// compress rotated files
+		path: $$$.paths.__private + '/logs/'
+	})
+}
+
 const format = ':date[iso]  FROM: :remote-addr  TIME: :padded-time  AUTH: :req[authorization]  URL: :url [:method] :is-error';
 
-module.exports = {
-	morgan: morgan,
-	setupLogger(app) {
-		const stream = rfs('morgan.log', {
-			size:     '10M',	// rotate every 10 MegaBytes written
-			interval: '1d', 	// rotate daily
-			compress: 'gzip',	// compress rotated files
-			path: $$$.paths.__private + '/logs/'
-		});
+const morganStream = createLog('morgan.log');
+const errorStream = createLog('errors.log');
 
+module.exports = {
+	_morgan: morgan,
+	_morganStream: morganStream,
+	_errorStream: errorStream,
+
+	_write(msg) { errorStream.write(msg + EOL); },
+	error(msg) { this._write("ERROR: " + msg); },
+	warn(msg) { this._write("WARN: " + msg); },
+	info(msg) { this._write("INFO: " + msg); },
+
+	setupLogger(app) {
 		morgan.token('padded-time', function(req, res, digits) {
 			if(!digits) digits = 10;
 			const time = this['response-time'](req, res) + ' ms';
@@ -35,15 +49,15 @@ module.exports = {
 		});
 
 		morgan.token('is-error', function(req, res) {
-			if(res.statusCode===200) return ' ';
+			if(res.statusCode<200) return ' ';
 			return `*ERROR* ${res.statusCode} - ${res.statusMessage}`;
 		});
 
 		const skipFunc = _.isTruthy(process.env.MORGAN_ERRORS_ONLY) ?
-							(req, res) => res.statusCode===200 :
+							(req, res) => res.statusCode<400 :
 							null;
 
-		app.use(morgan(format, {stream: stream, skip: skipFunc}));
+		app.use(morgan(format, {stream: morganStream, skip: skipFunc}));
 	}
 };
 

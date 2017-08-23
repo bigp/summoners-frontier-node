@@ -5,7 +5,7 @@
 	const testCases = require('./lib/vue-test-cases');
 
 	$('ready', () => {
-		$$$.resultsOutput = $('.results .output-text')
+		$$$.resultsOutput = $('.results .output-text');
 	});
 
 	function pretty(json) {
