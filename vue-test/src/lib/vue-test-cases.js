@@ -55,16 +55,23 @@ module.exports = function() {
 					url: api + '/user',
 					method: 'post',
 					data: {
-						user: {
-							name: user.name,
-							username: user.username,
-							email: user.email
-						}
+						name: user.name,
+						username: user.username,
+						email: user.email
 					}
 				}
 			},
-			user_what() {
-				return "";
+			user_login() {
+				const user = $$$.app.user;
+				return {
+					url: api + '/user/login',
+					method: 'post',
+					data: {
+						name: user.name,
+						username: user.username,
+						email: user.email
+					}
+				};
 			}
 		}
 	};

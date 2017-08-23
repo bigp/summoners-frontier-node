@@ -13,17 +13,15 @@ describe('=REST= User', () => {
 	it('Test-Post (Hello World test)', done => {
 		sendAPI('/test-post', 'post', {
 			body: {
-				user: {
-					name: 'Jon',
-					username: 'Jon123',
-					email: 'jon@gmail.com'
-				}
+				name: 'Jon',
+				username: 'Jon123',
+				email: 'jon@gmail.com'
 			}
 		})
 			.then(data => {
 				assert.exists(data, 'JSON data exists');
 				assert.exists(data.yourData);
-				assert.equal(data.yourData.user.name, 'Jon', 'Name is correct');
+				assert.equal(data.yourData.name, 'Jon', 'Name is correct');
 				done();
 			})
 			.catch(catcher(done));
@@ -103,11 +101,9 @@ describe('=REST= User', () => {
 	it('Add User', done => {
 		sendAPI('/user', 'post', {
 			body: {
-				user: {
-					name: 'Jon',
-					username: 'Jon123',
-					email: 'jon@gmail.com'
-				}
+				name: 'Jon',
+				username: 'Jon123',
+				email: 'jon@gmail.com'
 			}
 		})
 			.then(data => {
@@ -158,11 +154,7 @@ describe('=REST= User', () => {
 
 	it("Update User (TestUsers.pierre's email)", done => {
 		sendAPI('/user?id=' + TestUsers.pierre.id, 'put', {
-			body: {
-				user: {
-					email: "changed@gmail.com"
-				}
-			}
+			body: {email: "changed@gmail.com"}
 		})
 			.then(data => {
 				assert.exists(data);
@@ -177,11 +169,9 @@ describe('=REST= User', () => {
 	it('Add User (FAIL with same name)', done => {
 		sendAPI('/user', 'post', {
 			body: {
-				user: {
-					name: 'Jon',
-					username: 'Jon123',
-					email: 'old-jon@gmail.com'
-				}
+				name: 'Jon',
+				username: 'Jon123',
+				email: 'old-jon@gmail.com'
 			}
 		})
 			.then(data => {
@@ -199,12 +189,10 @@ describe('=REST= User', () => {
 	it('Add User (FAIL with id)', done => {
 		sendAPI('/user', 'post', {
 			body: {
-				user: {
-					id: 1,
-					name: 'Jon',
-					username: 'Jon123',
-					email: 'new-jon@gmail.com'
-				}
+				id: 1,
+				name: 'Jon',
+				username: 'Jon123',
+				email: 'new-jon@gmail.com'
 			}
 		})
 			.then(data => {
@@ -221,11 +209,9 @@ describe('=REST= User', () => {
 	it('Add User (FAIL with duplicate)', done => {
 		sendAPI('/user', 'post', {
 			body: {
-				user: {
-					name: 'Jon',
-					username: 'Jon123',
-					email: 'new-jon@gmail.com'
-				}
+				name: 'Jon',
+				username: 'Jon123',
+				email: 'new-jon@gmail.com'
 			}
 		})
 			.then(data => {
@@ -255,11 +241,9 @@ describe('=REST= User', () => {
 	it('Add User (non-admin)', done => {
 		sendAPI('/user/add', 'post', {
 			body: {
-				user: {
-					name: 'Jon (non-admin)',
-					username: 'Jon-non-admin',
-					email: 'new-jon@gmail.com'
-				}
+				name: 'Jon (non-admin)',
+				username: 'Jon-non-admin',
+				email: 'new-jon@gmail.com'
 			}
 		})
 			.then(data => {

@@ -19,16 +19,27 @@ module.exports = function(mongoose) {
 
 				const methodUserAdd = Model.httpVerbs['POST_ONE'];
 				methodUserAdd(req, res, next, opts);
+			},
+
+			login(Model, req, res, next, opts) {
+				trace(opts);
+				$$$.send.result(res, "OK");
 			}
 		},
+
+		///////////////////////////////////////////////////////////
+
 		schema: {
 			name: CustomTypes.String128({required:true}),
 			username: CustomTypes.String128({required:true, unique: 'Already have a user with this username ({VALUE})'}),
 			email: CustomTypes.String256({required:true, unique: 'Already have a user with this email ({VALUE})'}),
-			timestamps: {
-				loginLast: CustomTypes.DateRequired(),
-				loginNow: CustomTypes.DateRequired(),
-				created: CustomTypes.DateRequired()
+			dateCreated: CustomTypes.DateRequired(),
+
+			login: {
+				dateLastAuth: CustomTypes.DateRequired(),
+				dateNowAuth: CustomTypes.DateRequired(),
+				datePing: CustomTypes.DateRequired(),
+				token: CustomTypes.String128()
 			}
 		}
 	};

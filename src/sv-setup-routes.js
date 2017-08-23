@@ -67,10 +67,6 @@ function setTopLevelRoutes() {
 	$$$.server.listen($$$.env.PORT, function (err) {
 		if (err) throw err;
 
-		if(!$$$.has('server-started')) {
-			return trace('No "ready" listeners set.'.red);
-		}
-
 		$$$.emit('server-started');
 	});
 }

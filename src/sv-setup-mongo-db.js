@@ -167,7 +167,7 @@ function onMongoConnected(err) {
 		}
 
 		function makeOptionsObj(req, options) {
-			return _.extend({data: req.body[Model._name]}, options);
+			return _.extend({data: req.body}, options);
 		}
 
 		function sendFilteredResult(res, data) {

@@ -19,6 +19,6 @@ paths.__tests = paths.__dir + '/src/tests';
 paths.__vue = paths.__dir + '/vue-test';
 paths.__vueDist = paths.__dir + '/vue-test/dist';
 paths.__vueIndex = paths.__dir + '/vue-test/index.html';
-paths.__mongoSchemas = paths.__dir + '/src/mongo-schemas';
+paths.__mongoSchemas = paths.__dir + '/src/models';
 
 module.exports = paths;

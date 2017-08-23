@@ -25,18 +25,18 @@
 		}));
     }
 
-
+    //////////////////////////// TEST!!!!!!!!!!!!!!!!!!!!!!
 	setTimeout(() => {
 		trace($$$.app.testCases);
-		$$$.app.doTest($$$.app.testCases.SECURE.user);
-		$$$.app.doTest($$$.app.testCases.SECURE.user);
-		$$$.app.doTest($$$.app.testCases.SECURE.user);
-		$$$.app.doTest($$$.app.testCases.SECURE.user);
-		$$$.app.doTest($$$.app.testCases.SECURE.user);
-		$$$.app.doTest($$$.app.testCases.SECURE.user);
-		$$$.app.doTest($$$.app.testCases.SECURE.user);
+		$$$.app.doTest($$$.app.testCases.SECURE.user_login);
+//		$$$.app.doTest($$$.app.testCases.SECURE.user);
+//		$$$.app.doTest($$$.app.testCases.SECURE.user);
+//		$$$.app.doTest($$$.app.testCases.SECURE.user);
+//		$$$.app.doTest($$$.app.testCases.SECURE.user);
+//		$$$.app.doTest($$$.app.testCases.SECURE.user);
+//		$$$.app.doTest($$$.app.testCases.SECURE.user);
 	}, 250);
-
+	//////////////////////////// TEST!!!!!!!!!!!!!!!!!!!!!!
 
 	export default {
 		name: 'app',
