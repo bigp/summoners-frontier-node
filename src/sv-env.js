@@ -13,6 +13,7 @@ module.exports = function (privatePath) {
 		return _NODE_ENV===isEnv;
 	}
 
+	//Expose a "INI_ONLY" field to make it shareable on Vue-based / Webpack Configuration files:
 	process.env = _.extend(env, _ENV, {INI_ONLY: iniJSON});
 
 	const iniProxy = new Proxy(env, {

@@ -7,11 +7,16 @@ const sendError = $$$.send.error;
 const sendResult = $$$.send.result;
 const sendNotImplemented = $$$.send.notImplemented;
 const sendEmpty = $$$.send.empty;
+const MONGO_ENV = $$$.env.MONGO_ENV;
+const CONFIG = $$$.env.PRIVATE[MONGO_ENV];
+trace(CONFIG);
 
 module.exports = mongoSetup;
 
 function mongoSetup() {
-	const conn = mongoose.connect('mongodb://localhost:27017/sf-dev-test', onMongoConnected);
+	const mongoURL = `mongodb://${CONFIG.USER}:${CONFIG.PASS}@localhost:${CONFIG.PORT}/${CONFIG.DB}?authSource=${CONFIG.DB_ADMIN}`;
+	trace("Connect to Mongo using ENV: " + MONGO_ENV);
+	const conn = mongoose.connect(mongoURL, onMongoConnected);
 
 	mgHelpers.plugins.autoIncrement.initialize(conn);
 }
