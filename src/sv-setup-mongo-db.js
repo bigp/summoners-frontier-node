@@ -16,6 +16,10 @@ function mongoSetup() {
 	mgHelpers.plugins.autoIncrement.initialize(conn);
 }
 
+function filterMongoPrivateData(data) {
+	return _.omit(data._doc || data.result, ['_id', '__v']);
+}
+
 function onMongoConnected(err) {
 	if(err) throw err;
 
@@ -28,7 +32,7 @@ function onMongoConnected(err) {
 		const Model = mgHelpers.createModel(schemaFile, name);
 		$$$.models[Model._nameTitled] = Model;
 
-		const METHODS = {
+		const METHODS = Model.httpVerbs = {
 			////////////////////////////////////////////////// ONE:
 
 			GET_ONE(req, res, next, options) {
@@ -38,7 +42,7 @@ function onMongoConnected(err) {
 				mgHelpers.getSorted(options, Model.findOne(q)).exec()
 					.then(data => {
 						if (!data) return sendEmpty(res);
-						sendResult(res, data);
+						sendFilteredResult(res, data);
 					})
 					.catch(err => {
 						sendError(res, 'User not found.', q);
@@ -75,7 +79,7 @@ function onMongoConnected(err) {
 						return newUser.save();
 					})
 					.then(data => {
-						sendResult(res, data);
+						sendFilteredResult(res, data);
 					})
 					.catch(err => {
 						if(!err) return;
@@ -94,7 +98,7 @@ function onMongoConnected(err) {
 					if(err || data.n===0) {
 						return sendError(res, `Could not update ${name} in database, verify query: ` + _.jsonPretty(q));
 					}
-					sendResult(res, data);
+					sendFilteredResult(res, data);
 				});
 			},
 
@@ -103,7 +107,7 @@ function onMongoConnected(err) {
 				if(!q) return;
 
 				Model.remove(q).exec()
-					.then(data => sendResult(res, data))
+					.then(data => sendFilteredResult(res, data))
 					.catch(err => {
 						sendError(res, `Could not remove ${name} with supplied queries: ` + _.keys(q));
 					});
@@ -116,7 +120,7 @@ function onMongoConnected(err) {
 				if(!q) return;
 
 				mgHelpers.getSorted(options, Model.find(q)).exec()
-					.then(data => sendResult(res, data))
+					.then(data => sendFilteredResult(res, data))
 					.catch(err => {
 						sendError(res, `Could not get many ${name} with supplied queries: ` + _.keys(q));
 					});
@@ -135,26 +139,58 @@ function onMongoConnected(err) {
 			},
 		};
 
-		function modelRouter(methodForm, options) {
+		function modelRouter(methodSuffix, options) {
 			if(!options) options = {};
 
 			return (req, res, next) => {
-				const methodName = req.method + methodForm;
+				const methodName = req.method + methodSuffix;
 				const method = METHODS[methodName];
+
+				if(!req.isAdmin && badVerbs.has(methodName)) {
+					sendError(res, `"${name}" model does not allow this operation (${methodName})`);
+				}
+
 				if(!method) {
 					traceError("Oh no, bad method? " + methodName);
 					return next();
 				}
 
-				const opts = _.extend({data: req.body[Model._name]}, options);
+				const opts = makeOptionsObj(req, options);
 
 				method(req, res, next, opts);
 			}
 		}
 
+		function makeOptionsObj(req, options) {
+			return _.extend({data: req.body[Model._name]}, options);
+		}
+
+		function sendFilteredResult(res, data) {
+			var filteredData;
+			if(_.isArray(data)) {
+				filteredData = data.map(filterMongoPrivateData);
+			} else {
+				filteredData = filterMongoPrivateData(data);
+			}
+			sendResult(res, filteredData);
+		}
+
 		// Add the singular & plural form of the router
 		// They each do something different for each HTTP VERB types
 		const api = $$$.routes.api;
+		const badVerbs = Model._def.blacklistVerbs || [];
+		const customRoutes = Model._def.customRoutes || {};
+
+		_.keys(customRoutes).forEach(routeName => {
+			const __customRoute = Model.__route + "/" + routeName;
+			const customRoute = customRoutes[routeName];
+
+			api.use(__customRoute, (req, res, next) => {
+				const opts = makeOptionsObj(req);
+				customRoute(Model, req, res, next, opts);
+			});
+		});
+
 		api.use(Model.__route + "$", modelRouter('_ONE'));
 		api.use(Model.__route + "/last", modelRouter('_ONE', {reverse:1}) );
 		api.use(Model.__routes + "$", modelRouter('_MANY'));

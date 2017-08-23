@@ -2,7 +2,7 @@
 	import TestButton from './components/TestButton.vue'
 	import Panel from './components/Panel.vue'
 
-	const testCases = require('./lib/test-cases');
+	const testCases = require('./lib/vue-test-cases');
 
 	$('ready', () => {
 		$$$.resultsOutput = $('.results .output-text')
@@ -28,7 +28,13 @@
 
 	setTimeout(() => {
 		trace($$$.app.testCases);
-		$$$.app.doTest($$$.app.testCases.SECURE.users);
+		$$$.app.doTest($$$.app.testCases.SECURE.user);
+		$$$.app.doTest($$$.app.testCases.SECURE.user);
+		$$$.app.doTest($$$.app.testCases.SECURE.user);
+		$$$.app.doTest($$$.app.testCases.SECURE.user);
+		$$$.app.doTest($$$.app.testCases.SECURE.user);
+		$$$.app.doTest($$$.app.testCases.SECURE.user);
+		$$$.app.doTest($$$.app.testCases.SECURE.user);
 	}, 250);
 
 
@@ -38,7 +44,7 @@
 		data () {
 			return {
 				authCode: 'sf-dev',
-				userID: '',
+				user: {},
 				title: 'SF-DEV Console'
 			}
 		},
@@ -123,14 +129,28 @@
         <br/>
         <label>
           Authorization Code<br/>
-          <input type="input" v-model="authCode"></input>
-        </label>
+          <input type="input" v-model="authCode">
+        </label><br/>
 
-        <br/>
         <label>
-          User ID<br/>
-          <input type="input" v-model="userID"></input>
-        </label>
+          ID<br/>
+          <input type="input" v-model="user.id">
+        </label><br/>
+
+        <label>
+          Name<br/>
+          <input type="input" v-model="user.name">
+        </label><br/>
+
+        <label>
+          Username<br/>
+          <input type="input" v-model="user.username">
+        </label><br/>
+
+        <label>
+          Email<br/>
+          <input type="input" v-model="user.email">
+        </label><br/>
 
         <div v-for="(access, accessKey) in testCases">
           <center><h4 class="accessKey">- {{accessKey}} -</h4></center>

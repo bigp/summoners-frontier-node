@@ -10,6 +10,17 @@ module.exports = function(mongoose) {
 		plural: 'users',
 		methods: {},
 		whitelist: ['name', 'email', 'username'],
+		blacklistVerbs: ["GET_MANY", "POST_ONE", "POST_MANY", "DELETE_ONE", "DELETE_MANY"],
+		customRoutes: {
+			add(Model, req, res, next, opts) {
+				if(req.method!=='POST') {
+					return $$$.send.error(res, "Can only use /add/user/ with 'POST' HTTP Verb.");
+				}
+
+				const methodUserAdd = Model.httpVerbs['POST_ONE'];
+				methodUserAdd(req, res, next, opts);
+			}
+		},
 		schema: {
 			name: CustomTypes.String128({required:true}),
 			username: CustomTypes.String128({required:true, unique: 'Already have a user with this username ({VALUE})'}),

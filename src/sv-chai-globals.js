@@ -18,7 +18,7 @@ const chaiG = module.exports = {
 		if(!options) options = {};
 		options.json = true;
 		options.headers = {
-			'Authorization': 'sf-dev'.toBase64()
+			'Authorization': ('sf-admin::'+new Date().toLocaleDateString()).toBase64()
 		};
 
 		return chaiG.request[method](chaiG.__api + urlEnd, options)

@@ -14,6 +14,7 @@ $$$.on('ready', () => {
 		].join(' ')
 	);
 
+	//If our TEST flag is enabled, then continue with the CHAI test suite:
 	if(_.isTruthy($$$.env.TEST)) {
 		const chaiTests = require('./src/sv-setup-chai-tests');
 	}

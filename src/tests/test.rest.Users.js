@@ -12,6 +12,25 @@ const TestUsers = chaiG.TestUsers;
 const User = $$$.models.User;
 
 describe('=REST= User', () => {
+	it('Test-Post (Hello World test)', done => {
+		sendAPI('/test-post', 'post', {
+			body: {
+				user: {
+					name: 'Jon',
+					username: 'Jon123',
+					email: 'jon@gmail.com'
+				}
+			}
+		})
+			.then(data => {
+				assert.exists(data, 'JSON data exists');
+				assert.exists(data.yourData);
+				assert.equal(data.yourData.user.name, 'Jon', 'Name is correct');
+				done();
+			})
+			.catch(catcher(done));
+	});
+
 	it('Get User (first)', done => {
 		sendAPI('/user')
 			.then(data => {
@@ -196,6 +215,7 @@ describe('=REST= User', () => {
 			})
 			.catch(err => {
 				assert.exists(err);
+				assert.equal(err.message.has('illegal'), true, 'Contains the word "illegal".');
 				done();
 			});
 	});
@@ -232,5 +252,27 @@ describe('=REST= User', () => {
 				done();
 			})
 			.catch(catcher(done));
+	});
+
+	it('Add User (non-admin)', done => {
+		sendAPI('/user/add', 'post', {
+			body: {
+				user: {
+					name: 'Jon (non-admin)',
+					username: 'Jon-non-admin',
+					email: 'new-jon@gmail.com'
+				}
+			}
+		})
+			.then(data => {
+				assert.exists(data);
+				done();
+			})
+			.catch(err => {
+				//assert.notExists(err);
+				//trace("err");
+				//trace(err);
+				done(err);
+			});
 	});
 });

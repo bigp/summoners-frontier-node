@@ -2,6 +2,7 @@
  * Created by Chamberlain on 8/10/2017.
  */
 
+
 const ERRORS = _.mapValues({
 	NOT_AUTHORIZED() {
 		return "Not Authorized!";
@@ -11,6 +12,9 @@ const ERRORS = _.mapValues({
 	},
 	BANNED() {
 		return "Banned User!";
+	},
+	REQUEST_LIMIT(res) {
+		return $$$.send.error(res,"Reached API-Request limit, please wait a while for your next request: " + res.req.ip);
 	}
 }, cbError => (res) => {
 	res.status(401);
@@ -24,11 +28,24 @@ function isAuthorized(req) {
 	if(!authCode64 || authCode64.trim().length===0) return ERRORS.NOT_AUTHORIZED;
 
 	//Check if the player is authorized...
-	const authCode = authCode64.fromBase64();
+	const authCodeStr = authCode64.fromBase64();
+	const authSplit = authCodeStr.split("::");
+	const authCode = authSplit[0];
+	const authDate = new Date().toLocaleDateString();
+
+	req.authCodes = authSplit;
+
+	if(authCode===$$$.env.AUTH_ADMIN && authSplit[1]===authDate) {
+		req.isAuth = true;
+		req.isAdmin = true;
+		return true;
+	}
 
 	if(authCode!==$$$.env.AUTH_CODE) {
 		return ERRORS.INCORRECT_AUTHCODE;
 	}
+
+	req.isAuth = true;
 
 	return true;
 }
