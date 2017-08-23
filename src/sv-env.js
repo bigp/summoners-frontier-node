@@ -1,8 +1,11 @@
-module.exports = function (paths) {
-	const dotenv = require('dotenv').config({path: paths.__private + '/env.ini'});
-	const fs = require('fs-extra');
+const ini = require('ini');
+const fs = require('fs');
+const _ = global._ = require('lodash');
 
-	const _ENV = process.env;
+module.exports = function (privatePath) {
+	const iniContent = fs.readFileSync(privatePath, 'utf-8');
+	const iniJSON = ini.parse(iniContent);
+	const _ENV = _.extend({}, {PORT: 9000}, iniJSON, process.env);
 	const _NODE_ENV = _ENV.NODE_ENV || 'dev';
 
 	function env(isEnv) {
@@ -10,7 +13,16 @@ module.exports = function (paths) {
 		return _NODE_ENV===isEnv;
 	}
 
-	_.extend(env, {PORT: 9000}, _ENV);
+	process.env = _.extend(env, _ENV, {INI_ONLY: iniJSON});
 
-	return env;
+	const iniProxy = new Proxy(env, {
+		get(target, name, receiver) {
+			if(target[name]==null && typeof(name)!=='symbol' && name!=='inspect') { //&& name!=='length'
+				throw new Error(`Unknown property accessed in INI data "${name}"`);
+			}
+			return target[name];
+		}
+	});
+
+	return iniProxy;
 };

@@ -47,7 +47,7 @@ _.extend(String.prototype,  {
 const $$$ = global.$$$ = new events();
 
 _.extend($$$, {
-	env: require('./sv-env')(paths),
+	env: require('./sv-env')(paths.__private + '/env.ini'),
 	express: express,
 	app: app,
 	fs: fs,

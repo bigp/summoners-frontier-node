@@ -1,5 +1,6 @@
-var path = require('path')
-var webpack = require('webpack')
+const path = require('path');
+const webpack = require('webpack');
+const env = require('../src/sv-env')('../.private/env.ini');
 
 module.exports = {
   entry: './src/main.js',
@@ -66,13 +67,23 @@ module.exports = {
   performance: {
     hints: false
   },
-  devtool: '#eval-source-map'
+  devtool: '#eval-source-map',
+};
+
+function addPlugins(plugins) {
+	module.exports.plugins = (module.exports.plugins || []).concat(plugins);
 }
+
+addPlugins([
+	new webpack.DefinePlugin({
+		ENV: _.omit(env.INI_ONLY, ['PRIVATE'])
+	})
+])
 
 if (process.env.NODE_ENV === 'production') {
   module.exports.devtool = '#source-map'
   // http://vue-loader.vuejs.org/en/workflow/production.html
-  module.exports.plugins = (module.exports.plugins || []).concat([
+	addPlugins([
     new webpack.DefinePlugin({
       'process.env': {
         NODE_ENV: '"production"'
@@ -87,5 +98,5 @@ if (process.env.NODE_ENV === 'production') {
     new webpack.LoaderOptionsPlugin({
       minimize: true
     })
-  ])
+  ]);
 }

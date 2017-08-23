@@ -53,7 +53,7 @@ module.exports = {
 			return `*ERROR* ${res.statusCode} - ${res.statusMessage}`;
 		});
 
-		const skipFunc = _.isTruthy(process.env.MORGAN_ERRORS_ONLY) ?
+		const skipFunc = _.isTruthy($$$.env.MORGAN_ERRORS_ONLY) ?
 							(req, res) => res.statusCode<400 :
 							null;
 

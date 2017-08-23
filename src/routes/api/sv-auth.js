@@ -4,6 +4,7 @@
 
 
 const requestLimiter = require('./sv-request-limiter')();
+const PRIVATE = $$$.env.PRIVATE;
 
 const ERRORS = _.mapValues({
 	NOT_AUTHORIZED() {
@@ -36,8 +37,8 @@ function isAuthorized(req) {
 	// To login as Admin, the Authorization must match the AUTH_ADMIN + current date:
 	const auth = req.authInfo = {
 		codes: authSplit,
-		isAdmin: authCode===$$$.env.AUTH_ADMIN && authSplit[1]===authDate,
-		isAuth: authCode===$$$.env.AUTH_CODE,
+		isAdmin: authCode===PRIVATE.AUTH_ADMIN && authSplit[1]===authDate,
+		isAuth: authCode===PRIVATE.AUTH_CODE,
 	};
 
 	//If not authorized at all, respond error:
