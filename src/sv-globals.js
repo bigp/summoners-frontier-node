@@ -11,6 +11,7 @@ traceClear();
 const fs = require('fs-extra');
 const express = require('express');
 const app = express();
+const crypto = require('crypto');
 
 global.wait = function(cb) {
 	process.nextTick(cb);
@@ -56,6 +57,10 @@ _.extend($$$, {
 
 	now() {
 		return new Date().toString();
+	},
+
+	md5(data) {
+		return crypto.createHash('md5').update(data).digest("hex");
 	},
 
 	make: {

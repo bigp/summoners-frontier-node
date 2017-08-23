@@ -43,7 +43,7 @@ describe('=MONGO= Users', () => {
 	});
 
 	it('Create "Pierre"', done => {
-		const Pierre = new User({ name: "Pierre", email: "chamberlainpi@gmail.com", username: "pierre" });
+		const Pierre = new User({ name: "Pierre", email: "chamberlainpi@gmail.com", username: "pierre", _password: 'pi3rr3' });
 
 		Pierre.save( (err, data) => {
 			if(err) throw err;
@@ -59,7 +59,7 @@ describe('=MONGO= Users', () => {
 	});
 
 	it('Create 2nd "Pierre"', done => {
-		const Pierre = new User({ name: "Pierre", email: "pierre2@gmail.com", username: "pierre" });
+		const Pierre = new User({ name: "Pierre", email: "pierre2@gmail.com", username: "pierre", _password: 'pi3rr3' });
 
 		Pierre.save( (err, data) => {
 			if(err) throw err;
@@ -72,7 +72,7 @@ describe('=MONGO= Users', () => {
 	});
 
 	it('Create "Peter"', done => {
-		const Peter = new User({ name: "Peter", email: "peter@gmail.com", username: "peter" });
+		const Peter = new User({ name: "Peter", email: "peter@gmail.com", username: "peter", _password: 'pi3rr3' });
 
 		Peter.save( (err, data) => {
 			if(err) throw err;

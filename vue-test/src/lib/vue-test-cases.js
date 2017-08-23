@@ -20,9 +20,9 @@ module.exports = function() {
 			'not-found'() {
 				return api + '/not-found';
 			},
-			'test-post'() {
+			'test-echo'() {
 				return {
-					url: api + '/test-post',
+					url: api + '/test-echo',
 					method: 'post',
 					data: {
 						test: {

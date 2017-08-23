@@ -21,9 +21,7 @@ function mongoSetup() {
 	mgHelpers.plugins.autoIncrement.initialize(conn);
 }
 
-function filterMongoPrivateData(data) {
-	return _.omit(data._doc || data.result, ['_id', '__v']);
-}
+
 
 function onMongoConnected(err) {
 	if(err) throw err;
@@ -35,6 +33,7 @@ function onMongoConnected(err) {
 
 		//Finally, let's create our Model, so we can instantiate and use it:
 		const Model = mgHelpers.createModel(schemaFile, name);
+
 		$$$.models[Model._nameTitled] = Model;
 
 		const METHODS = Model.httpVerbs = {
@@ -47,20 +46,20 @@ function onMongoConnected(err) {
 				mgHelpers.getSorted(options, Model.findOne(q)).exec()
 					.then(data => {
 						if (!data) return sendEmpty(res);
-						sendFilteredResult(res, data);
+						mgHelpers.sendFilteredResult(res, data);
 					})
 					.catch(err => {
-						sendError(res, 'User not found.', q);
+						sendError(res, `'${Model._nameTitled}' not found.`, q);
 					});
 			},
 
 			POST_ONE(req, res, next, options) {
 				const illegalData = mgHelpers.getIllegals(options);
 				if(illegalData.length) {
-					return sendError(res, `Used illegal field(s) while adding to ${name}`, illegalData);
+					return sendError(res, `Used illegal field(s) while adding to '${Model._nameTitled}'`, illegalData);
 				}
 
-				const uniqueOr = mgHelpers.getORsQuery(options, Model._uniques);
+				const uniqueOr = mgHelpers.getORsQuery(options.data, Model._uniques);
 
 				if(!uniqueOr.$or.length) {
 					return sendError(res, 'Missing required fields.', options.data);
@@ -84,11 +83,11 @@ function onMongoConnected(err) {
 						return newUser.save();
 					})
 					.then(data => {
-						sendFilteredResult(res, data);
+						mgHelpers.sendFilteredResult(res, data);
 					})
 					.catch(err => {
 						if(!err) return;
-						sendError(res, `Could not add "${name}" in database. ` + err.message);
+						sendError(res, `Could not add '${Model._nameTitled}' in database. ` + err.message);
 						//trace(err);
 					});
 			},
@@ -101,9 +100,9 @@ function onMongoConnected(err) {
 
 				Model.findOneAndUpdate(q, {$set: options.data}, options, (err, data) => {
 					if(err || data.n===0) {
-						return sendError(res, `Could not update ${name} in database, verify query: ` + _.jsonPretty(q));
+						return sendError(res, `Could not update '${Model._nameTitled}' in database, verify query: ` + _.jsonPretty(q));
 					}
-					sendFilteredResult(res, data);
+					mgHelpers.sendFilteredResult(res, data);
 				});
 			},
 
@@ -112,9 +111,9 @@ function onMongoConnected(err) {
 				if(!q) return;
 
 				Model.remove(q).exec()
-					.then(data => sendFilteredResult(res, data))
+					.then(data => mgHelpers.sendFilteredResult(res, data))
 					.catch(err => {
-						sendError(res, `Could not remove ${name} with supplied queries: ` + _.keys(q));
+						sendError(res, `Could not remove '${Model._nameTitled}' with supplied queries: ` + _.keys(q));
 					});
 			},
 
@@ -125,9 +124,9 @@ function onMongoConnected(err) {
 				if(!q) return;
 
 				mgHelpers.getSorted(options, Model.find(q)).exec()
-					.then(data => sendFilteredResult(res, data))
+					.then(data => mgHelpers.sendFilteredResult(res, data))
 					.catch(err => {
-						sendError(res, `Could not get many ${name} with supplied queries: ` + _.keys(q));
+						sendError(res, `Could not get many '${Model._nameTitled}' with supplied queries: ` + _.keys(q));
 					});
 			},
 
@@ -152,12 +151,11 @@ function onMongoConnected(err) {
 				const method = METHODS[methodName];
 
 				if(!req.authInfo.isAdmin && badVerbs.has(methodName)) {
-					sendError(res, `"${name}" model does not allow this operation (${methodName})`);
+					return sendError(res, `'${name}' model does not allow this operation (${methodName})`);
 				}
 
 				if(!method) {
-					traceError("Oh no, bad method? " + methodName);
-					return next();
+					return sendError(res, "Oh no, bad method? " + methodName);
 				}
 
 				const opts = makeOptionsObj(req, options);
@@ -167,17 +165,7 @@ function onMongoConnected(err) {
 		}
 
 		function makeOptionsObj(req, options) {
-			return _.extend({data: req.body}, options);
-		}
-
-		function sendFilteredResult(res, data) {
-			var filteredData;
-			if(_.isArray(data)) {
-				filteredData = data.map(filterMongoPrivateData);
-			} else {
-				filteredData = filterMongoPrivateData(data);
-			}
-			sendResult(res, filteredData);
+			return _.extend({data: req.body}, options || {});
 		}
 
 		// Add the singular & plural form of the router
@@ -201,7 +189,7 @@ function onMongoConnected(err) {
 		api.use(Model.__routes + "$", modelRouter('_MANY'));
 		api.use(Model.__routes + '/count', (req, res, next) => {
 			Model.count((err, count) => {
-				if(err) return sendError(res, `Could not count model "${name}":\n`+err.message);
+				if(err) return sendError(res, `Could not count model '${Model._nameTitled}':\n`+err.message);
 				sendResult(res, {count: count});
 			})
 		});

@@ -29,6 +29,11 @@
   bottom: $pad;
 }
 
+@mixin colorWithLiteBold($clr, $boost: 3) {
+  color: $clr;
+  b { color:$clr + #111 * $boost; }
+}
+
 @function grad-2($clr, $a: -1, $b: 5) {
   @return linear-gradient(
                   $clr + #111 * $a,
@@ -51,10 +56,10 @@
           $clr + #111 * $e);
 }
 
-.red { color: #f00; }
-.red-lite { color: #f88; }
-.purple { color: #9a6fff; }
-.green { color: #0f0; }
+.red { @include colorWithLiteBold( #f00, -5 ); }
+.red-lite { @include colorWithLiteBold( #f88, -3 ); }
+.purple { @include colorWithLiteBold( #9a6fff, -4 ); }
+.green { @include colorWithLiteBold( #0f0, -4 ); }
 
 .letter-spaced {
   letter-spacing: 0.05em;

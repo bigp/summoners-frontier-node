@@ -11,17 +11,18 @@ const User = $$$.models.User;
 
 describe('=REST= User', () => {
 	it('Test-Post (Hello World test)', done => {
-		sendAPI('/test-post', 'post', {
+		sendAPI('/test-echo', 'post', {
 			body: {
 				name: 'Jon',
 				username: 'Jon123',
-				email: 'jon@gmail.com'
+				email: 'jon@gmail.com',
+				_password: 'pi3rr3',
 			}
 		})
 			.then(data => {
 				assert.exists(data, 'JSON data exists');
-				assert.exists(data.yourData);
-				assert.equal(data.yourData.name, 'Jon', 'Name is correct');
+				assert.exists(data.echo);
+				assert.equal(data.echo.name, 'Jon', 'Name is correct');
 				done();
 			})
 			.catch(catcher(done));
@@ -103,7 +104,8 @@ describe('=REST= User', () => {
 			body: {
 				name: 'Jon',
 				username: 'Jon123',
-				email: 'jon@gmail.com'
+				email: 'jon@gmail.com',
+				_password: 'pi3rr3',
 			}
 		})
 			.then(data => {
@@ -171,7 +173,8 @@ describe('=REST= User', () => {
 			body: {
 				name: 'Jon',
 				username: 'Jon123',
-				email: 'old-jon@gmail.com'
+				email: 'old-jon@gmail.com',
+				_password: 'pi3rr3',
 			}
 		})
 			.then(data => {
@@ -192,7 +195,8 @@ describe('=REST= User', () => {
 				id: 1,
 				name: 'Jon',
 				username: 'Jon123',
-				email: 'new-jon@gmail.com'
+				email: 'new-jon@gmail.com',
+				_password: 'pi3rr3',
 			}
 		})
 			.then(data => {
@@ -211,7 +215,8 @@ describe('=REST= User', () => {
 			body: {
 				name: 'Jon',
 				username: 'Jon123',
-				email: 'new-jon@gmail.com'
+				email: 'new-jon@gmail.com',
+				_password: 'pi3rr3',
 			}
 		})
 			.then(data => {
@@ -243,7 +248,8 @@ describe('=REST= User', () => {
 			body: {
 				name: 'Jon (non-admin)',
 				username: 'Jon-non-admin',
-				email: 'new-jon@gmail.com'
+				email: 'new-jon@gmail.com',
+				password: 'pi3rr3',
 			}
 		})
 			.then(data => {
@@ -251,10 +257,33 @@ describe('=REST= User', () => {
 				done();
 			})
 			.catch(err => {
-				//assert.notExists(err);
-				//trace("err");
-				//trace(err);
 				done(err);
 			});
+	});
+
+	it('Login User (1s later)', done => {
+		setTimeout(
+			() => {
+				sendAPI('/user/login', 'post', {
+					body: {
+						username: 'Jon-non-admin',
+						email: 'new-jon@gmail.com',
+						_password: $$$.md5('pi3rr3'),
+					}
+				})
+					.then(data => {
+						trace(data);
+						assert.exists(data);
+						done();
+					})
+					.catch(err => {
+						//assert.notExists(err);
+						//trace("err");
+						//trace(err);
+						done(err);
+					});
+			}, 1000
+		)
+
 	});
 });

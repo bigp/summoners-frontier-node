@@ -33,8 +33,8 @@ module.exports = function(route) {
 	}
 
 	function SECURE_ROUTES() {
-		route.use('/test-post', (req, res) => {
-			res.send({test:1, yourData: req.body});
+		route.use('/test-echo', (req, res) => {
+			res.send({test:1, echo: req.body});
 		});
 
 		// authorizedRoute.get('/users', (req, res, next) => {

@@ -13,7 +13,7 @@
     }
 
 	function sendAjax(urlObj, callbacks) {
-		$.ajax(_.merge(urlObj, callbacks, {
+		const request = _.merge(urlObj, callbacks, {
 			contentType: "application/json; charset=utf-8",
 			dataType   : "json",
 			beforeSend(xhr) {
@@ -22,7 +22,11 @@
 				const code = btoa($$$.app.authCode);
 				xhr.setRequestHeader('Authorization', code);
 			}
-		}));
+		});
+
+		trace(request);
+
+		$.ajax(request);
     }
 
     //////////////////////////// TEST!!!!!!!!!!!!!!!!!!!!!!
@@ -44,7 +48,7 @@
 		data () {
 			return {
 				authCode: 'sf-dev',
-				user: {},
+				user: {name:'Pierre', username:'pierre', email: 'chamberlainpi@gmail.com'},
 				title: 'SF-DEV Console'
 			}
 		},
@@ -235,7 +239,8 @@
             }
 
             .output-text {
-                white-space: pre;
+              font-family: monospace;
+              white-space: pre;
             }
         }
     }

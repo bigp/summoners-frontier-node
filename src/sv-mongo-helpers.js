@@ -7,15 +7,17 @@ const autoIncrement = require('mongoose-auto-increment');
 const beautifulUnique = require('mongoose-beautiful-unique-validation');
 const MANDATORY_FIELDS = ['_id', 'id'];
 const ERROR_MAXLENGTH = '`{PATH}` field must be {MAXLENGTH} chars, you used {VALUE}.';
+const PRIVATE_PROP = /^_/;
 
 mongoose.Promise = global.Promise;
 mongoose.CustomTypes = {
+	String32: (opt) => _.extend({type: String, trim: true, maxlength: [32, ERROR_MAXLENGTH]}, opt),
 	String128: (opt) => _.extend({type: String, trim: true, maxlength: [128, ERROR_MAXLENGTH]}, opt),
 	String256: (opt) => _.extend({type: String, trim: true, maxlength: [256, ERROR_MAXLENGTH]}, opt),
 	DateRequired: (opt) => _.extend({type: Date, required: true, default: () => new Date()}, opt),
 };
 
-const _this = module.exports = {
+module.exports = {
 	MANDATORY_FIELDS: MANDATORY_FIELDS,
 
 	plugins: {
@@ -68,11 +70,12 @@ const _this = module.exports = {
 		return _.keys(_.pick(options.data, MANDATORY_FIELDS))
 	},
 
-	getORsQuery(options, uniques) {
-		const uniqueData = uniques ? _.pick(options.data, uniques) : options.data;
+	getORsQuery(obj, uniques) {
+		const uniqueData = uniques ? _.pick(obj, uniques) : obj;
 
 		const ORs = [];
 		_.keys(uniqueData).forEach( key => {
+			if(uniqueData[key]==null) return;
 			const obj = {};
 			obj[key] = uniqueData[key];
 			ORs.push(obj);
@@ -97,5 +100,27 @@ const _this = module.exports = {
 
 	getSorted(options, mg) {
 		return options.reverse ? mg.sort({$natural: -1}) : mg;
+	},
+
+	filterMongoPrivateData(data) {
+		const dup = {};
+		const source = data._doc || data.result;
+		_.keys(source).forEach((key) => {
+			if(PRIVATE_PROP.test(key)) return;
+			dup[key] = source[key];
+		});
+
+		return dup;
+	},
+
+	sendFilteredResult(res, data) {
+		var filteredData;
+		if(_.isArray(data)) {
+			filteredData = data.map(this.filterMongoPrivateData);
+		} else {
+			filteredData = this.filterMongoPrivateData(data);
+		}
+
+		$$$.send.result(res, filteredData);
 	}
 };

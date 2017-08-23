@@ -133,20 +133,20 @@ p.toPath = function() {
 var regexEmoji = /:([a-z0-9\-\_ ]*):/gi;
 var regexIcon = /\~([a-z0-9\-\_ ]*)\~/gi;
 
-function toEmoji(str) {
+_.toEmoji = function toEmoji(str) {
 	return str.replace(regexEmoji, '<i class="em em-$1"></i>');
-}
+};
 
-function toIcon(str) {
+_.toIcon = function toIcon(str) {
 	return str.replace(regexIcon, '<i class="fa fa-$1"></i>')
-}
+};
 
-function guid() {
+_.guid = function guid() {
 	return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
 		var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
 		return v.toString(16);
 	});
-}
+};
 
 p.camelToTitleCase = function() {
 	var text = this.toString();
