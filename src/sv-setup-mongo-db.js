@@ -7,9 +7,9 @@ const sendError = $$$.send.error;
 const sendResult = $$$.send.result;
 const sendNotImplemented = $$$.send.notImplemented;
 const sendEmpty = $$$.send.empty;
-const MONGO_ENV = $$$.env.MONGO_ENV;
-const CONFIG = $$$.env.PRIVATE[MONGO_ENV];
-trace(CONFIG);
+const MONGO_ENV = $$$.env.ini.MONGO.ENV;
+const NODE_ENV = $$$.env().toUpperCase();
+const CONFIG = $$$.env.ini.PRIVATE[MONGO_ENV || 'MONGO_' + NODE_ENV];
 
 module.exports = mongoSetup;
 
@@ -20,8 +20,6 @@ function mongoSetup() {
 
 	mgHelpers.plugins.autoIncrement.initialize(conn);
 }
-
-
 
 function onMongoConnected(err) {
 	if(err) throw err;
@@ -150,7 +148,7 @@ function onMongoConnected(err) {
 				const methodName = req.method + methodSuffix;
 				const method = METHODS[methodName];
 
-				if(!req.authInfo.isAdmin && badVerbs.has(methodName)) {
+				if(!req.auth.isAdmin && badVerbs.has(methodName)) {
 					return sendError(res, `'${name}' model does not allow this operation (${methodName})`);
 				}
 

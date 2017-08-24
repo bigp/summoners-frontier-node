@@ -4,7 +4,7 @@
 
 
 const requestLimiter = require('./sv-request-limiter')();
-const PRIVATE = $$$.env.PRIVATE;
+const PRIVATE = $$$.env.ini.PRIVATE;
 
 const ERRORS = _.mapValues({
 	NOT_AUTHORIZED() {
@@ -35,7 +35,7 @@ function isAuthorized(req) {
 	const authDate = new Date().toLocaleDateString();
 
 	// To login as Admin, the Authorization must match the AUTH_ADMIN + current date:
-	const auth = req.authInfo = {
+	const auth = req.auth = {
 		codes: authSplit,
 		isAdmin: authCode===PRIVATE.AUTH_ADMIN && authSplit[1]===authDate,
 		isAuth: authCode===PRIVATE.AUTH_CODE,
@@ -57,7 +57,7 @@ module.exports = {
 	isAuthMiddleware(req, res, next) {
 		const authOK = isAuthorized(req);
 
-		if(!req.authInfo.isAdmin && requestLimiter.isTooMuch(req)) {
+		if(!req.auth || !req.auth.isAdmin && requestLimiter.isTooMuch(req)) {
 			return ERRORS.REQUEST_LIMIT(res);
 		}
 

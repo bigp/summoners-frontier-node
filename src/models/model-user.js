@@ -2,6 +2,7 @@
  * Created by Chamberlain on 8/11/2017.
  */
 
+const nodemailer = require('../sv-setup-nodemailer');
 const mgHelpers = require('../sv-mongo-helpers');
 
 module.exports = function(mongoose) {
@@ -44,6 +45,9 @@ module.exports = function(mongoose) {
 					.then(user => {
 						if(!user) throw "";
 
+						//Always clear the password-reset on successful logins:
+						user._passwordResetGUID = '';
+
 						user.updateLoginDetails({ping:1, login:1, token:1});
 
 						return user.save();
@@ -56,7 +60,48 @@ module.exports = function(mongoose) {
 						$$$.send.error(res, "Login Failed.");
 					});
 
-			}
+			},
+
+			'test-echo'(Model, req, res, next, opts) {
+				mgHelpers.authenticateUser(req, res, next)
+					.then( data => {
+						$$$.send.result(res, opts.data);
+					})
+					.catch( err => {
+						$$$.send.errorCustom(res, err, "User Authentication Failed");
+					});
+			},
+
+			'request-password-reset'(Model, req, res, next, opts) {
+				const q = {username: opts.data.username};
+
+				Model.findOne(q).exec()
+					.then(found => {
+						if(!found) throw 'User not found!';
+						found._passwordResetGUID = _.guid();
+
+						return nodemailer.sendEmail(found.email, "ERDS - Password Reset", "GUID: " + found._passwordResetGUID)
+					})
+					.then( emailInfo => {
+						if(!emailInfo) throw 'Email could not be sent!';
+						trace("Email sent!!!");
+						trace(emailInfo);
+
+						$$$.send.result(res, emailInfo);
+					})
+					.catch(err => {
+						$$$.send.errorCustom(res, err, "PASSWORD-RESET FAILED");
+					})
+
+			},
+
+			// 'password-reset'(Model, req, res, next, opts) {
+			//
+			// },
+			//
+			// 'password-reset-sent'(Model, req, res, next, opts) {
+			//
+			// }
 		},
 
 		methods: {
@@ -69,14 +114,16 @@ module.exports = function(mongoose) {
 					login.dateNow = now;
 				}
 				if(which.token) {
+					login.tokenLast = this.token;
 					login.token = this.createToken();
-					trace(login.token);
 				}
 			},
 
 			createToken() {
-				return [_.guid(), this.username, this.email].join('::').toBase64();
-			}
+				const shortMD5 = s => $$$.md5(s).substr(0, 16);
+				//This could literally be any mixture of GUID + blablabla ... generate a nice long hash!
+				return $$$.encodeToken(_.guid(), shortMD5(this.username), shortMD5(this.email));
+			},
 		},
 
 		///////////////////////////////////////////////////////////
@@ -86,6 +133,7 @@ module.exports = function(mongoose) {
 			username: CustomTypes.String128({required:true, unique: 'Already have a user with this username ({VALUE})'}),
 			email: CustomTypes.String256({required:true, unique: 'Already have a user with this email ({VALUE})'}),
 			_password: CustomTypes.String32({required:true}),
+			_passwordResetGUID: CustomTypes.String128(),
 
 			dateCreated: CustomTypes.DateRequired(),
 
@@ -93,9 +141,9 @@ module.exports = function(mongoose) {
 				dateLast: CustomTypes.DateRequired(),
 				dateNow: CustomTypes.DateRequired(),
 				datePing: CustomTypes.DateRequired(),
-				token: CustomTypes.String128()
+				token: CustomTypes.String128(),
+				tokenLast: CustomTypes.String128(),
 			}
 		}
 	};
 };
-

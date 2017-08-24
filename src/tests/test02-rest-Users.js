@@ -8,6 +8,7 @@ const catcher = chaiG.catcher;
 const sendAPI = chaiG.sendAPI;
 const TestUsers = chaiG.TestUsers;
 const User = $$$.models.User;
+const PRIVATE = $$$.env.ini.PRIVATE;
 
 describe('=REST= User', () => {
 	it('Test-Post (Hello World test)', done => {
@@ -33,7 +34,6 @@ describe('=REST= User', () => {
 			.then(data => {
 				assert.exists(data, 'JSON data exists');
 				assert.equal(data.name, 'Pierre', 'name is correct');
-				assert.equal(data.email, 'chamberlainpi@gmail.com', 'email is correct');
 
 				done();
 			})
@@ -243,12 +243,12 @@ describe('=REST= User', () => {
 			.catch(catcher(done));
 	});
 
-	it('Add User (non-admin)', done => {
+	it('Add User (/user/add/)', done => {
 		sendAPI('/user/add', 'post', {
 			body: {
-				name: 'Jon (non-admin)',
-				username: 'Jon-non-admin',
-				email: 'new-jon@gmail.com',
+				name: 'Pierre Chamberlain',
+				username: 'chamberlainpi',
+				email: 'chamberlainpi@gmail.com',
 				password: 'pi3rr3',
 			}
 		})
@@ -261,7 +261,11 @@ describe('=REST= User', () => {
 			});
 	});
 
-	it('Login User (1s later)', done => {
+
+	var userLogged;
+	var userAuth;
+
+	it('Login User (with a slight delay to modify PING timestamp)', done => {
 		setTimeout(
 			() => {
 				sendAPI('/user/login', 'post', {
@@ -272,18 +276,96 @@ describe('=REST= User', () => {
 					}
 				})
 					.then(data => {
-						trace(data);
+						userLogged = data;
+						userAuth = $$$.encodeToken(PRIVATE.AUTH_CODE, userLogged.username, userLogged.login.token);
+
 						assert.exists(data);
 						done();
 					})
 					.catch(err => {
-						//assert.notExists(err);
-						//trace("err");
-						//trace(err);
 						done(err);
 					});
-			}, 1000
+			}, 250
 		)
+	});
+
+	it('Test User-Restricted call [FAIL EMPTY]', done => {
+		sendAPI('/user/test-echo', 'post', {headers:{Authorization:'???'}})
+			.then(data => {
+				assert.notExists(data);
+				done();
+			})
+			.catch(err => {
+				chaiG.padError(err.message);
+				assert.exists(err);
+				done();
+			});
 
 	});
+
+	it('Test User-Restricted call [FAIL MISSING username & token]', done => {
+		sendAPI('/user/test-echo', 'post', {
+			headers: {'Authorization': $$$.encodeToken(PRIVATE.AUTH_CODE)},
+			body: { foo: 'bar' }
+		})
+			.then(data => {
+				assert.notExists(data);
+				done();
+			})
+			.catch(err => {
+				chaiG.padError(err.message);
+				assert.exists(err);
+				done();
+			});
+
+	});
+
+	it('Test User-Restricted call [FAIL BAD token]', done => {
+		sendAPI('/user/test-echo', 'post', {
+			headers: {'Authorization': $$$.encodeToken(PRIVATE.AUTH_CODE, userLogged.username, "???")},
+			body: { foo: 'bar' }
+		})
+			.then(data => {
+				assert.notExists(data);
+				done();
+			})
+			.catch(err => {
+				chaiG.padError(err.message);
+				assert.exists(err);
+				done();
+			});
+
+	});
+
+	it('Test User-Restricted call', done => {
+		sendAPI('/user/test-echo', 'post', {
+			headers: {'Authorization': userAuth},
+			body: { foo: 'bar' }
+		})
+			.then(data => {
+				assert.exists(data);
+				assert(data.foo, 'bar', 'Still got {foo:bar} back?');
+				done();
+			})
+			.catch(err => {
+				done(err);
+			});
+
+	});
+
+	// it('Test Password Reset', done => {
+	// 	sendAPI('/user/request-password-reset', 'post', {
+	// 		headers: {'Authorization': userAuth},
+	// 		body: { username: userLogged.username }
+	// 	})
+	// 		.then(data => {
+	// 			trace(data);
+	// 			assert.exists(data);
+	// 			done();
+	// 		})
+	// 		.catch(err => {
+	// 			done(err);
+	// 		});
+	//
+	// });
 });

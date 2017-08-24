@@ -122,5 +122,34 @@ module.exports = {
 		}
 
 		$$$.send.result(res, filteredData);
+	},
+
+	authenticateUser(req, res, next) {
+		return new Promise((resolve, reject) => {
+			if(!req.auth || !(req.auth.isAdmin || req.auth.isAuth)) {
+				return reject("Request missing OR has incorrect Authorization key.");
+			}
+
+			const authCodes = req.auth.codes;
+			if(authCodes.length<3) {
+				return reject("Request missing parts of Authorization to determine username & token");
+			}
+
+			const username = authCodes[1];
+			const token = authCodes[2];
+
+			$$$.models.User.findOne({username: username, 'login.token': token}).exec()
+				.then( found => {
+					if(!found) throw 'No User Authentication matching authorization query';
+
+					req.isUser = true;
+					req.auth.user = found;
+					resolve(found);
+				})
+				.catch( err => {
+					reject(err);
+				});
+		});
 	}
 };
+

@@ -1,12 +1,22 @@
 /**
  * Created by Chamberlain on 8/14/2017.
  */
+
+// const derpy = $$$.encodeToken('sf-admin', new Date().toLocaleDateString());
+// trace(derpy);
+// const derp = ['sf-admin', new Date().toLocaleDateString()];
+// trace(derp);
+// trace(derp.join('::'));
+// trace(derp.join('::').toBase64());
+// trace($$$.decodeToken(derpy));
+
+
 const chaiG = module.exports = {
 	chai: require('chai'),
 	chaiHTTP: require('chai-http'),
 	request: require('request-promise'),
 	mongoose: require('mongoose'),
-	__api: `http://localhost:${$$$.env.PORT}/api`,
+	__api: `http://localhost:${$$$.env.ini.PORT}/api`,
 	TestUsers: {},
 
 	sendAPI(urlEnd, method, options) {
@@ -17,9 +27,11 @@ const chaiG = module.exports = {
 
 		if(!options) options = {};
 		options.json = true;
-		options.headers = {
-			'Authorization': ('sf-admin::'+new Date().toLocaleDateString()).toBase64()
-		};
+		if(!options.headers) {
+			options.headers = {
+				'Authorization': $$$.encodeToken('sf-admin', new Date().toLocaleDateString())
+			};
+		}
 
 		return chaiG.request[method](chaiG.__api + urlEnd, options)
 			.then(data => {
@@ -35,6 +47,10 @@ const chaiG = module.exports = {
 			chaiG.chai.assert.ifError(err);
 			done();
 		}
+	},
+
+	padError(err) {
+		traceError("      " + err);
 	}
 };
 

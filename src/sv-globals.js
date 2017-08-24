@@ -46,6 +46,7 @@ _.extend(String.prototype,  {
 });
 
 const $$$ = global.$$$ = new events();
+const _slice = [].slice;
 
 _.extend($$$, {
 	env: require('./sv-env')(paths.__private + '/env.ini'),
@@ -61,6 +62,15 @@ _.extend($$$, {
 
 	md5(data) {
 		return crypto.createHash('md5').update(data).digest("hex");
+	},
+
+	encodeToken() {
+		const args = _slice.call(arguments);
+		return args.join('::').toBase64();
+	},
+
+	decodeToken(str) {
+		return str.fromBase64().split('::');
 	},
 
 	make: {

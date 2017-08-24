@@ -8,15 +8,6 @@ const path = require('path');
 const rfs = require('rotating-file-stream');
 const EOL = require('os').EOL;
 
-function pad(str, width, z, after) {
-	if(str.length >= width) return str;
-	z = z || '0';
-	const zzz = new Array(width - str.length + 1).join(z);
-	if(after) return str + zzz;
-
-	return zzz + str;
-}
-
 function createLog(filename) {
 	return rfs(filename, {
 		size:     '10M',	// rotate every 10 MegaBytes written
@@ -25,8 +16,6 @@ function createLog(filename) {
 		path: $$$.paths.__private + '/logs/'
 	})
 }
-
-const format = ':date[iso]  FROM: :remote-addr  TIME: :padded-time  AUTH: :req[authorization]  URL: :url [:method] :is-error';
 
 const morganStream = createLog('morgan.log');
 const errorStream = createLog('errors.log');
@@ -45,7 +34,7 @@ module.exports = {
 		morgan.token('padded-time', function(req, res, digits) {
 			if(!digits) digits = 10;
 			const time = this['response-time'](req, res) + ' ms';
-			return pad(time, digits, '_');
+			return _.padStart(time, digits, '_');
 		});
 
 		morgan.token('is-error', function(req, res) {
@@ -53,11 +42,25 @@ module.exports = {
 			return `*ERROR* ${res.statusCode} - ${res.statusMessage}`;
 		});
 
-		const skipFunc = _.isTruthy($$$.env.MORGAN_ERRORS_ONLY) ?
+
+		const skipFunc = _.isTruthy($$$.env.ini.MORGAN_ERRORS_ONLY) ?
 							(req, res) => res.statusCode<400 :
 							null;
 
-		app.use(morgan(format, {stream: morganStream, skip: skipFunc}));
+		const morganRoute = morgan([
+				':date[iso]',
+				'FROM: :remote-addr',
+				'TIME: :padded-time',
+				'URL: :url [:method] :is-error',
+				'AUTH: :req[authorization]',
+			].join('  '),
+			{
+				stream: morganStream,
+				skip: skipFunc
+			}
+		);
+
+		app.use(morganRoute);
 	}
 };
 

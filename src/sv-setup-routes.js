@@ -64,7 +64,7 @@ function setTopLevelRoutes() {
 	$$$.app.use('/dist', $$$.express.static($$$.paths.__vueDist));
 
 
-	$$$.server.listen($$$.env.PORT, function (err) {
+	$$$.server.listen($$$.env.ini.PORT, function (err) {
 		if (err) throw err;
 
 		$$$.emit('server-started');
