@@ -12,6 +12,11 @@
 		return JSON.stringify(json, null, '  ');
     }
 
+    function makeToken() {
+		var args = [].slice.call(arguments);
+		return btoa(args.join('::'));
+    }
+
 	function sendAjax(urlObj, callbacks) {
 		const request = _.merge(urlObj, callbacks, {
 			contentType: "application/json; charset=utf-8",
@@ -19,7 +24,8 @@
 			beforeSend(xhr) {
 				if(_.isNullOrEmpty($$$.app.authCode)) return;
 
-				const code = btoa($$$.app.authCode);
+				const code = makeToken($$$.app.authCode, $$$.app.user.username, $$$.app.user.token);
+
 				xhr.setRequestHeader('Authorization', code);
 			}
 		});
@@ -52,6 +58,7 @@
 					username: 'chamberlainpi',
 					email: 'chamberlainpi@gmail.com',
 					password: 'pi3rr3',
+                    token: ''
 				},
 			}
 		},
@@ -87,6 +94,8 @@
 					success(result) {
 						trace(result);
 						_this.onResult(result, urlObj.url);
+
+						urlObj.ok && urlObj.ok(result);
 					},
 					error(err) { _this.onError(err, urlObj.url); }
 				});
@@ -177,6 +186,11 @@
           Password<br/>
           <input type="input" v-model="user.password">
         </label><br/>
+
+        <label>
+          Token<br/>
+          <input type="input" v-model="user.token" disabled="true">
+        </label><br/>
       </Panel>
 
       <Panel title="Results" class="results">
@@ -261,4 +275,9 @@
     .accessKey {
         margin-top: 10px;
     }
+
+  input[disabled] {
+    background: #888;
+    color: #fff;
+  }
 </style>
