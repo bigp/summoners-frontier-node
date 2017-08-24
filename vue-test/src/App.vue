@@ -125,7 +125,7 @@
 	function getShortURL(url) {
 		return {
 			url: url,
-			shortURL: 'http://...' + url.substr(url.indexOf('/', 10))
+			shortURL: window.location.protocol + '//...' + url.substr(url.indexOf('/', 10))
 		};
 	}
 

@@ -18,8 +18,8 @@ module.exports = function (privatePath) {
 
 	if(ini.HTTPS) {
 		process.env.HTTP_TYPE = ini.HTTPS.ENABLED ? "https" : "http";
-		
-		if(_.isTruthy(ini.HTTPS.ALLOW_SELF_SIGNED)) {
+
+		if(ini.HTTPS.ALLOW_SELF_SIGNED==1) {
 			process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 		}
 	}
