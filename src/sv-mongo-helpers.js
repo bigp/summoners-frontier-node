@@ -104,7 +104,7 @@ module.exports = {
 
 	filterMongoPrivateData(data) {
 		const dup = {};
-		const source = data._doc || data.result;
+		const source = data._doc || data.result || data;
 		_.keys(source).forEach((key) => {
 			if(PRIVATE_PROP.test(key)) return;
 			dup[key] = source[key];
