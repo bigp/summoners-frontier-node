@@ -19,6 +19,7 @@ $$$.files.forEachJS($$$.paths.__tests, addTest, runTests);
 //Once tests are added, run the tests!
 function runTests() {
 	// Run the tests.
+	trace(" ................ Running Tests");
 	mocha.run(function (failures) {
 		process.on('exit', function () {
 			process.exit(failures);  // exit with non-zero status if there were failures

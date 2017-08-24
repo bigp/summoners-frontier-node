@@ -11,6 +11,7 @@ const PRIVATE_PROP = /^_/;
 
 mongoose.Promise = global.Promise;
 mongoose.CustomTypes = {
+	Number: (opt) => _.extend({type: Number, default:0, min: 0, max: 10000}, opt),
 	String32: (opt) => _.extend({type: String, trim: true, maxlength: [32, ERROR_MAXLENGTH]}, opt),
 	String128: (opt) => _.extend({type: String, trim: true, maxlength: [128, ERROR_MAXLENGTH]}, opt),
 	String256: (opt) => _.extend({type: String, trim: true, maxlength: [256, ERROR_MAXLENGTH]}, opt),

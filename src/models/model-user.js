@@ -77,12 +77,9 @@ module.exports = function(mongoose) {
 
 			'test-echo'(Model, req, res, next, opts) {
 				mgHelpers.authenticateUser(req, res, next)
-					.then( data => {
+					.then( user => {
 						$$$.send.result(res, opts.data);
 					})
-					.catch( err => {
-						$$$.send.errorCustom(res, err, "User Authentication Failed");
-					});
 			},
 
 			'request-password-reset'(Model, req, res, next, opts) {
@@ -117,6 +114,41 @@ module.exports = function(mongoose) {
 			// 'password-reset-sent'(Model, req, res, next, opts) {
 			//
 			// }
+
+			//////////////////////////////////////////////////////////////
+
+			'completed-act-zone'(Model, req, res, next, opts) {
+				const actZone = opts.data.actZone;
+				if(!actZone) return $$$.send.error(res, "Missing actZone.");
+
+				mgHelpers.authenticateUser(req, res, next)
+					.then( user => {
+						user.game.actsZones.completed = actZone;
+						return user.save();
+					})
+					.then( updated => {
+						mgHelpers.sendFilteredResult(res, updated.game.actsZones.toJSON());
+					});
+			},
+
+			'currency'(Model, req, res, next, opts) {
+				mgHelpers.authenticateUser(req, res, next)
+					.then( user => {
+						var updated = true;
+
+						switch(req.method) {
+							case 'GET':
+								updated = false;
+								return mgHelpers.sendFilteredResult(res, user.game.currency);
+							case 'POST':
+								return $$$.send.error
+						}
+						return updated && user.save();
+					})
+					.then( updated => {
+						mgHelpers.sendFilteredResult(res, updated.game.currency.toJSON());
+					});
+			}
 		},
 
 		methods: {
@@ -158,7 +190,22 @@ module.exports = function(mongoose) {
 				datePing: CustomTypes.DateRequired(),
 				token: CustomTypes.String128(),
 				tokenLast: CustomTypes.String128(),
+			},
+
+			/////////////////////////////////// GAME-SPECIFIC:
+			game: {
+				actsZones: {
+					completed: CustomTypes.Number(),
+				},
+
+				currency: {
+					gold: CustomTypes.Number(),
+					gems: CustomTypes.Number(),
+					scrolls: CustomTypes.Number(),
+					magicOrbs: CustomTypes.Number(),
+				},
 			}
+
 		}
 	};
 };

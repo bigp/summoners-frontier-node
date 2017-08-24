@@ -261,10 +261,6 @@ describe('=REST= User', () => {
 			});
 	});
 
-
-	var userLogged;
-	var userAuth;
-
 	it('Login User (with a slight delay to modify PING timestamp)', done => {
 		setTimeout(
 			() => {
@@ -276,10 +272,10 @@ describe('=REST= User', () => {
 					}
 				})
 					.then(data => {
-						trace(`User Logged In! (pwd: ${userToAdd.password})`);
-						trace(data);
-						userLogged = data;
-						userAuth = $$$.encodeToken(PRIVATE.AUTH_CODE, userLogged.username, userLogged.login.token);
+						//trace(`User Logged In! (pwd: ${userToAdd.password})`);
+						//trace(data);
+						chaiG.userLogged = data;
+						chaiG.userAuth = $$$.encodeToken(PRIVATE.AUTH_CODE, data.username, data.login.token);
 
 						assert.exists(data);
 						done();
@@ -324,7 +320,7 @@ describe('=REST= User', () => {
 
 	it('Test User-Restricted call [FAIL BAD token]', done => {
 		sendAPI('/user/test-echo', 'post', {
-			headers: {'Authorization': $$$.encodeToken(PRIVATE.AUTH_CODE, userLogged.username, "???")},
+			headers: {'Authorization': $$$.encodeToken(PRIVATE.AUTH_CODE, chaiG.userLogged.username, "???")},
 			body: { foo: 'bar' }
 		})
 			.then(data => {
@@ -341,7 +337,7 @@ describe('=REST= User', () => {
 
 	it('Test User-Restricted call', done => {
 		sendAPI('/user/test-echo', 'post', {
-			headers: {'Authorization': userAuth},
+			headers: {'Authorization': chaiG.userAuth},
 			body: { foo: 'bar' }
 		})
 			.then(data => {
@@ -357,8 +353,8 @@ describe('=REST= User', () => {
 
 	it('Test Password Reset', done => {
 		sendAPI('/user/request-password-reset', 'post', {
-			headers: {'Authorization': userAuth},
-			body: { username: userLogged.username, direct:1 }
+			headers: {'Authorization': chaiG.userAuth},
+			body: { username: chaiG.userLogged.username, direct:1 }
 		})
 			.then(data => {
 				trace(data);
