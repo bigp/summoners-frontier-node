@@ -12,6 +12,7 @@ const fs = require('fs-extra');
 const express = require('express');
 const app = express();
 const crypto = require('crypto');
+const REGEX_ISO_MILLIS = /[0-9\.]Z$/;
 
 global.wait = function(cb) {
 	process.nextTick(cb);
@@ -61,6 +62,7 @@ _.extend($$$, {
 	},
 
 	md5(data) {
+		if(!data) return '';
 		return crypto.createHash('md5').update(data).digest("hex");
 	},
 
@@ -88,7 +90,7 @@ _.extend($$$, {
 	send: {
 		error(res, errMessage, data) {
 			res.status(500).send({
-				dateSent: new Date(),
+				headers: $$$.send.makeResponseHeader(res),
 				data: data,
 				error: errMessage,
 			});
@@ -102,10 +104,21 @@ _.extend($$$, {
 
 		result(res, data) {
 			res.status(200).send({
-				dateSent: new Date(),
+				headers: $$$.send.makeResponseHeader(res),
 				data: data
 			});
 			return false;
+		},
+
+		makeResponseHeader(res) {
+			const now = new Date();
+			//const nowSecs = REGEX_ISO_MILLIS.match(now);
+			return {
+				headers: {
+					responseTime: now.getTime() - res.req.dateRequested.getTime(),
+					dateResponded: now.toISOString()
+				}
+			};
 		},
 
 		empty(res) {

@@ -23,7 +23,7 @@ module.exports = function(mongoose) {
 
 				const data = opts.data;
 				opts.data.username = opts.data.username.toLowerCase();
-				opts.data._password = opts.data._password || $$$.md5(opts.data.password);
+				opts.data._password = (opts.data._password || $$$.md5(opts.data.password)).toLowerCase();
 
 				const methodUserAdd = Model.httpVerbs['POST_ONE'];
 				methodUserAdd(req, res, next, opts);
@@ -33,19 +33,30 @@ module.exports = function(mongoose) {
 				const data = opts.data;
 				opts.data.username = (opts.data.username || '').toLowerCase();
 				opts.data.email = (opts.data.email || '').toLowerCase();
-				const password = opts.data._password || $$$.md5(opts.data.password);
+				const password = (opts.data._password || $$$.md5(opts.data.password)).toLowerCase();
+				const missingFields = [];
+				const LOGIN_FAILED = 'LOGIN FAILED';
+
+				if(!password) {
+					missingFields.push('password');
+				}
+				if(!opts.data.username && !opts.data.email) {
+					missingFields.push('username/email');
+				}
+
+				if(missingFields.length>0) {
+					return $$$.send.errorCustom(res, 'Missing fields: ' + missingFields.join(', '), LOGIN_FAILED)
+				}
 
 				const orQuery = mgHelpers.getORsQuery(opts.data, ['username', 'email']);
-				const andQuery = {
-					$and: [
-						{_password: password},
-						orQuery
-					]
-				};
+				const andQuery = _.extend(orQuery, {_password: password});
 
 				Model.findOne(andQuery).exec()
 					.then(user => {
-						if(!user) throw "";
+						if(!user) {
+							traceError(password);
+							throw "Incorrect Username and Password: " + _.jsonPretty(andQuery);
+						}
 
 						//Always clear the password-reset on successful logins:
 						user._passwordResetGUID = '';
@@ -59,7 +70,7 @@ module.exports = function(mongoose) {
 					})
 					.catch(err => {
 						trace(err);
-						$$$.send.errorCustom(res, err, "LOGIN FAILED");
+						$$$.send.errorCustom(res, err, LOGIN_FAILED);
 					});
 
 			},

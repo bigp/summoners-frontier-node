@@ -49,15 +49,16 @@ module.exports = function() {
 			user_pierre() {
 				return api + '/user?name=Pierre';
 			},
-			user_post() {
+			user_add() {
 				const user = $$$.app.user;
 				return {
-					url: api + '/user',
+					url: api + '/user/add',
 					method: 'post',
 					data: {
 						name: user.name,
+						email: user.email,
 						username: user.username,
-						email: user.email
+						password: user.password,
 					}
 				}
 			},
@@ -68,8 +69,9 @@ module.exports = function() {
 					method: 'post',
 					data: {
 						name: user.name,
+						email: user.email,
 						username: user.username,
-						email: user.email
+						password: user.password,
 					}
 				};
 			}

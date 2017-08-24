@@ -9,10 +9,16 @@ const timeMinuteMS = 60 * timeSecondMS;
 const timeHourMS = 60 * timeMinuteMS;
 const timeDayMS = 24 * timeHourMS;
 
+$$$.routes = {};
+
 $$$.app.use(bodyParser.urlencoded({ extended: false }));
 $$$.app.use(bodyParser.json());
 $$$.app.set('trust proxy', 1);
-$$$.routes = {};
+$$$.app.use((req, res, next) => {
+	//Attach 'dateRequested' on each requests
+	req.dateRequested = new Date();
+	next();
+});
 
 const morganLogger = require("./sv-setup-morgan-logger");
 morganLogger.setupLogger($$$.app);
@@ -62,7 +68,6 @@ function setTopLevelRoutes() {
 
 	$$$.app.use('/', $$$.express.static($$$.paths.__public));
 	$$$.app.use('/dist', $$$.express.static($$$.paths.__vueDist));
-
 
 	$$$.server.listen($$$.env.ini.PORT, function (err) {
 		if (err) throw err;

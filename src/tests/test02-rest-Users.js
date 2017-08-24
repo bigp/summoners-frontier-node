@@ -271,11 +271,13 @@ describe('=REST= User', () => {
 				sendAPI('/user/login', 'post', {
 					body: {
 						username: userToAdd.username,
-						email: userToAdd.email,
+						//email: userToAdd.email,
 						_password: $$$.md5(userToAdd.password),
 					}
 				})
 					.then(data => {
+						trace(`User Logged In! (pwd: ${userToAdd.password})`);
+						trace(data);
 						userLogged = data;
 						userAuth = $$$.encodeToken(PRIVATE.AUTH_CODE, userLogged.username, userLogged.login.token);
 

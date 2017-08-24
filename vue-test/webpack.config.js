@@ -76,7 +76,7 @@ function addPlugins(plugins) {
 
 addPlugins([
 	new webpack.DefinePlugin({
-		ENV: _.omit(env.INI_ONLY, ['PRIVATE'])
+		ENV: _.omit(env.ini, ['PRIVATE'])
 	})
 ])
 

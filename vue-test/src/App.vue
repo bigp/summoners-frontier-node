@@ -4,7 +4,7 @@
 
 	const testCases = require('./lib/vue-test-cases');
 
-	$('ready', () => {
+	$('ready', function init() {
 		$$$.resultsOutput = $('.results .output-text');
 	});
 
@@ -24,14 +24,12 @@
 			}
 		});
 
-		trace(request);
-
 		$.ajax(request);
     }
 
     //////////////////////////// TEST!!!!!!!!!!!!!!!!!!!!!!
 	setTimeout(() => {
-		trace($$$.app.testCases);
+		//trace($$$.app.testCases);
 		$$$.app.doTest($$$.app.testCases.SECURE.user_login);
 //		$$$.app.doTest($$$.app.testCases.SECURE.user);
 //		$$$.app.doTest($$$.app.testCases.SECURE.user);
@@ -47,9 +45,14 @@
 		components: {TestButton, Panel},
 		data () {
 			return {
+				title: 'SF-DEV Console',
 				authCode: 'sf-dev',
-				user: {name:'Pierre', username:'pierre', email: 'chamberlainpi@gmail.com'},
-				title: 'SF-DEV Console'
+				user: {
+					name: 'Pierre Chamberlain',
+					username: 'chamberlainpi',
+					email: 'chamberlainpi@gmail.com',
+					password: 'pi3rr3',
+				},
 			}
 		},
 
@@ -63,7 +66,7 @@
 
 		methods: {
 			doTest(test) {
-				traceClear && traceClear();
+				//traceClear && traceClear();
 
 				const _this = this;
 				const testResult = test();
@@ -82,6 +85,7 @@
 
 				sendAjax(urlObj, {
 					success(result) {
+						trace(result);
 						_this.onResult(result, urlObj.url);
 					},
 					error(err) { _this.onError(err, urlObj.url); }
@@ -94,6 +98,7 @@
 			},
 
 			onError(err, url) {
+				trace("Error?");
 				const jsonStr = err.responseJSON ? pretty(err.responseJSON) : err.responseText;
 				const errMessage = `<i class='red'><b>${err.statusText}</b> - ${jsonStr}</i>`;
 
@@ -126,10 +131,22 @@
 
 <template>
   <div id="app">
-    <div id="titlebar"><h3>{{title}}</h3></div>
+    <div id="titlebar">
+      <h3>{{title}}</h3>
+    </div>
+
     <div id="content">
       <!-- <img src="./assets/logo.png"> -->
       <Panel title="Test Cases">
+        <div v-for="(access, accessKey) in testCases">
+          <center><h4 class="accessKey">- {{accessKey}} -</h4></center>
+          <div v-for="(testURL, key) in access">
+            <TestButton @click.native="doTest(testURL)" class="letter-spaced">{{key}}</TestButton>
+          </div>
+        </div>
+      </Panel>
+
+      <Panel title="User Input Form">
         <br/>
         <label>
           Authorization Code<br/>
@@ -156,14 +173,10 @@
           <input type="input" v-model="user.email">
         </label><br/>
 
-        <div v-for="(access, accessKey) in testCases">
-          <center><h4 class="accessKey">- {{accessKey}} -</h4></center>
-          <div v-for="(testURL, key) in access">
-            <TestButton @click.native="doTest(testURL)" class="letter-spaced">{{key}}</TestButton>
-          </div>
-        </div>
-
-
+        <label>
+          Password<br/>
+          <input type="input" v-model="user.password">
+        </label><br/>
       </Panel>
 
       <Panel title="Results" class="results">
