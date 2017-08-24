@@ -5,7 +5,7 @@
 const morganLogger = require($$$.paths.__src + '/sv-setup-morgan-logger');
 const activeRequests = [];
 
-var CONFIG = {limit: 5, cap: 10, isLogged: true};
+var CONFIG = {limit: 15, cap: 20, isLogged: true};
 const MODULE = {
 	isTooMuch(req) {
 		const entry = activeRequests.find(r => r.ip === req.ip);
