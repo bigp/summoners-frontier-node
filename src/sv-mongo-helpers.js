@@ -125,14 +125,16 @@ module.exports = {
 	},
 
 	authenticateUser(req, res, next) {
+		const USERAUTH_ERROR = (err) => $$$.send.errorCustom(res, err, "User Authentication Failed");
+
 		return new Promise((resolve, reject) => {
 			if(!req.auth || !(req.auth.isAdmin || req.auth.isAuth)) {
-				return reject("Request missing OR has incorrect Authorization key.");
+				return USERAUTH_ERROR("Request missing OR has incorrect Authorization key.");
 			}
 
 			const authCodes = req.auth.codes;
 			if(authCodes.length<3) {
-				return reject("Request missing parts of Authorization to determine username & token");
+				return USERAUTH_ERROR("Request missing parts of Authorization to determine username & token");
 			}
 
 			const username = authCodes[1];
@@ -147,7 +149,7 @@ module.exports = {
 					resolve(found);
 				})
 				.catch( err => {
-					reject(err);
+					USERAUTH_ERROR(err);
 				});
 		});
 	}
