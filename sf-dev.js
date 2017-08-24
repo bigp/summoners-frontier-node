@@ -16,6 +16,9 @@ $$$.on('ready', () => {
 	);
 
 	//If our TEST flag is enabled, then continue with the CHAI test suite:
+	trace($$$.env.ini.TEST);
+	trace(typeof($$$.env.ini.TEST));
+
 	if($$$.env.ini.TEST==1) {
 		const chaiTests = require('./src/sv-setup-chai-tests');
 	}
