@@ -19,7 +19,7 @@ const env = require('./sv-env')(paths.__private + '/env.ini');
 function createHttpOrHttps(app) {
 	const HTTPS_CONFIG = env.ini.HTTPS;
 
-	if(!_.isTruthy(HTTPS_CONFIG.ENABLED)) {
+	if(!HTTPS_CONFIG || !_.isTruthy(HTTPS_CONFIG.ENABLED)) {
 		return require('http').createServer(app);
 	}
 
