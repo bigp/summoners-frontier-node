@@ -15,6 +15,11 @@ module.exports = function (privatePath) {
 
 	//Expose a "_ini" field to make it shareable on Vue-based / Webpack Configuration files:
 	process.env = _.extend(env, {ini: ini});
+	process.env.HTTP_TYPE = ini.HTTPS.ENABLED ? "https" : "http";
+
+	if(_.isTruthy(ini.HTTPS.ALLOW_SELF_SIGNED)) {
+		process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+	}
 
 	const iniProxy = new Proxy(env, {
 		get(target, name, receiver) {

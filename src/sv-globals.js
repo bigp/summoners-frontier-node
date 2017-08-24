@@ -5,14 +5,44 @@ global._ = require('lodash');
 require('colors');
 require('../public/js/extensions');
 
-//$$$.env('dev')
 traceClear();
 
 const fs = require('fs-extra');
 const express = require('express');
 const app = express();
 const crypto = require('crypto');
+const paths = require('./sv-paths');
+const events = require('events');
 const REGEX_ISO_MILLIS = /[0-9\.]Z$/;
+const env = require('./sv-env')(paths.__private + '/env.ini');
+
+function createHttpOrHttps(app) {
+	const HTTPS_CONFIG = env.ini.HTTPS;
+
+	if(!_.isTruthy(HTTPS_CONFIG.ENABLED)) {
+		return require('http').createServer(app);
+	}
+
+	const https = require('https');
+	const privatize = s => s.replace("~private", paths.__private);
+	const keyFile = privatize(HTTPS_CONFIG.KEY_FILE);
+	const certFile = privatize(HTTPS_CONFIG.CERT_FILE);
+	var options;
+
+	try {
+		options = {
+			key: fs.readFileSync(keyFile),
+			cert: fs.readFileSync(certFile)
+		};
+	} catch(err) {
+		traceError("=== HTTPS Enabled, but could not locate Key & Cert files... ===");
+		trace(keyFile.yellow);
+		trace(certFile.yellow);
+		process.exit(1);
+	}
+
+	return https.createServer(options, app);
+}
 
 global.wait = function(cb) {
 	process.nextTick(cb);
@@ -27,9 +57,6 @@ global.waitTrace = function() {
 
 	});
 };
-
-const paths = require('./sv-paths');
-const events = require('events');
 
 _.extend( events.prototype, {
 	has(eventName) {
@@ -50,12 +77,12 @@ const $$$ = global.$$$ = new events();
 const _slice = [].slice;
 
 _.extend($$$, {
-	env: require('./sv-env')(paths.__private + '/env.ini'),
-	express: express,
+	paths: paths,
+	env: env,
 	app: app,
 	fs: fs,
-	server: require('http').createServer(app),
-	paths: paths,
+	express: express,
+	server: createHttpOrHttps(app),
 
 	now() {
 		return new Date().toString();
