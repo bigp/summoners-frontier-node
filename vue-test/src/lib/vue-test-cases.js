@@ -71,6 +71,13 @@ module.exports = function() {
 					}
 				};
 			},
+			user_logout() {
+				const user = $$$.app.user;
+				return {
+					url: api + '/user/logout',
+					method: 'post'
+				};
+			},
 			user_test_echo() {
 				const user = $$$.app.user;
 				return {
@@ -93,7 +100,45 @@ module.exports = function() {
 						password: user.password,
 					}
 				};
-			}
+			},
+			user_game() {
+				return {
+					url: api + '/user/game',
+					method: 'get'
+				};
+			},
+			add_gold() {
+				const user = $$$.app.user;
+				return {
+					url: api + '/user/currency',
+					method: 'put',
+					data: { gold: 1 }
+				};
+			},
+			add_gems() {
+				const user = $$$.app.user;
+				return {
+					url: api + '/user/currency',
+					method: 'put',
+					data: { gems: 1 }
+				};
+			},
+			add_scrolls() {
+				const user = $$$.app.user;
+				return {
+					url: api + '/user/currency',
+					method: 'put',
+					data: { scrolls: 1 }
+				};
+			},
+			add_magic_orbs() {
+				const user = $$$.app.user;
+				return {
+					url: api + '/user/currency',
+					method: 'put',
+					data: { magicOrbs: 1 }
+				};
+			},
 		}
 	};
 }

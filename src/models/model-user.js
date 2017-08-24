@@ -13,7 +13,7 @@ module.exports = function(mongoose) {
 	return {
 		plural: 'users',
 		whitelist: ['name', 'email', 'username'],
-		blacklistVerbs: ["GET_MANY", "POST_ONE", "POST_MANY", "DELETE_ONE", "DELETE_MANY"],
+		blacklistVerbs: "GET_ONE GET_MANY POST_ONE POST_MANY DELETE_ONE DELETE_MANY".split(' '),
 
 		customRoutes: {
 			add(Model, req, res, next, opts) {
@@ -75,6 +75,20 @@ module.exports = function(mongoose) {
 
 			},
 
+			logout(Model, req, res, next, opts) {
+				mgHelpers.authenticateUser(req, res, next)
+					.then( user => {
+						//Clear the current fields:
+						user.login.token = ''; //Clear the token
+						user.login.datePing = $$$.nullDate();
+
+						return user.save();
+					})
+					.then(loggedOut => {
+						$$$.send.result(res, "Logout OK.");
+					})
+			},
+
 			'test-echo'(Model, req, res, next, opts) {
 				mgHelpers.authenticateUser(req, res, next)
 					.then( user => {
@@ -117,6 +131,15 @@ module.exports = function(mongoose) {
 
 			//////////////////////////////////////////////////////////////
 
+			'game'(Model, req, res, next, opts) {
+				mgHelpers.authenticateUser(req, res, next)
+					.then( user => {
+						if(req.method!=="GET") return $$$.send.error("Can only use 'GET' on this URL.");
+
+						mgHelpers.sendFilteredResult(res, user.game);
+					});
+			},
+
 			'completed-act-zone'(Model, req, res, next, opts) {
 				const actZone = opts.data.actZone;
 				if(!actZone) return $$$.send.error(res, "Missing actZone.");
@@ -127,7 +150,7 @@ module.exports = function(mongoose) {
 						return user.save();
 					})
 					.then( updated => {
-						mgHelpers.sendFilteredResult(res, updated.game.actsZones.toJSON());
+						mgHelpers.sendFilteredResult(res, updated.game.actsZones);
 					});
 			},
 
@@ -136,17 +159,29 @@ module.exports = function(mongoose) {
 					.then( user => {
 						var updated = true;
 
+						const incoming = opts.data;
+						const currency = user.game.currency;
+
 						switch(req.method) {
 							case 'GET':
 								updated = false;
-								return mgHelpers.sendFilteredResult(res, user.game.currency);
-							case 'POST':
-								return $$$.send.error
+								return mgHelpers.sendFilteredResult(res, currency);
+							case 'PUT':
+								_.keys(incoming).forEach(coinType => {
+									if(_.isNull(currency[coinType])) return;
+									currency[coinType] += incoming[coinType];
+								});
+								break;
+							default:
+								return $$$.send.notImplemented(res);
 						}
-						return updated && user.save();
+
+						if(updated) return user.save();
+
+						next();
 					})
 					.then( updated => {
-						mgHelpers.sendFilteredResult(res, updated.game.currency.toJSON());
+						mgHelpers.sendFilteredResult(res, updated.game.currency );
 					});
 			}
 		},

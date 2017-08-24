@@ -33,7 +33,19 @@ describe('=GAME= Specific User Actions', () => {
 			body: { actZone: 1 }
 		})
 			.then(data => {
-				trace(data);
+				assert.exists(data);
+				done();
+			})
+			.catch(err => done(err));
+
+	});
+
+	it('Logout', done => {
+		sendAPI('/user/logout', 'post', {
+			headers: {'Authorization': chaiG.userAuth}
+		})
+			.then(data => {
+				chaiG.padError(data.yellow);
 				assert.exists(data);
 				done();
 			})

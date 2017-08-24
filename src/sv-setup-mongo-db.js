@@ -152,6 +152,10 @@ function onMongoConnected(err) {
 					return sendError(res, `'${name}' model does not allow this operation (${methodName})`);
 				}
 
+				if(options.isAdmin && !req.auth.isAdmin) {
+					return sendError(res, `Admin only.`);
+				}
+
 				if(!method) {
 					return sendError(res, "Oh no, bad method? " + methodName);
 				}
@@ -182,10 +186,12 @@ function onMongoConnected(err) {
 			});
 		});
 
-		api.use(Model.__route + "$", modelRouter('_ONE'));
-		api.use(Model.__route + "/last", modelRouter('_ONE', {reverse:1}) );
-		api.use(Model.__routes + "$", modelRouter('_MANY'));
+		api.use(Model.__route + "$", modelRouter('_ONE', {isAdmin:1}));
+		api.use(Model.__route + "/last", modelRouter('_ONE', {reverse:1, isAdmin:1}) );
+		api.use(Model.__routes + "$", modelRouter('_MANY', {isAdmin:1}));
 		api.use(Model.__routes + '/count', (req, res, next) => {
+			if(!req.auth.isAdmin) return sendError(res, "Can't count here.");
+
 			Model.count((err, count) => {
 				if(err) return sendError(res, `Could not count model '${Model._nameTitled}':\n`+err.message);
 				sendResult(res, {count: count});

@@ -61,6 +61,12 @@ _.extend($$$, {
 		return new Date().toString();
 	},
 
+	nullDate() {
+		const nullDate = new Date();
+		nullDate.setTime(0);
+		return nullDate;
+	},
+
 	md5(data) {
 		if(!data) return '';
 		return crypto.createHash('md5').update(data).digest("hex");

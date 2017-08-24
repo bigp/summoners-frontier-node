@@ -240,12 +240,20 @@
         background: grad-3($contentBGColor, 0, 2, 10);
     }
 
+    .panel {
+      position: relative;
+      display: inline-block;
+    }
+
     .results {
-        //position: fixed;
-        //right: 1px;
+        position: absolute;
+        display: block;
+        top: 10px;
+        left: 460px;
         min-width: 200px;
 
         .output {
+            position: relative;
             overflow: hidden;
             display: block;
             background: #222;

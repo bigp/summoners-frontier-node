@@ -105,7 +105,7 @@ module.exports = {
 
 	filterMongoPrivateData(data) {
 		const dup = {};
-		const source = data._doc || data.result || data;
+		const source = data.toJSON ? data.toJSON() : data;
 		_.keys(source).forEach((key) => {
 			if(PRIVATE_PROP.test(key)) return;
 			dup[key] = source[key];
@@ -149,6 +149,11 @@ module.exports = {
 
 					req.isUser = true;
 					req.auth.user = found;
+
+					found.login.datePing = new Date();
+					return found.save();
+				})
+				.then( found => {
 					resolve(found);
 				})
 				.catch( err => {
