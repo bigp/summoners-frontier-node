@@ -78,7 +78,7 @@ module.exports = function(mongoose) {
 			'test-echo'(Model, req, res, next, opts) {
 				mgHelpers.authenticateUser(req, res, next)
 					.then( user => {
-						$$$.send.result(res, opts.data);
+						$$$.send.result(res, _.extend({name: user.name, username: user.username}, opts.data));
 					})
 			},
 
