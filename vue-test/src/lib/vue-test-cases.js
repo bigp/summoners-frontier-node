@@ -74,6 +74,19 @@ module.exports = function() {
 						password: user.password,
 					}
 				};
+			},
+			user_forget_password() {
+				const user = $$$.app.user;
+				return {
+					url: api + '/user/forget-password',
+					method: 'post',
+					data: {
+						name: user.name,
+						email: user.email,
+						username: user.username,
+						password: user.password,
+					}
+				};
 			}
 		}
 	};

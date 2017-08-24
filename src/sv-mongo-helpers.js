@@ -141,9 +141,11 @@ module.exports = {
 			const username = authCodes[1];
 			const token = authCodes[2];
 
-			$$$.models.User.findOne({username: username, 'login.token': token}).exec()
+			$$$.models.User.findOne({username: username}).exec()
 				.then( found => {
-					if(!found) throw 'No User Authentication matching authorization query';
+					if(!found) throw `'${username}' not found.`;
+					if(!found.login.token) throw `'${username}' not logged in.`;
+					if(found.login.token!==token) throw `'${username}' token doesn't match`;
 
 					req.isUser = true;
 					req.auth.user = found;

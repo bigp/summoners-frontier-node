@@ -318,6 +318,39 @@ describe('=REST= User', () => {
 
 	});
 
+	it('Test User-Restricted call [FAIL BAD username]', done => {
+		sendAPI('/user/test-echo', 'post', {
+			headers: {'Authorization': $$$.encodeToken(PRIVATE.AUTH_CODE, "???", "???")},
+			body: { foo: 'bar' }
+		})
+			.then(data => {
+				assert.notExists(data);
+				done();
+			})
+			.catch(err => {
+				chaiG.padError(err.message.yellow);
+				assert.exists(err);
+				done();
+			});
+
+	});
+
+	it('Test User-Restricted call [FAIL Logged Out]', done => {
+		sendAPI('/user/test-echo', 'post', {
+			headers: {'Authorization': $$$.encodeToken(PRIVATE.AUTH_CODE, "peter", chaiG.userLogged.token)},
+			body: { foo: 'bar' }
+		})
+			.then(data => {
+				assert.notExists(data);
+				done();
+			})
+			.catch(err => {
+				chaiG.padError(err.message.yellow);
+				assert.exists(err);
+				done();
+			});
+	});
+
 	it('Test User-Restricted call [FAIL BAD token]', done => {
 		sendAPI('/user/test-echo', 'post', {
 			headers: {'Authorization': $$$.encodeToken(PRIVATE.AUTH_CODE, chaiG.userLogged.username, "???")},
@@ -352,7 +385,7 @@ describe('=REST= User', () => {
 	});
 
 	it('Test Password Reset', done => {
-		sendAPI('/user/request-password-reset', 'post', {
+		sendAPI('/user/forget-password', 'post', {
 			headers: {'Authorization': chaiG.userAuth},
 			body: { username: chaiG.userLogged.username, direct:1 }
 		})

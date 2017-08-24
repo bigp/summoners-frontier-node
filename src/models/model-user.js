@@ -82,7 +82,7 @@ module.exports = function(mongoose) {
 					})
 			},
 
-			'request-password-reset'(Model, req, res, next, opts) {
+			'forget-password'(Model, req, res, next, opts) {
 				const q = {username: opts.data.username};
 
 				Model.findOne(q).exec()
