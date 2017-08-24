@@ -114,10 +114,8 @@ _.extend($$$, {
 			const now = new Date();
 			//const nowSecs = REGEX_ISO_MILLIS.match(now);
 			return {
-				headers: {
-					responseTime: now.getTime() - res.req.dateRequested.getTime(),
-					dateResponded: now.toISOString()
-				}
+				responseTime: now.getTime() - res.req.dateRequested.getTime(),
+				dateResponded: now.toISOString()
 			};
 		},
 
