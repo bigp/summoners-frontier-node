@@ -11,7 +11,7 @@
         @include btn(5px);
 
         font-weight: bold;
-        width: 150px;
+        width: 200px;
         text-align: left;
         background: linear-gradient(#fff, #ddd, #aaa, #777);
 

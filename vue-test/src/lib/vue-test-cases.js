@@ -8,14 +8,14 @@ module.exports = function() {
 	const api = host.replace(/:[0-9]+/, ':'+ENV.PORT) + '/api';
 
 	return {
-		PUBLIC: {
-			test() {
-				return api + '/test';
-			},
-			'test-banned'() {
-				return api + '/test-banned';
-			}
-		},
+		// PUBLIC: {
+		// 	test() {
+		// 		return api + '/test';
+		// 	},
+		// 	'test-banned'() {
+		// 		return api + '/test-banned';
+		// 	}
+		// },
 		SECURE: {
 			'not-found'() {
 				return api + '/not-found';
@@ -31,12 +31,6 @@ module.exports = function() {
 					}
 				}
 			},
-			users() {
-				return api + '/users';
-			},
-			user() {
-				return api + '/user';
-			},
 			user_by_id() {
 				return api + '/user?id=' + $$$.app.user.id;
 			},
@@ -45,9 +39,6 @@ module.exports = function() {
 			},
 			user_last() {
 				return api + '/user/last';
-			},
-			user_pierre() {
-				return api + '/user?name=Pierre';
 			},
 			user_add() {
 				const user = $$$.app.user;
@@ -72,6 +63,21 @@ module.exports = function() {
 						email: user.email,
 						username: user.username,
 						password: user.password,
+					},
+					ok(response) {
+						trace("???");
+						trace(response);
+						user.token = response.data.login.token;
+					}
+				};
+			},
+			user_test_echo() {
+				const user = $$$.app.user;
+				return {
+					url: api + '/user/test-echo',
+					method: 'post',
+					data: {
+						test: 'Hello World (secure)'
 					}
 				};
 			},
