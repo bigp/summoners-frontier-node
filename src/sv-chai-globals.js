@@ -50,7 +50,7 @@ const chaiG = module.exports = {
 	},
 
 	padError(err) {
-		traceError("      " + err);
+		trace("      " + err);
 	}
 };
 

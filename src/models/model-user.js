@@ -4,6 +4,7 @@
 
 const nodemailer = require('../sv-setup-nodemailer');
 const mgHelpers = require('../sv-mongo-helpers');
+const CONFIG = $$$.env.ini;
 
 module.exports = function(mongoose) {
 	const Schema  = mongoose.Schema;
@@ -32,11 +33,12 @@ module.exports = function(mongoose) {
 				const data = opts.data;
 				opts.data.username = (opts.data.username || '').toLowerCase();
 				opts.data.email = (opts.data.email || '').toLowerCase();
+				const password = opts.data._password || $$$.md5(opts.data.password);
 
 				const orQuery = mgHelpers.getORsQuery(opts.data, ['username', 'email']);
 				const andQuery = {
 					$and: [
-						{_password: opts.data._password || $$$.md5(opts.data.password)},
+						{_password: password},
 						orQuery
 					]
 				};
@@ -57,7 +59,7 @@ module.exports = function(mongoose) {
 					})
 					.catch(err => {
 						trace(err);
-						$$$.send.error(res, "Login Failed.");
+						$$$.send.errorCustom(res, err, "LOGIN FAILED");
 					});
 
 			},
@@ -78,14 +80,16 @@ module.exports = function(mongoose) {
 				Model.findOne(q).exec()
 					.then(found => {
 						if(!found) throw 'User not found!';
-						found._passwordResetGUID = _.guid();
+						found._passwordResetGUID = req.auth.pwdResetGUID = _.guid();
 
 						return nodemailer.sendEmail(found.email, "ERDS - Password Reset", "GUID: " + found._passwordResetGUID)
 					})
 					.then( emailInfo => {
 						if(!emailInfo) throw 'Email could not be sent!';
-						trace("Email sent!!!");
-						trace(emailInfo);
+
+						if(emailInfo.isEmailDisabled && opts.data.direct) {
+							emailInfo.guid = req.auth.pwdResetGUID;
+						}
 
 						$$$.send.result(res, emailInfo);
 					})

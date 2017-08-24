@@ -2,20 +2,20 @@
  * Created by Chamberlain on 8/24/2017.
  */
 const nodemailer = require('nodemailer');
-const NODEMAILER = $$$.env.ini.NODEMAILER;
+const EMAIL = $$$.env.ini.EMAIL;
 
 // create reusable transporter object using the default SMTP transport
 let transporter = nodemailer.createTransport({
-	host: NODEMAILER.HOST,
-	port: NODEMAILER.PORT,
-	secure: NODEMAILER.SECURE==1, // secure:true for port 465, secure:false for port 587
+	host: EMAIL.HOST,
+	port: EMAIL.PORT,
+	secure: EMAIL.SECURE==1, // secure:true for port 465, secure:false for port 587
 	auth: {
-		user: NODEMAILER.USERNAME,
-		pass: NODEMAILER.PASSWORD
+		user: EMAIL.USERNAME,
+		pass: EMAIL.PASSWORD
 	}
 });
 
-const defaultFrom = `${NODEMAILER.DEFAULT_FROM_NAME} <${NODEMAILER.DEFAULT_FROM_EMAIL}>`;
+const defaultFrom = `${EMAIL.DEFAULT_FROM_NAME} <${EMAIL.DEFAULT_FROM_EMAIL}>`;
 
 module.exports = {
 	sendEmail(to, subject, content, params) {
@@ -27,6 +27,12 @@ module.exports = {
 			subject:subject,
 			html:content
 		}, params);
+
+		if(!_.isTruthy(EMAIL.ENABLED)) {
+			return new Promise((_then, _catch) => {
+				_then({isEmailDisabled:1, message:'The email service is disabled'});
+			})
+		}
 
 		//info.messageId, info.response
 		return transporter.sendMail(mailOptions);

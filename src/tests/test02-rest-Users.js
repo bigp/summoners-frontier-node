@@ -243,15 +243,15 @@ describe('=REST= User', () => {
 			.catch(catcher(done));
 	});
 
+	const userToAdd = {
+		name: 'Pierre Chamberlain',
+		username: 'chamberlainpi',
+		email: 'chamberlainpi@gmail.com',
+		password: 'pi3rr3',
+	}
+
 	it('Add User (/user/add/)', done => {
-		sendAPI('/user/add', 'post', {
-			body: {
-				name: 'Pierre Chamberlain',
-				username: 'chamberlainpi',
-				email: 'chamberlainpi@gmail.com',
-				password: 'pi3rr3',
-			}
-		})
+		sendAPI('/user/add', 'post', { body: userToAdd })
 			.then(data => {
 				assert.exists(data);
 				done();
@@ -270,9 +270,9 @@ describe('=REST= User', () => {
 			() => {
 				sendAPI('/user/login', 'post', {
 					body: {
-						username: 'Jon-non-admin',
-						email: 'new-jon@gmail.com',
-						_password: $$$.md5('pi3rr3'),
+						username: userToAdd.username,
+						email: userToAdd.email,
+						_password: $$$.md5(userToAdd.password),
 					}
 				})
 					.then(data => {
@@ -296,7 +296,7 @@ describe('=REST= User', () => {
 				done();
 			})
 			.catch(err => {
-				chaiG.padError(err.message);
+				chaiG.padError(err.message.yellow);
 				assert.exists(err);
 				done();
 			});
@@ -313,7 +313,7 @@ describe('=REST= User', () => {
 				done();
 			})
 			.catch(err => {
-				chaiG.padError(err.message);
+				chaiG.padError(err.message.yellow);
 				assert.exists(err);
 				done();
 			});
@@ -330,7 +330,7 @@ describe('=REST= User', () => {
 				done();
 			})
 			.catch(err => {
-				chaiG.padError(err.message);
+				chaiG.padError(err.message.yellow);
 				assert.exists(err);
 				done();
 			});
@@ -353,19 +353,19 @@ describe('=REST= User', () => {
 
 	});
 
-	// it('Test Password Reset', done => {
-	// 	sendAPI('/user/request-password-reset', 'post', {
-	// 		headers: {'Authorization': userAuth},
-	// 		body: { username: userLogged.username }
-	// 	})
-	// 		.then(data => {
-	// 			trace(data);
-	// 			assert.exists(data);
-	// 			done();
-	// 		})
-	// 		.catch(err => {
-	// 			done(err);
-	// 		});
-	//
-	// });
+	it('Test Password Reset', done => {
+		sendAPI('/user/request-password-reset', 'post', {
+			headers: {'Authorization': userAuth},
+			body: { username: userLogged.username, direct:1 }
+		})
+			.then(data => {
+				trace(data);
+				assert.exists(data);
+				done();
+			})
+			.catch(err => {
+				done(err);
+			});
+
+	});
 });
