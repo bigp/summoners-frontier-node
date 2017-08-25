@@ -61,8 +61,8 @@ function setTopLevelRoutes() {
 			//Swap all occurences of 'localhost:####' to the actual host this is called on:
 			var actualHost = req.get('host');
 			indexContent = indexContent
-				.replace(/https:\/\/localhost:[0-9]*/g, process.env.HTTP_TYPE +"://" + actualHost);
-				//.replace(//g, +':');
+				.replace(/localhost:[0-9]*/g, actualHost)
+				.replace(/https:\/\/ec2/g, process.env.HTTP_TYPE +'://ec2');
 
 			res.send(indexContent);
 		});
