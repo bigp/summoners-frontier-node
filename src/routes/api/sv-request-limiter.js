@@ -2,7 +2,7 @@
  * Created by Chamberlain on 8/22/2017.
  */
 
-const morganLogger = require($$$.paths.__src + '/sv-setup-morgan-logger');
+const morganLogger = $$$.morganLogger = require($$$.paths.__src + '/sv-setup-morgan-logger');
 const activeRequests = [];
 
 var CONFIG = {limit: 15, cap: 20, isLogged: true};

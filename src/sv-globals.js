@@ -122,11 +122,15 @@ _.extend($$$, {
 
 	send: {
 		error(res, errMessage, data) {
-			res.status(500).send({
+			const err = {
+				url: res.req.fullURL,
 				headers: $$$.send.makeResponseHeader(res),
 				data: data,
 				error: errMessage,
-			});
+			};
+
+			//$$$.morganLogger.error(JSON.stringify( err ));
+			res.status(500).send(err);
 			return false;
 		},
 
@@ -287,3 +291,12 @@ _.extend($$$, {
 		}
 	}
 });
+
+class DetailedError extends Error {
+	constructor(msg, details) {
+		super(msg);
+		this.details = details;
+	}
+}
+
+$$$.DetailedError = DetailedError;

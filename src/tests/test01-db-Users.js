@@ -44,19 +44,85 @@ describe('=MONGO= Users', () => {
 	});
 
 	it('Create "Pierre"', done => {
-		const Pierre = new User({ name: "Pierre", email: "chamberlainpi@gmail.com", username: "pierre", _password: 'pi3rr3' });
+		const Pierre = new User({ name: "Pierre", email: "pierre@pierrechamberlain.ca", username: "pierre", _password: $$$.md5('PI#RR#') });
 
-		Pierre.save( (err, data) => {
-			if(err) throw err;
+		Pierre.save()
+			.then(data => {
+				TestUsers.pierre = data;
 
-			TestUsers.pierre = data;
+				assert.exists(Pierre);
+				assert.equal(Pierre.name, "Pierre", "Should be correct name.");
+				assert.equal(Pierre.email, "pierre@pierrechamberlain.ca", "Should be correct email.");
 
-			assert.exists(Pierre);
-			assert.equal(Pierre.name, "Pierre", "Should be correct name.");
-			assert.equal(Pierre.email, "chamberlainpi@gmail.com", "Should be correct email.");
+				done();
+			})
+			.catch(err => {
+				done(err);
+			});
+	});
 
-			done();
+	it('Create "Pierre" long password', done => {
+		const Pierre = new User({ name: "Pierre2", email: "pierre@pierrechamberlain.ca2", username: "pierre", _password: 'PI#RR#PI#RR#PI#RR#PI#RR#PI#RR#PI#RR#PI#RR#PI#RR#PI#RR#PI#RR#PI#RR#PI#RR#PI#RR#PI#RR#PI#RR#PI#RR#PI#RR#PI#RR#PI#RR#PI#RR#PI#RR#PI#RR#PI#RR#PI#RR#PI#RR#PI#RR#PI#RR#PI#RR#PI#RR#PI#RR#PI#RR#PI#RR#PI#RR#PI#RR#PI#RR#PI#RR#PI#RR#PI#RR#PI#RR#PI#RR#' });
+
+		Pierre.save()
+			.then(data => {
+				TestUsers.pierre = data;
+
+				assert.notExists(Pierre);
+
+				done();
+			})
+			.catch(err => {
+				assert.exists(err);
+				done();
+			});
+
+		// Pierre.validate()
+		// 	.then(() => {
+		// 		Pierre.save( (err, data) => {
+		// 			if(err) throw err;
+		//
+		// 			TestUsers.pierre = data;
+		//
+		// 			assert.exists(Pierre);
+		//
+		// 			done();
+		// 		});
+		// 	})
+		// 	.catch(err => {
+		// 		traceError(err);
+		// 		done(err);
+		// 	})
+
+	});
+
+	it('Create "Pierre" long email', done => {
+		const Pierre = new User({
+			name: "Pierre2", username: "pierre4", _password: $$$.md5('PI#RR#'),
+			email: "pierrepierrepierrepierrepierrepierrepierrepierrepierrepierrepierrepierrepierrepierrepierrepierrepierrepierrepierrepierrepierrepierrepierrepierrepierrepierrepierrepierrepierrepierrepierrepierrepierrepierrepierrepierrepierrepierrepierre@pierrechamberlain.ca"
 		});
+
+		Pierre.save()
+			.then(data => {
+				TestUsers.pierre = data;
+
+				assert.notExists(Pierre);
+
+				done();
+			})
+			.catch(err => {
+				assert.exists(err);
+
+				const output = [];
+
+				_.keys(err.errors).forEach(key => {
+					output.push(err.errors[key]);
+				});
+
+				trace(output.join("\n").yellow);
+
+				done();
+			});
 	});
 
 	it('Create 2nd "Pierre"', done => {
@@ -125,18 +191,6 @@ describe('=MONGO= Users', () => {
 			assert.equal(data.length, 3);
 			assert.equal(data[0].name, 'Pierre');
 			assert.equal(data[2].name, 'Peter');
-
-			done();
-		});
-	});
-
-	it('Get Many (Pierre)', done => {
-		User.find({name: 'Pierre'}).exec((err, data) => {
-			if(err) throw err;
-
-			assert.isArray(data);
-			assert.equal(data.length, 2);
-			assert.equal(data[0].name, 'Pierre');
 
 			done();
 		});

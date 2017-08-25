@@ -65,27 +65,50 @@ function onMongoConnected(err) {
 
 				Model.find(uniqueOr).exec()
 					.then(data => {
-						if(data && data.length>0) {
+						if (data && data.length > 0) {
 							const dups = {}, result = data[0];
 
 							_.keys(options.data).forEach(key => {
+								if(mgHelpers.isPrivateField(key)) return;
+
 								const val = options.data[key];
-								if(val===result[key]) dups[key] = val;
+								if (val === result[key]) dups[key] = val;
 							});
 
-							sendError(res, "Data not unique.", {duplicateFields: dups});
-							throw "";
+							throw new $$$.DetailedError("Data not unique.", {
+								duplicates: {
+									fields: _.keys(dups),
+									values: _.values(dups)
+								}
+							});
 						}
 
 						const newUser = new Model(options.data);
-						return newUser.save();
+						return newUser.save()
 					})
 					.then(data => {
 						mgHelpers.sendFilteredResult(res, data);
 					})
 					.catch(err => {
-						if(!err) return;
-						sendError(res, `Could not add '${Model._nameTitled}' in database. ` + err.message);
+						const errMessage = `Could not add '${Model._nameTitled}' in database.`;
+
+						if(err.details) return sendError(res, errMessage, err.details);
+
+						if(err.message && err.message.has('validation')) {
+							const errors = [];
+							_.keys(err.errors).forEach(key => {
+								var reason = err.errors[key].message;
+								if(reason.has('is required.')) {
+									reason = reason.replace("Path", "Field");
+								}
+
+								errors.push( reason );
+							});
+
+							return sendError(res, {message: errMessage, reasons: errors});
+						}
+
+						sendError(res, errMessage + ' ' + err.message);
 						//trace(err);
 					});
 			},

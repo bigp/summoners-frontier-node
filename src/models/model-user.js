@@ -142,7 +142,7 @@ module.exports = function(mongoose) {
 
 			'completed-act-zone'(Model, req, res, next, opts) {
 				const actZone = opts.data.actZone;
-				if(!actZone) return $$$.send.error(res, "Missing actZone.");
+				if(isNaN(actZone)) return $$$.send.error(res, "Missing actZone.");
 
 				mgHelpers.authenticateUser(req, res, next)
 					.then( user => {
@@ -213,7 +213,7 @@ module.exports = function(mongoose) {
 		schema: {
 			name: CustomTypes.String128({required:true}),
 			username: CustomTypes.String128({required:true, unique: 'Already have a user with this username ({VALUE})'}),
-			email: CustomTypes.String256({required:true, unique: 'Already have a user with this email ({VALUE})'}),
+			email: CustomTypes.String128({required:true, unique: 'Already have a user with this email ({VALUE})'}),
 			_password: CustomTypes.String32({required:true}),
 			_passwordResetGUID: CustomTypes.String128(),
 

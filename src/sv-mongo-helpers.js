@@ -18,7 +18,7 @@ mongoose.CustomTypes = {
 	DateRequired: (opt) => _.extend({type: Date, required: true, default: () => new Date()}, opt),
 };
 
-module.exports = {
+const mgHelpers = {
 	MANDATORY_FIELDS: MANDATORY_FIELDS,
 
 	plugins: {
@@ -103,12 +103,27 @@ module.exports = {
 		return options.reverse ? mg.sort({$natural: -1}) : mg;
 	},
 
+	isPrivateField(name) {
+		return PRIVATE_PROP.test(name);
+	},
+
 	filterMongoPrivateData(data) {
+		if(_.isArray(data)) {
+			return data.map(mgHelpers.filterMongoPrivateData);
+		}
+
 		const dup = {};
 		const source = data.toJSON ? data.toJSON() : data;
 		_.keys(source).forEach((key) => {
 			if(PRIVATE_PROP.test(key)) return;
-			dup[key] = source[key];
+
+			const value = source[key];
+
+			if(_.isObject(value)) {
+				return dup[key] = mgHelpers.filterMongoPrivateData(value);
+			}
+
+			dup[key] = value;
 		});
 
 		return dup;
@@ -163,3 +178,4 @@ module.exports = {
 	}
 };
 
+module.exports = mgHelpers;
