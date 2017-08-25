@@ -119,7 +119,7 @@ describe('=MONGO= Users', () => {
 					output.push(err.errors[key]);
 				});
 
-				trace(output.join("\n").yellow);
+				//trace(output.join("\n").yellow);
 
 				done();
 			});

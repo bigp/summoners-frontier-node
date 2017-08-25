@@ -274,6 +274,7 @@ describe('=REST= User', () => {
 					.then(data => {
 						//trace(`User Logged In! (pwd: ${userToAdd.password})`);
 						//trace(data);
+						//trace(_.jsonPretty(data).green);
 						chaiG.userLogged = data;
 						chaiG.userAuth = $$$.encodeToken(PRIVATE.AUTH_CODE, data.username, data.login.token);
 

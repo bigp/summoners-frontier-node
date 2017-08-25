@@ -107,6 +107,7 @@ const mgHelpers = {
 		return PRIVATE_PROP.test(name);
 	},
 
+	//Recursively filters any "_..." prefixed property:
 	filterMongoPrivateData(data) {
 		if(_.isArray(data)) {
 			return data.map(mgHelpers.filterMongoPrivateData);
@@ -119,7 +120,7 @@ const mgHelpers = {
 
 			const value = source[key];
 
-			if(_.isObject(value)) {
+			if(_.isPlainObject(value)) {
 				return dup[key] = mgHelpers.filterMongoPrivateData(value);
 			}
 
@@ -130,12 +131,7 @@ const mgHelpers = {
 	},
 
 	sendFilteredResult(res, data) {
-		var filteredData;
-		if(_.isArray(data)) {
-			filteredData = data.map(this.filterMongoPrivateData);
-		} else {
-			filteredData = this.filterMongoPrivateData(data);
-		}
+		var filteredData = this.filterMongoPrivateData(data);
 
 		$$$.send.result(res, filteredData);
 	},
