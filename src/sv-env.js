@@ -17,7 +17,7 @@ module.exports = function (privatePath) {
 	process.env = _.extend(env, {ini: ini});
 
 	if(ini.HTTPS) {
-		process.env.HTTP_TYPE = ini.HTTPS.ENABLED ? "https" : "http";
+		process.env.HTTP_TYPE = _.isTruthy(ini.HTTPS.ENABLED) ? "https" : "http";
 
 		if(ini.HTTPS.ALLOW_SELF_SIGNED==1) {
 			process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';

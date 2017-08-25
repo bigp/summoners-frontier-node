@@ -10,13 +10,15 @@
 // trace(derp.join('::').toBase64());
 // trace($$$.decodeToken(derpy));
 
+const __api = `${process.env.HTTP_TYPE}://localhost:${$$$.env.ini.PORT}/api`;
+trace(__api.yellow);
 
 const chaiG = module.exports = {
 	chai: require('chai'),
 	chaiHTTP: require('chai-http'),
 	request: require('request-promise'),
 	mongoose: require('mongoose'),
-	__api: `${process.env.HTTP_TYPE}://localhost:${$$$.env.ini.PORT}/api`,
+	__api: __api,
 	TestUsers: {},
 
 	sendAPI(urlEnd, method, options) {
