@@ -60,7 +60,9 @@ function setTopLevelRoutes() {
 		$$$.files.read($$$.paths.__vueIndex, (err, indexContent) => {
 			//Swap all occurences of 'localhost:####' to the actual host this is called on:
 			var actualHost = req.get('host');
-			indexContent = indexContent.replace(/localhost:[0-9]*/g, actualHost);
+			indexContent = indexContent
+				.replace(/https:\/\/localhost:[0-9]*/g, process.env.HTTP_TYPE +"://" + actualHost);
+				//.replace(//g, +':');
 
 			res.send(indexContent);
 		});
