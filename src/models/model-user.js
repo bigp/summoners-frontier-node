@@ -229,6 +229,10 @@ module.exports = function(mongoose) {
 
 			/////////////////////////////////// GAME-SPECIFIC:
 			game: {
+				level: {
+					current: CustomTypes.Number({default: 1}),
+					progress: CustomTypes.Number({default: 0})
+				},
 				actsZones: {
 					completed: CustomTypes.Number(),
 				},
