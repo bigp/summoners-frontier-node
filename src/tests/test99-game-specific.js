@@ -11,6 +11,7 @@ const User = $$$.models.User;
 const PRIVATE = $$$.env.ini.PRIVATE;
 
 describe('=GAME= Specific User Actions', () => {
+
 	it('Complete ActZone FAIL', done => {
 		sendAPI('/user/completed-act-zone', 'post', {
 			headers: {'Authorization': chaiG.userAuth},

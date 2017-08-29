@@ -27,6 +27,11 @@ p.remove = function(item) {
 	return id;
 };
 
+p.pickRandom = function() {
+	var id = (Math.random() * this.length) | 0;
+	return this[id];
+}
+
 p.has = function(item) {
 	return this.indexOf(item)>-1;
 };

@@ -33,19 +33,6 @@
 		$.ajax(request);
     }
 
-    //////////////////////////// TEST!!!!!!!!!!!!!!!!!!!!!!
-	setTimeout(() => {
-		//trace($$$.app.testCases);
-		$$$.app.doTest($$$.app.testCases.SECURE.user_login);
-//		$$$.app.doTest($$$.app.testCases.SECURE.user);
-//		$$$.app.doTest($$$.app.testCases.SECURE.user);
-//		$$$.app.doTest($$$.app.testCases.SECURE.user);
-//		$$$.app.doTest($$$.app.testCases.SECURE.user);
-//		$$$.app.doTest($$$.app.testCases.SECURE.user);
-//		$$$.app.doTest($$$.app.testCases.SECURE.user);
-	}, 250);
-	//////////////////////////// TEST!!!!!!!!!!!!!!!!!!!!!!
-
 	export default {
 		name: 'app',
 		components: {TestButton, Panel},
@@ -92,7 +79,6 @@
 
 				sendAjax(urlObj, {
 					success(result) {
-						trace(result);
 						_this.onResult(result, urlObj.url);
 
 						urlObj.ok && urlObj.ok(result);
@@ -102,7 +88,6 @@
 			},
 
 			onResult(data, url) {
-				trace(data);
 				showUrlAndMessage(url, 'green', pretty(data) );
 			},
 

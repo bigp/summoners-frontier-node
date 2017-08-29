@@ -193,7 +193,7 @@ _.extend($$$, {
 					cb(null, files);
 				})
 				.catch(err => {
-					traceError(`Problem while reading dir...\n  ${dir}:\n` + err.stack);
+					traceError(`Problem in dir: ${dir}:\n` + err.stack);
 					cb(err);
 				});
 

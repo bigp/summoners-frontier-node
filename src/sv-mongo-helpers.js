@@ -20,6 +20,7 @@ mongoose.CustomTypes = {
 
 const mgHelpers = {
 	MANDATORY_FIELDS: MANDATORY_FIELDS,
+	mongoose: mongoose,
 
 	plugins: {
 		autoIncrement,
@@ -27,7 +28,15 @@ const mgHelpers = {
 	},
 
 	createModel(schemaFile, name) {
-		const schemaDef = require(schemaFile)(mongoose);
+		const schemaReq = require(schemaFile);
+		if(!_.isFunction(schemaReq)) {
+			traceError("In Model: " + schemaFile);
+			throw new Error("Mongoose Models should be defined correctly (return a function!)");
+		}
+
+		trace("Creating model: ".yellow + name);
+
+		const schemaDef = schemaReq(mongoose);
 		const schema = new mongoose.Schema(schemaDef.schema);
 
 		this.applyPlugins(schema, name);
@@ -134,6 +143,14 @@ const mgHelpers = {
 		var filteredData = this.filterMongoPrivateData(data);
 
 		$$$.send.result(res, filteredData);
+	},
+
+	isWrongVerb(req, res, shouldBeVerb) {
+		if(req.method===shouldBeVerb) return false;
+
+		$$$.send.error(res, `Can only use ${req.url} with '${shouldBeVerb}' HTTP Verb, you used '${req.method}'.`);
+
+		return true;
 	},
 
 	authenticateUser(req, res, next) {

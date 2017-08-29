@@ -31,6 +31,8 @@ module.exports = {
 	info(msg) { this._write("INFO: " + msg); },
 
 	setupLogger(app) {
+		if(!_.isTruthy($$$.env.ini.MORGAN.ENABLED)) return;
+
 		morgan.token('padded-time', function(req, res, digits) {
 			if(!digits) digits = 10;
 			const time = this['response-time'](req, res) + ' ms';
@@ -43,7 +45,7 @@ module.exports = {
 		});
 
 
-		const skipFunc = _.isTruthy($$$.env.ini.MORGAN_ERRORS_ONLY) ?
+		const skipFunc = _.isTruthy($$$.env.ini.MORGAN.ERRORS_ONLY) ?
 							(req, res) => res.statusCode<400 :
 							null;
 

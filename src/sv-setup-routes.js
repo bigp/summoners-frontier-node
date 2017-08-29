@@ -46,6 +46,7 @@ function setFolderLevelRoutes() {
 				$$$.routes[name] = route;
 			});
 
+			trace("EXPRESS/ROUTES setup: ".yellow + "initialized.");
 			resolve();
 		});
 	});

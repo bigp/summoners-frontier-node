@@ -4,12 +4,12 @@
 
 const nodemailer = require('../sv-setup-nodemailer');
 const mgHelpers = require('../sv-mongo-helpers');
+const mongoose = mgHelpers.mongoose;
 const CONFIG = $$$.env.ini;
+const Schema  = mongoose.Schema;
+const CustomTypes  = mongoose.CustomTypes;
 
-module.exports = function(mongoose) {
-	const Schema  = mongoose.Schema;
-	const CustomTypes  = mongoose.CustomTypes;
-
+module.exports = function() {
 	return {
 		plural: 'users',
 		whitelist: ['name', 'email', 'username'],
@@ -21,12 +21,11 @@ module.exports = function(mongoose) {
 					return $$$.send.error(res, "Can only use /add/user/ with 'POST' HTTP Verb.");
 				}
 
-				const data = opts.data;
-				opts.data.username = opts.data.username.toLowerCase();
-				opts.data._password = (opts.data._password || $$$.md5(opts.data.password)).toLowerCase();
+				const userData = opts.data;
+				userData.username = userData.username.toLowerCase();
+				userData._password = (userData._password || $$$.md5(userData.password)).toLowerCase();
 
-				const methodUserAdd = Model.httpVerbs['POST_ONE'];
-				methodUserAdd(req, res, next, opts);
+				Model.httpVerbs['POST_ONE'](req, res, next, opts);
 			},
 
 			login(Model, req, res, next, opts) {
@@ -66,7 +65,8 @@ module.exports = function(mongoose) {
 						return user.save();
 					})
 					.then(user => {
-						mgHelpers.sendFilteredResult(res, user);
+						var results = _.assign({mongoID: user._id+''}, user.toJSON());
+						mgHelpers.sendFilteredResult(res, results);
 					})
 					.catch(err => {
 						trace(err);

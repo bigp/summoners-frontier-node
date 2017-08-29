@@ -4,8 +4,9 @@
 
 const Mocha = require('mocha');
 const path = require('path');
+const chaiG = require('./sv-chai-globals');
 const CONFIG = $$$.env.ini.MOCHA || {};
-const regexTestFiles = new RegExp(CONFIG.TEST_FILE_PATTERN || '.*', 'gi');
+const regexTestFiles = new RegExp(CONFIG.TEST_FILE_PATTERN || '^test', 'i');
 const mocha = new Mocha();
 
 module.exports = function start(onFinishTests) {
@@ -20,7 +21,8 @@ module.exports = function start(onFinishTests) {
 	//Once tests are added, run the tests!
 	function runTests() {
 		// Run the tests.
-		trace(" ................ Running Tests");
+		trace(" ................ Running Tests on api: ".green + chaiG.__api.green);
+
 		mocha.run(function (failures) {
 			onFinishTests && onFinishTests();
 			process.on('exit', function () {

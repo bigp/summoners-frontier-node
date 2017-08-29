@@ -2,9 +2,7 @@
  * Created by Chamberlain on 8/14/2017.
  */
 
-
 const __api = `${process.env.HTTP_TYPE}://localhost:${$$$.env.ini.PORT}/api`;
-trace(__api.yellow);
 
 const chaiG = module.exports = {
 	chai: require('chai'),
@@ -13,6 +11,13 @@ const chaiG = module.exports = {
 	mongoose: require('mongoose'),
 	__api: __api,
 	TestUsers: {},
+	showTraces: _.isTruthy($$$.env.ini.MOCHA.SHOW_TRACES),
+	userToAdd: {
+		name: 'Pierre Chamberlain',
+		username: 'chamberlainpi',
+		email: 'chamberlainpi@gmail.com',
+		password: 'pi3rr3',
+	},
 
 	sendAPI(urlEnd, method, options) {
 		if(!_.isString(method) && arguments.length<3) {
@@ -45,6 +50,7 @@ const chaiG = module.exports = {
 	},
 
 	padError(err) {
+		if(!chaiG.showTraces) return;
 		trace("      " + err);
 	}
 };

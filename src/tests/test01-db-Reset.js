@@ -9,6 +9,7 @@ const assert = chaiG.chai.assert;
 const catcher = chaiG.catcher;
 const sendAPI = chaiG.sendAPI;
 const User = $$$.models.User;
+const Item = $$$.models.Item;
 const TestUsers = chaiG.TestUsers;
 
 
@@ -17,30 +18,39 @@ describe('=MONGO= Users', () => {
 
 	try { db = mongoose.connection.db } catch(err) {}
 
-	it('Mongoose Init', () => {
+	it('Mongoose Init', done => {
 		assert.exists(mongoose);
 		assert.exists(mongoose.connection, 'Connection exists?');
 		assert.exists(mongoose.connection.db, 'Database exists?');
-	});
 
-	it('Reset User Count', done => {
-		User.resetCount((err, nextCount) => {
-			if(err) throw err;
-
-			assert.equal(nextCount, 1, 'Cleaned up the User auto-counter.');
-
-			done();
-		})
-	});
-
-	it('Drop User Collection', done => {
-		db.dropCollection('users', (err, ok) => {
-			if(err) throw err;
-
-			assert.exists(ok, 'Successfully dropped "users"?');
+		db.listCollections().toArray((err, list) => {
+			err && traceError(err);
+			chaiG.collectionNames = list.map(db => db.name).filter(listName => listName!=='identitycounters');
 
 			done();
 		});
+	});
+
+	it('Drop Collections (ALL)', done => {
+		const drops = chaiG.collectionNames.map(listName => db.dropCollection(listName));
+
+		Promise.all(drops)
+			.then(datas => {
+				assert.equal(datas.length, drops.length, 'Successfully dropped all tables?');
+
+				done();
+			})
+			.catch(err => {
+				done(err);
+			});
+	});
+
+	it('Reset User Count', done => {
+		_.values($$$.models).forEach(model => {
+			model.resetCount()
+		});
+
+		done();
 	});
 
 	it('Create "Pierre"', done => {
@@ -76,24 +86,6 @@ describe('=MONGO= Users', () => {
 				assert.exists(err);
 				done();
 			});
-
-		// Pierre.validate()
-		// 	.then(() => {
-		// 		Pierre.save( (err, data) => {
-		// 			if(err) throw err;
-		//
-		// 			TestUsers.pierre = data;
-		//
-		// 			assert.exists(Pierre);
-		//
-		// 			done();
-		// 		});
-		// 	})
-		// 	.catch(err => {
-		// 		traceError(err);
-		// 		done(err);
-		// 	})
-
 	});
 
 	it('Create "Pierre" long email', done => {

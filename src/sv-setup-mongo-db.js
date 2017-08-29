@@ -15,11 +15,14 @@ module.exports = mongoSetup;
 
 function mongoSetup() {
 	return new Promise((resolve, reject) => {
-		trace("Connect to Mongo using ENV: ".yellow + MONGO_ENV);
+		trace("MONGO setup: ".yellow + `initialized (Connecting using "${MONGO_ENV}").`);
 
 		const mongoURL = `mongodb://${CONFIG.USER}:${CONFIG.PASS}@localhost:${CONFIG.PORT}/${CONFIG.DB}?authSource=${CONFIG.DB_ADMIN}`;
 		const conn = mongoose.connect(mongoURL);
+		const db = mongoose.connection.db;
 		conn.then(resolve).catch(reject);
+
+		db.getCollectionNames = db.listCollections;
 
 		mgHelpers.plugins.autoIncrement.initialize(conn);
 	});
@@ -36,13 +39,6 @@ function createMongoModels() {
 		$$$.files.forEachJS($$$.paths.__mongoSchemas, forEachModel, resolve);
 	});
 }
-
-/*function onMongoReady() {
- //wait( () => {
- $$$.emit('mongo-ready');
- $$$.emit('ready');
- //} );
- }*/
 
 function forEachModel(schemaFile, name) {
 	name = name.remove('model-').remove('.js');
@@ -75,9 +71,9 @@ function forEachModel(schemaFile, name) {
 				return sendError(res, `Used illegal field(s) while adding to '${Model._nameTitled}'`, illegalData);
 			}
 
-			const uniqueOr = mgHelpers.getORsQuery(options.data, Model._uniques);
+			const uniqueOr = options.noQuery ? null : mgHelpers.getORsQuery(options.data, Model._uniques);
 
-			if(!uniqueOr.$or.length) {
+			if(Model._uniques.length > 0 && uniqueOr && !uniqueOr.$or.length) {
 				return sendError(res, 'Missing required fields.', options.data);
 			}
 

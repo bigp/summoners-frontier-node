@@ -3,21 +3,28 @@
  */
 const nodemailer = require('nodemailer');
 const EMAIL = $$$.env.ini.EMAIL;
-
-// create reusable transporter object using the default SMTP transport
-let transporter = nodemailer.createTransport({
-	host: EMAIL.HOST,
-	port: EMAIL.PORT,
-	secure: EMAIL.SECURE==1, // secure:true for port 465, secure:false for port 587
-	auth: {
-		user: EMAIL.USERNAME,
-		pass: EMAIL.PASSWORD
-	}
-});
-
 const defaultFrom = `${EMAIL.DEFAULT_FROM_NAME} <${EMAIL.DEFAULT_FROM_EMAIL}>`;
+let transporter;
 
-module.exports = {
+function setup() {
+	return new Promise((resolve, reject) => {
+		// create reusable transporter object using the default SMTP transport
+		transporter = nodemailer.createTransport({
+			host: EMAIL.HOST,
+			port: EMAIL.PORT,
+			secure: _.isTruthy(EMAIL.SECURE), // secure:true for port 465, secure:false for port 587
+			auth: {
+				user: EMAIL.USERNAME,
+				pass: EMAIL.PASSWORD
+			}
+		});
+
+		trace("NODEMAILER ".yellow + "initialized.");
+		resolve();
+	});
+}
+
+_.extend(setup, {
 	sendEmail(to, subject, content, params) {
 		if(!params) params = {};
 
@@ -37,4 +44,6 @@ module.exports = {
 		//info.messageId, info.response
 		return transporter.sendMail(mailOptions);
 	}
-};
+});
+
+module.exports = setup;

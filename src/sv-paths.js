@@ -5,7 +5,7 @@ const path = require('path');
 const __fullSplit = __dirname.__.split('/');
 const paths = {};
 
-trace("ROOT DIR: " + __dirname.__.yellow);
+trace("Root directory: ".yellow + __dirname.__);
 
 paths.__filename = __fullSplit.last();
 paths.__dir = __fullSplit.slice(0, __fullSplit.length-1).join('/');
