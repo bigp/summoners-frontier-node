@@ -1,6 +1,5 @@
 const iniReader = require('ini');
 const fs = require('fs');
-const _ = global._ = require('lodash');
 
 module.exports = function (privatePath) {
 	const iniContent = fs.readFileSync(privatePath, 'utf-8');

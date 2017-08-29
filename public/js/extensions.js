@@ -66,7 +66,6 @@ p.insert = (function() {
 p = String.prototype;
 
 _.addProps = Object.defineProperties;
-
 _.addProps(p, {
 	'__': {
 		get() {

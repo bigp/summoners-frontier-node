@@ -1,3 +1,8 @@
+global._ = require('lodash');
+require('../public/js/extensions');
+trace(_.isTruthy);
+
+
 const path = require('path');
 const webpack = require('webpack');
 const env = require('../src/sv-env')('../.private/env.ini');

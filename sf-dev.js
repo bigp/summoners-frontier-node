@@ -1,23 +1,41 @@
 require('./src/sv-globals');
 
-const routeSetup = require('./src/sv-setup-routes');
-const mongoSetup = require('./src/sv-setup-mongo-db');
-const nodemailer = require('./src/sv-setup-nodemailer');
+const setupRoutes = require('./src/sv-setup-routes');
+const setupMongo = require('./src/sv-setup-mongo-db');
+const setupNodeMailer = require('./src/sv-setup-nodemailer');
+const JSONLoader = require('./src/sv-setup-json-loader');
 
-$$$.on('routes-ready', mongoSetup);
-$$$.on('mongo-ready', routeSetup.setTopLevelRoutes);
-$$$.on('ready', () => {
-	trace([
-			`Started SF-DEV on port ${$$$.env.ini.PORT}`.cyan,
-			`(**${routeSetup.numRoutes()}** routes)`.yellow,
-			`in environment`.cyan,
-			`[${$$$.env().toUpperCase()}]`
-		].join(' ')
-	);
-
-	//If our TEST flag is enabled, then continue with the CHAI test suite:
-	if(_.isTruthy($$$.env.ini.TEST)) {
-		const chaiTests = require('./src/sv-setup-chai-tests');
-		chaiTests();
-	}
+const jsonLoader = $$$.jsonLoader = new JSONLoader();
+const jsonPromise = $$$.jsonLoader.config({
+	url: $$$.env.ini.JSON_URL,
+	app: $$$.app,
+	isParseGlobals: true
 });
+
+
+Promise.all([jsonPromise, setupRoutes(), setupMongo()])
+	.then(setupMongo.createMongoModels)
+	.then(setupRoutes.setTopLevelRoutes)
+	.then(() => {
+		trace('== JSON Loaded =='.green);
+		trace($$$.jsonLoader.globals);
+		trace([
+				`Started SF-DEV on port ${$$$.env.ini.PORT}`.cyan,
+				`(**${setupRoutes.numRoutes()}** routes)`.yellow,
+				`in environment`.cyan,
+				`[${$$$.env().toUpperCase()}]`
+			].join(' ')
+		);
+
+		return _.isTruthy($$$.env.ini.TEST);
+	})
+	.then( isTesting => {
+		if(!isTesting) return;
+
+		//If our TEST flag is enabled, then continue with the CHAI test suite:
+		require('./src/sv-setup-chai-tests')();
+	})
+	.catch( err => {
+		traceError("========= OH NO! ==========");
+		traceError(err);
+	});

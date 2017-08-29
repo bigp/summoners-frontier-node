@@ -2,13 +2,6 @@
  * Created by Chamberlain on 8/14/2017.
  */
 
-// const derpy = $$$.encodeToken('sf-admin', new Date().toLocaleDateString());
-// trace(derpy);
-// const derp = ['sf-admin', new Date().toLocaleDateString()];
-// trace(derp);
-// trace(derp.join('::'));
-// trace(derp.join('::').toBase64());
-// trace($$$.decodeToken(derpy));
 
 const __api = `${process.env.HTTP_TYPE}://localhost:${$$$.env.ini.PORT}/api`;
 trace(__api.yellow);

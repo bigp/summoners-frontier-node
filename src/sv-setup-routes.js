@@ -32,54 +32,64 @@ _.addProps( http.IncomingMessage.prototype, {
 	}
 });
 
-//Create a unique route for each sub-folders found in "/routes" path:
-$$$.files.dirs($$$.paths.__routes, (err, files, names) => {
-	if(err) throw err;
+function setFolderLevelRoutes() {
+	return new Promise((resolve, reject) => {
+		//Create a unique route for each sub-folders found in "/routes" path:
+		$$$.files.dirs($$$.paths.__routes, (err, files, names) => {
+			if(err) return reject(err);
 
-	files.forEach( (fullpath, f) => {
-		const name = names[f];
-		const route = $$$.make.routeFromModule(fullpath + '/sv-route.js', name);
+			files.forEach( (fullpath, f) => {
+				const name = names[f];
+				const route = $$$.make.routeFromModule(fullpath + '/sv-route.js', name);
 
-		$$$.app.use('/'+name, route);
-		$$$.routes[name] = route;
-	});
+				$$$.app.use('/'+name, route);
+				$$$.routes[name] = route;
+			});
 
-	$$$.emit('routes-ready');
-});
-
-function setTopLevelRoutes() {
-	_.mapValues($$$.routes, route => {
-		//Apply Page-Not-Found error for unknown routes:
-		route.use('/*', (req, res) => {
-			const ROUTE_NAME = route._name.toUpperCase();
-			res.status(404).send(`[${ROUTE_NAME}] Unknown request: ` + req.fullURL);
+			resolve();
 		});
-	})
-
-	$$$.app.use('/$', (req, res, next) => {
-		$$$.files.read($$$.paths.__vueIndex, (err, indexContent) => {
-			//Swap all occurences of 'localhost:####' to the actual host this is called on:
-			var actualHost = req.get('host');
-			indexContent = indexContent
-				.replace(/localhost:[0-9]*/g, actualHost)
-				.replace(/https:\/\/ec2/g, process.env.HTTP_TYPE +'://ec2');
-
-			res.send(indexContent);
-		});
-	});
-
-	$$$.app.use('/', $$$.express.static($$$.paths.__public));
-	$$$.app.use('/dist', $$$.express.static($$$.paths.__vueDist));
-
-	$$$.server.listen($$$.env.ini.PORT, function (err) {
-		if (err) throw err;
-
-		$$$.emit('server-started');
 	});
 }
 
-module.exports = {
+function setTopLevelRoutes() {
+	return new Promise((resolve, reject) => {
+		_.mapValues($$$.routes, route => {
+			//Apply Page-Not-Found error for unknown routes:
+			route.use('/*', (req, res) => {
+				const ROUTE_NAME = route._name.toUpperCase();
+				res.status(404).send(`[${ROUTE_NAME}] Unknown request: ` + req.fullURL);
+			});
+		})
+
+		$$$.app.use('/$', (req, res, next) => {
+			$$$.files.read($$$.paths.__vueIndex, (err, indexContent) => {
+				//Swap all occurences of 'localhost:####' to the actual host this is called on:
+				var actualHost = req.get('host');
+				indexContent = indexContent
+					.replace(/localhost:[0-9]*/g, actualHost)
+					.replace(/https:\/\/ec2/g, process.env.HTTP_TYPE +'://ec2');
+
+				res.send(indexContent);
+			});
+		});
+
+		$$$.app.use('/', $$$.express.static($$$.paths.__public));
+		$$$.app.use('/dist', $$$.express.static($$$.paths.__vueDist));
+
+		$$$.server.listen($$$.env.ini.PORT, function (err) {
+			if (err) return reject(err);
+
+			$$$.emit('server-started');
+
+			resolve();
+		});
+	});
+}
+
+_.extend(setFolderLevelRoutes, {
 	routes: $$$.routes,
 	numRoutes: () => _.keys($$$.routes).length,
 	setTopLevelRoutes: setTopLevelRoutes
-};
+});
+
+module.exports = setFolderLevelRoutes;

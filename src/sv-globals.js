@@ -8,6 +8,7 @@ require('../public/js/extensions');
 traceClear();
 
 const fs = require('fs-extra');
+const request = require('request-promise');
 const express = require('express');
 const app = express();
 const crypto = require('crypto');
@@ -81,6 +82,7 @@ _.extend($$$, {
 	env: env,
 	app: app,
 	fs: fs,
+	request: request,
 	express: express,
 	server: createHttpOrHttps(app),
 
