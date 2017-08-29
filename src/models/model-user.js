@@ -4,6 +4,7 @@
 
 const nodemailer = require('../sv-setup-nodemailer');
 const mgHelpers = require('../sv-mongo-helpers');
+const request = require('request-promise');
 const mongoose = mgHelpers.mongoose;
 const CONFIG = $$$.env.ini;
 const Schema  = mongoose.Schema;
@@ -206,6 +207,15 @@ module.exports = function() {
 				//This could literally be any mixture of GUID + blablabla ... generate a nice long hash!
 				return $$$.encodeToken(_.guid(), shortMD5(this.username), shortMD5(this.email));
 			},
+
+			sendLogin() {
+				return $$$.send.api('/user/login', 'post', {
+					body: {
+						username: this.username,
+						_password: this._password,
+					}
+				});
+			}
 		},
 
 		///////////////////////////////////////////////////////////

@@ -7,10 +7,10 @@ const mongoose = chaiG.mongoose;
 const request = chaiG.request;
 const assert = chaiG.chai.assert;
 const catcher = chaiG.catcher;
-const sendAPI = chaiG.sendAPI;
 const User = $$$.models.User;
 const Item = $$$.models.Item;
-const TestUsers = chaiG.TestUsers;
+const testUsers = chaiG.testUsers;
+const sendAPI = $$$.send.api;
 
 
 describe('=MONGO= Users', () => {
@@ -47,10 +47,14 @@ describe('=MONGO= Users', () => {
 
 	it('Reset User Count', done => {
 		_.values($$$.models).forEach(model => {
-			model.resetCount()
+			model.resetCount((err, ok) => {
+				if(err) return done(err);
+			});
 		});
 
-		done();
+		setTimeout(() => {
+			done();
+		}, 100);
 	});
 
 	it('Create "Pierre"', done => {
@@ -58,7 +62,7 @@ describe('=MONGO= Users', () => {
 
 		Pierre.save()
 			.then(data => {
-				TestUsers.pierre = data;
+				testUsers.pierre = Pierre;
 
 				assert.exists(Pierre);
 				assert.equal(Pierre.name, "Pierre", "Should be correct name.");
@@ -76,8 +80,6 @@ describe('=MONGO= Users', () => {
 
 		Pierre.save()
 			.then(data => {
-				TestUsers.pierre = data;
-
 				assert.notExists(Pierre);
 
 				done();
@@ -96,8 +98,6 @@ describe('=MONGO= Users', () => {
 
 		Pierre.save()
 			.then(data => {
-				TestUsers.pierre = data;
-
 				assert.notExists(Pierre);
 
 				done();
@@ -136,7 +136,7 @@ describe('=MONGO= Users', () => {
 		Peter.save( (err, data) => {
 			if(err) throw err;
 
-			TestUsers.peter = data;
+			testUsers.peter = data;
 
 			assert.equal(Peter.name, "Peter", "Should be correct name.");
 

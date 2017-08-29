@@ -5,14 +5,15 @@ const chaiG = require('../sv-chai-globals');
 
 const assert = chaiG.chai.assert;
 const catcher = chaiG.catcher;
-const sendAPI = chaiG.sendAPI;
-const TestUsers = chaiG.TestUsers;
+const testUsers = chaiG.testUsers;
 const User = $$$.models.User;
 const PRIVATE = $$$.env.ini.PRIVATE;
+const sendAPI = $$$.send.api;
 
 describe('=REST= User', () => {
 
 	it('Test-Post (Hello World test)', done => {
+
 		sendAPI('/test-echo', 'post', {
 			body: {
 				name: 'Jon',
@@ -156,13 +157,13 @@ describe('=REST= User', () => {
 	});
 
 	it("Update User (TestUsers.pierre's email)", done => {
-		sendAPI('/user?id=' + TestUsers.pierre.id, 'put', {
+		sendAPI('/user?id=' + testUsers.pierre.id, 'put', {
 			body: {email: "changed@gmail.com"}
 		})
 			.then(data => {
 				assert.exists(data);
-				assert.equal(data.name, TestUsers.pierre.name, 'Same name');
-				assert.notEqual(data.email, TestUsers.pierre.email, 'Different emails');
+				assert.equal(data.name, testUsers.pierre.name, 'Same name');
+				assert.notEqual(data.email, testUsers.pierre.email, 'Different emails');
 
 				done();
 			})
@@ -233,20 +234,26 @@ describe('=REST= User', () => {
 	it('Get Users (ALL)', done => {
 		sendAPI('/users')
 			.then(data => {
-				//trace(data);
-				// assert.exists(data, 'JSON data exists');
-				// assert.equal(data.length, 3, 'data.length correct?');
-				// assert.equal(data[0].name, 'Pierre', 'Still Pierre');
-				// assert.equal(data[1].name, 'Pierre', 'Still Pierre');
-				// assert.equal(data[2].name, 'Peter', 'Still Peter');
 				done();
 			})
 			.catch(catcher(done));
 	});
 
 	it('Add User (/user/add/)', done => {
-		sendAPI('/user/add', 'post', { body: chaiG.userToAdd })
+		chaiG.makeTestUsers();
+
+		const chamberlainpi = chaiG.testUsers.chamberlainpi;
+
+		sendAPI('/user/add', 'post', {
+			body: {
+				name: chamberlainpi.name,
+				username: chamberlainpi.username,
+				email: chamberlainpi.email,
+				_password: chamberlainpi._password,
+			}
+		})
 			.then(data => {
+				_.extend(chaiG.testUsers.chamberlainpi, data);
 				assert.exists(data);
 				done();
 			})

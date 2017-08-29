@@ -21,7 +21,7 @@ module.exports = function start(onFinishTests) {
 	//Once tests are added, run the tests!
 	function runTests() {
 		// Run the tests.
-		trace(" ................ Running Tests on api: ".green + chaiG.__api.green);
+		trace(" ................ Running Tests on api: ".green + $$$.paths.__api.green);
 
 		mocha.run(function (failures) {
 			onFinishTests && onFinishTests();

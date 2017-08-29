@@ -12,10 +12,10 @@ const request = require('request-promise');
 const express = require('express');
 const app = express();
 const crypto = require('crypto');
-const paths = require('./sv-paths');
 const events = require('events');
 const REGEX_ISO_MILLIS = /[0-9\.]Z$/;
-const env = require('./sv-env')(paths.__private + '/env.ini');
+const env = require('./sv-env')('./.private/env.ini');
+const paths = require('./sv-paths')(env);
 
 function createHttpOrHttps(app) {
 	const HTTPS_CONFIG = env.ini.HTTPS;
@@ -147,6 +147,31 @@ _.extend($$$, {
 				data: data
 			});
 			return false;
+		},
+
+		api(urlEnd, method, options) {
+			if(!_.isString(method) && arguments.length<3) {
+				options = method;
+				method = 'get';
+			}
+
+			if(!options) options = {};
+
+			options.json = true;
+
+			if(!options.headers) {
+				options.headers = {
+					'Authorization': $$$.encodeToken('sf-admin', new Date().toLocaleDateString())
+				};
+			}
+
+			return request[method]($$$.paths.__api + urlEnd, options)
+				.then(data => {
+					if(data && data.data) {
+						return data.data;
+					}
+					return data;
+				});
 		},
 
 		makeResponseHeader(res) {

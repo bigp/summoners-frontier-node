@@ -5,23 +5,24 @@ const chaiG = require('../sv-chai-globals');
 
 const assert = chaiG.chai.assert;
 const catcher = chaiG.catcher;
-const sendAPI = chaiG.sendAPI;
-const TestUsers = chaiG.TestUsers;
+const testUsers = chaiG.testUsers;
 const User = $$$.models.User;
 const PRIVATE = $$$.env.ini.PRIVATE;
+const sendAPI = $$$.send.api;
+const sendAPIAuth = chaiG.sendAPIAuth;
 
 describe('=REST= Items', () => {
-
-	const userToAdd = chaiG.userToAdd;
+	var chamberlainpi;
 
 	it('Add random item weapon', done => {
-		sendAPI('/item/random/weapon', 'post', {
-			headers: {'Authorization': chaiG.userAuth},
+		chamberlainpi = chaiG.testUsers.chamberlainpi;
+
+		sendAPIAuth('/item/random/weapon', 'post', {
 			body: { actZone: 1 }
 		})
 			.then(data => {
 				assert.exists(data);
-				assert.equal(data.userId, chaiG.userToAdd.id, "Item ID == User ID");
+				assert.equal(data.userId, chamberlainpi.id, "Item ID == User ID");
 				done();
 			})
 			.catch(err => done(err));
@@ -29,9 +30,7 @@ describe('=REST= Items', () => {
 	});
 
 	it('Get all items', done => {
-		sendAPI('/item/list', 'get', {
-			headers: {'Authorization': chaiG.userAuth}
-		})
+		sendAPIAuth('/item/list', 'get')
 			.then(datas => {
 				assert.exists(datas);
 				assert.equal(datas.length, 1);

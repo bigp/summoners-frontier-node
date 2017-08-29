@@ -5,16 +5,16 @@ const chaiG = require('../sv-chai-globals');
 
 const assert = chaiG.chai.assert;
 const catcher = chaiG.catcher;
-const sendAPI = chaiG.sendAPI;
 const TestUsers = chaiG.TestUsers;
 const User = $$$.models.User;
 const PRIVATE = $$$.env.ini.PRIVATE;
+const sendAPI = $$$.send.api;
+const sendAPIAuth = chaiG.sendAPIAuth;
+
 
 describe('=GAME= Specific User Actions', () => {
-
 	it('Complete ActZone FAIL', done => {
-		sendAPI('/user/completed-act-zone', 'post', {
-			headers: {'Authorization': chaiG.userAuth},
+		sendAPIAuth('/user/completed-act-zone', 'post', {
 			body: { fail: 1 }
 		})
 			.then(data => {
@@ -29,8 +29,7 @@ describe('=GAME= Specific User Actions', () => {
 	});
 
 	it('Complete ActZone OK', done => {
-		sendAPI('/user/completed-act-zone', 'post', {
-			headers: {'Authorization': chaiG.userAuth},
+		sendAPIAuth('/user/completed-act-zone', 'post', {
 			body: { actZone: 1 }
 		})
 			.then(data => {
@@ -42,9 +41,7 @@ describe('=GAME= Specific User Actions', () => {
 	});
 
 	it('Logout', done => {
-		sendAPI('/user/logout', 'post', {
-			headers: {'Authorization': chaiG.userAuth}
-		})
+		sendAPIAuth('/user/logout', 'post')
 			.then(data => {
 				chaiG.padError(data.yellow);
 				assert.exists(data);

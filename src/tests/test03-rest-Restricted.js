@@ -5,38 +5,30 @@ const chaiG = require('../sv-chai-globals');
 
 const assert = chaiG.chai.assert;
 const catcher = chaiG.catcher;
-const sendAPI = chaiG.sendAPI;
-const TestUsers = chaiG.TestUsers;
+const testUsers = chaiG.testUsers;
 const User = $$$.models.User;
 const PRIVATE = $$$.env.ini.PRIVATE;
+const sendAPI = $$$.send.api;
 
 describe('=REST= User-Restricted actions', () => {
 
-	var userToAdd = chaiG.userToAdd;
+	var chamberlainpi;
 
 	it('Login User (with a slight delay to modify PING timestamp)', done => {
-		setTimeout(
-			() => {
-				sendAPI('/user/login', 'post', {
-					body: {
-						username: userToAdd.username,
-						_password: $$$.md5(userToAdd.password),
-					}
+		chamberlainpi = chaiG.testUsers.chamberlainpi;
+		setTimeout(() => {
+			chamberlainpi.sendLogin()
+				.then(data => {
+					chaiG.userLogged = data;
+					chaiG.userAuth = $$$.encodeToken(PRIVATE.AUTH_CODE, data.username, data.login.token);
+
+					assert.exists(data);
+					done();
 				})
-					.then(data => {
-						chaiG.userLogged = data;
-						chaiG.userAuth = $$$.encodeToken(PRIVATE.AUTH_CODE, data.username, data.login.token);
-
-						userToAdd = chaiG.userToAdd = _.extend({}, chaiG.userToAdd, data);
-
-						assert.exists(data);
-						done();
-					})
-					.catch(err => {
-						done(err);
-					});
-			}, 250
-		)
+				.catch(err => {
+					done(err);
+				});
+		}, 100);
 	});
 
 	it('Test User-Restricted call [FAIL EMPTY]', done => {
