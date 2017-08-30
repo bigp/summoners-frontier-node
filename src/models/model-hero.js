@@ -13,25 +13,26 @@ const CONFIG = $$$.env.ini;
 
 module.exports = function() {
 	return {
-		plural: 'items',
+		plural: 'heros',
 		whitelist: ['user', 'dateCreated', 'game.itemIdentity', 'game.heroEquipped'],
 		blacklistVerbs: "GET_ONE GET_MANY POST_ONE POST_MANY DELETE_ONE DELETE_MANY".split(' '),
 
 		customRoutes: {
 			//////////////////////////////////////////////////////////////
 
-			'random/:type'(Model, req, res, next, opts) {
+			'random'(Model, req, res, next, opts) {
 				mgHelpers.authenticateUser(req, res, next)
 					.then( user => {
 						if(mgHelpers.isWrongVerb(req, res, 'POST')) return;
-						const jsonItems = gameHelpers.getItems();
-						if(!jsonItems) return $$$.send.error(res, "JSON items not loaded yet.");
 
-						const jsonItem = jsonItems[req.params.type].pickRandom();
-						const itemData = opts.data;
-						itemData.userId = user.id;
+						const jsonHeroes = gameHelpers.getHeroes();
+						if(!jsonHeroes) return $$$.send.error(res, "JSON heroes not loaded yet.");
 
-						const gameData = itemData.game = {};
+						const jsonItem = jsonHeroes.pickRandom();
+						const heroData = opts.data;
+						heroData.userId = user.id;
+
+						const gameData = heroData.game = {};
 						gameData.itemIdentity = jsonItem.identity;
 						gameData.randomSeed = (Math.random() * 100) | 0;
 						gameData.isEquipped = false;
@@ -41,7 +42,7 @@ module.exports = function() {
 						opts.noQuery = true;
 
 						Model.httpVerbs['POST_ONE'](req, res, next, opts);
-					})
+					});
 			},
 
 			'list'(Model, req, res, next, opts) {
@@ -69,15 +70,22 @@ module.exports = function() {
 		///////////////////////////////////////////////////////////
 
 		schema: {
-			userId: CustomTypes.Number({unique:false}),
+			userId: CustomTypes.Number(),
 			dateCreated: CustomTypes.DateRequired(),
 
 			/////////////////////////////////// GAME-SPECIFIC:
 			game: {
-				itemIdentity: CustomTypes.String128({required:true}),
+				heroIdentity: CustomTypes.String128({required:true}),
 				randomSeed: CustomTypes.Number(),
-				isEquipped: Boolean,
-				heroEquipped: {type: ObjectId, ref: 'hero'},
+				isExploring: Boolean,
+				items: {
+					helm: {type: ObjectId, ref: 'item'},
+					chest: {type: ObjectId, ref: 'item'},
+					gloves: {type: ObjectId, ref: 'item'},
+					boots: {type: ObjectId, ref: 'item'},
+					relic: {type: ObjectId, ref: 'item'},
+					weapon: {type: ObjectId, ref: 'item'},
+				}
 			}
 		}
 	};

@@ -3,7 +3,7 @@
  */
 
 module.exports = {
-	getJSONItems() {
+	getItems() {
 		const jsonLoader = $$$.jsonLoader;
 		const jsonSheets = jsonLoader.data.sheets;
 
@@ -12,6 +12,13 @@ module.exports = {
 			armor: jsonSheets['item-armors'].data,
 			relic: jsonSheets['item-relics'].data
 		};
+	},
+
+	getHeroes() {
+		const jsonLoader = $$$.jsonLoader;
+		const jsonSheets = jsonLoader.data.sheets;
+
+		return jsonSheets.heroes;
 	},
 
 	getJSONGlobals(preset) {

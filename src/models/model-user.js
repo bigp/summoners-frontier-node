@@ -2,7 +2,7 @@
  * Created by Chamberlain on 8/11/2017.
  */
 
-const gameHelpers = require('../sv-game-helpers');
+const gameHelpers = require('../sv-json-helpers');
 const nodemailer = require('../sv-setup-nodemailer');
 const mgHelpers = require('../sv-mongo-helpers');
 const request = require('request-promise');
@@ -239,14 +239,28 @@ module.exports = function() {
 
 			sendAuth(url, method, options) {
 				if(!options) options = {};
+				if(options==='*') {
+					options = {
+						body: {
+							name: this.name,
+							username: this.username,
+							email: this.email,
+							_password: this._password,
+						}
+					}
+				}
 
 				if(!options.headers) {
-					options.headers = {
-						'Authorization': $$$.encodeToken(PRIVATE.AUTH_CODE, this.username, this.login.token)
-					};
+					options.headers = { 'Authorization': this.getAuthorizationString() };
 				}
 
 				return $$$.send.api(url, method, options);
+			},
+
+			getAuthorizationString() {
+				return this.login.token ?
+					$$$.encodeToken(PRIVATE.AUTH_CODE, this.username, this.login.token) :
+					$$$.encodeToken(PRIVATE.AUTH_CODE);
 			}
 		},
 

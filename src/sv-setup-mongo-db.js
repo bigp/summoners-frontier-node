@@ -68,6 +68,7 @@ function forEachModel(schemaFile, name) {
 		POST_ONE(req, res, next, options) {
 			const illegalData = mgHelpers.getIllegals(options);
 			if(illegalData.length) {
+				//options.data = _.omit(options.data, illegalData);
 				return sendError(res, `Used illegal field(s) while adding to '${Model._nameTitled}'`, illegalData);
 			}
 
@@ -80,6 +81,11 @@ function forEachModel(schemaFile, name) {
 			Model.find(uniqueOr).exec()
 				.then(data => {
 					if (data && data.length > 0) {
+						if(Model._nameTitled==="Item") {
+							trace(data);
+							trace(options.data);
+						}
+
 						const dups = {}, result = data[0];
 
 						_.keys(options.data).forEach(key => {

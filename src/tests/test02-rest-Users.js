@@ -2,6 +2,7 @@
  * Created by Chamberlain on 8/14/2017.
  */
 const chaiG = require('../sv-chai-globals');
+const mgHelpers = require('../sv-mongo-helpers');
 
 const assert = chaiG.chai.assert;
 const catcher = chaiG.catcher;
@@ -11,21 +12,21 @@ const PRIVATE = $$$.env.ini.PRIVATE;
 const sendAPI = $$$.send.api;
 
 describe('=REST= User', () => {
+	var chamberlainpi;
+	var tempUserRemoved;
+
+	function getJonBody() {
+		return _.omit(testUsers.jon.toJSON(), ['_id']);
+	}
 
 	it('Test-Post (Hello World test)', done => {
+		chaiG.makeTestUsers();
 
-		sendAPI('/test-echo', 'post', {
-			body: {
-				name: 'Jon',
-				username: 'Jon123',
-				email: 'jon@gmail.com',
-				_password: 'pi3rr3',
-			}
-		})
+		sendAPI('/test-echo', 'post', { body: {hello: "world"} })
 			.then(data => {
 				assert.exists(data, 'JSON data exists');
 				assert.exists(data.echo);
-				assert.equal(data.echo.name, 'Jon', 'Name is correct');
+				assert.equal(data.echo.hello, 'world', 'echo is correct');
 				done();
 			})
 			.catch(catcher(done));
@@ -58,10 +59,9 @@ describe('=REST= User', () => {
 		sendAPI('/users')
 			.then(data => {
 				assert.exists(data, 'JSON data exists');
-				assert.equal(data.length, 3, 'data.length correct?');
+				assert.equal(data.length, 2, 'data.length correct?');
 				assert.equal(data[0].name, 'Pierre', 'Still Pierre');
-				assert.equal(data[1].name, 'Pierre', 'Still Pierre');
-				assert.equal(data[2].name, 'Peter', 'Still Peter');
+				assert.equal(data[1].name, 'Peter', 'Still Peter');
 				done();
 			})
 			.catch(catcher(done));
@@ -71,7 +71,7 @@ describe('=REST= User', () => {
 		sendAPI('/users?name=Pierre')
 			.then(data => {
 				assert.exists(data, 'JSON data exists');
-				assert.equal(data.length, 2, 'Has 2 entries');
+				assert.equal(data.length, 1, 'Has correct entries');
 				done();
 			})
 			.catch(catcher(done));
@@ -99,23 +99,14 @@ describe('=REST= User', () => {
 			});
 	});
 
-	var newUser;
-
-	it('Add User', done => {
-		sendAPI('/user', 'post', {
-			body: {
-				name: 'Jon',
-				username: 'Jon123',
-				email: 'jon@gmail.com',
-				_password: 'pi3rr3',
-			}
-		})
+	it('Add User (Temp: Jon)', done => {
+		sendAPI('/user', 'post', { body: getJonBody() })
 			.then(data => {
 				assert.exists(data, 'JSON data added.');
 				assert.equal(data.name, 'Jon', 'name is correct');
 				assert.equal(data.username, 'Jon123', 'username is correct');
 
-				newUser = data;
+				tempUserRemoved = data;
 
 				done();
 			})
@@ -136,7 +127,7 @@ describe('=REST= User', () => {
 	});
 
 	it('Remove User (Try OK)', done => {
-		sendAPI('/user?id=' + newUser.id, 'delete')
+		sendAPI('/user?id=' + tempUserRemoved.id, 'delete')
 			.then(data => {
 				assert.exists(data);
 				assert.equal(data.n, 1, 'Should have removed 1 entry.');
@@ -150,16 +141,14 @@ describe('=REST= User', () => {
 		sendAPI('/users/count')
 			.then(data => {
 				assert.exists(data);
-				assert.equal(data.count, 3, "Get correct count.");
+				assert.equal(data.count, 2, "Get correct count.");
 				done();
 			})
 			.catch(catcher(done));
 	});
 
 	it("Update User (TestUsers.pierre's email)", done => {
-		sendAPI('/user?id=' + testUsers.pierre.id, 'put', {
-			body: {email: "changed@gmail.com"}
-		})
+		sendAPI('/user?id=' + testUsers.pierre.id, 'put', { body: {email: "changed@gmail.com"} })
 			.then(data => {
 				assert.exists(data);
 				assert.equal(data.name, testUsers.pierre.name, 'Same name');
@@ -170,21 +159,12 @@ describe('=REST= User', () => {
 			.catch(catcher(done));
 	});
 
-	it('Add User (FAIL with same name)', done => {
-		sendAPI('/user', 'post', {
-			body: {
-				name: 'Jon',
-				username: 'Jon123',
-				email: 'old-jon@gmail.com',
-				_password: 'pi3rr3',
-			}
-		})
+	it('Add User (OK with same name, after previous duplicate JON was removed)', done => {
+		sendAPI('/user', 'post', { body: getJonBody() })
 			.then(data => {
 				assert.exists(data, 'JSON data added.');
 				assert.equal(data.name, 'Jon', 'name is correct');
 				assert.equal(data.username, 'Jon123', 'username is correct');
-
-				newUser = data;
 
 				done();
 			})
@@ -213,14 +193,7 @@ describe('=REST= User', () => {
 	});
 
 	it('Add User (FAIL with duplicate)', done => {
-		sendAPI('/user', 'post', {
-			body: {
-				name: 'Jon',
-				username: 'Jon123',
-				email: 'new-jon@gmail.com',
-				_password: 'pi3rr3',
-			}
-		})
+		sendAPI('/user', 'post', { body: getJonBody() })
 			.then(data => {
 				assert.notExists(data);
 				done();
@@ -239,23 +212,27 @@ describe('=REST= User', () => {
 			.catch(catcher(done));
 	});
 
-	var chamberlainpi;
 
 	it('Add User (/user/add/)', done => {
-		chaiG.makeTestUsers();
+		chamberlainpi = testUsers.chamberlainpi;
 
-		chamberlainpi = chaiG.testUsers.chamberlainpi;
-
-		sendAPI('/user/add', 'post', {
-			body: {
-				name: chamberlainpi.name,
-				username: chamberlainpi.username,
-				email: chamberlainpi.email,
-				_password: chamberlainpi._password,
-			}
-		})
+		chamberlainpi.sendAuth('/user/add', 'post', "*")
 			.then(data => {
-				_.extend(chaiG.testUsers.chamberlainpi, data);
+				_.extend(testUsers.chamberlainpi, data);
+				assert.exists(data);
+
+				setTimeout(done, 50);
+			})
+			.catch(err => {
+				done(err);
+			});
+	});
+
+	it('Login User (with a slight delay to modify PING timestamp)', done => {
+		const chamberlainpi = testUsers.chamberlainpi;
+
+		chamberlainpi.sendLogin()
+			.then(data => {
 				assert.exists(data);
 				done();
 			})
@@ -264,25 +241,25 @@ describe('=REST= User', () => {
 			});
 	});
 
-	it('Login User (with a slight delay to modify PING timestamp)', done => {
-		setTimeout(() => {
-			chamberlainpi.sendLogin()
-				.then(data => {
-					chaiG.userLogged = data;
-					chaiG.userAuth = $$$.encodeToken(PRIVATE.AUTH_CODE, data.username, data.login.token);
-
-					assert.exists(data);
-					done();
-				})
-				.catch(err => {
-					done(err);
-				});
-		}, 100);
-	});
-
 	it('Check User Currency (/user/currency/)', done => {
+		const chamberlainpi = testUsers.chamberlainpi;
+
 		chamberlainpi.sendAuth('/user/currency', 'get')
 			.then(data => {
+				assert.exists(data);
+				done();
+			})
+			.catch(err => {
+				done(err);
+			});
+	});
+
+	it('Logout (chamberlainpi)', done => {
+		const chamberlainpi = testUsers.chamberlainpi;
+
+		chamberlainpi.sendAuth('/user/logout', 'get')
+			.then(data => {
+				chamberlainpi.login.token = null;
 				assert.exists(data);
 				done();
 			})

@@ -36,3 +36,31 @@ Promise.all([setupRoutes(), setupMongo(), setupNodeMailer(), $$$.jsonLoader.conf
 		traceError("========= OH NO! ==========");
 		traceError(err);
 	});
+
+
+if(_.isTruthy($$$.env.ini.TEST)) {
+	$$$.sockets = [];
+	$$$.server.on('connection', socket => {
+		$$$.sockets.push(socket);
+
+		socket.on('close', () => {
+			$$$.sockets.remove(socket);
+		})
+	});
+
+	function onProgramExit() {
+		const mongoose = require('mongoose');
+
+		trace("mongoose.disconnect / connection.close()...");
+		mongoose.disconnect();
+		mongoose.connection.close();
+
+		$$$.server.close();
+		$$$.sockets.forEach(socket => socket.destroy());
+	}
+
+	process.on('exit', onProgramExit);
+	process.on('SIGINT', onProgramExit);
+}
+
+//process.on('uncaughtException', onProgramExit);

@@ -32,14 +32,13 @@ const chaiG = module.exports = {
 			email: 'chamberlainpi@gmail.com',
 			_password: $$$.md5('pi3rr3')
 		});
-	},
 
-	sendAPIAuth(path, method, options) {
-		if(!options) options = {};
-
-		options.headers = {'Authorization': chaiG.userAuth};
-
-		return $$$.send.api(path, method, options);
+		chaiG.testUsers.jon = new User({
+			name: 'Jon',
+			username: 'Jon123',
+			email: 'jon@gmail.com',
+			_password: $$$.md5('pi3rr3'),
+		});
 	}
 };
 

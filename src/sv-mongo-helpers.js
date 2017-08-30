@@ -124,8 +124,9 @@ const mgHelpers = {
 
 		const dup = {};
 		const source = data.toJSON ? data.toJSON() : data;
+
 		_.keys(source).forEach((key) => {
-			if(PRIVATE_PROP.test(key)) return;
+			if(mgHelpers.isPrivateField(key)) return;
 
 			const value = source[key];
 

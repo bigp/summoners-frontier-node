@@ -9,17 +9,14 @@ const testUsers = chaiG.testUsers;
 const User = $$$.models.User;
 const PRIVATE = $$$.env.ini.PRIVATE;
 const sendAPI = $$$.send.api;
-const sendAPIAuth = chaiG.sendAPIAuth;
 
 describe('=REST= Items', () => {
-	var chamberlainpi;
+	var chamberlainpi, peter;
 
-	it('Add random item weapon', done => {
-		chamberlainpi = chaiG.testUsers.chamberlainpi;
+	it('Add random item weapon (chamberlainpi)', done => {
+		chamberlainpi = testUsers.chamberlainpi;
 
-		sendAPIAuth('/item/random/weapon', 'post', {
-			body: { actZone: 1 }
-		})
+		chamberlainpi.sendAuth('/item/random/weapon', 'post')
 			.then(data => {
 				assert.exists(data);
 				assert.equal(data.userId, chamberlainpi.id, "Item ID == User ID");
@@ -29,8 +26,47 @@ describe('=REST= Items', () => {
 
 	});
 
+	it('Add ANOTHER random item weapon (chamberlainpi)', done => {
+		chamberlainpi = testUsers.chamberlainpi;
+
+		chamberlainpi.sendAuth('/item/random/weapon', 'post')
+			.then(data => {
+				assert.exists(data);
+				assert.equal(data.userId, chamberlainpi.id, "Item ID == User ID");
+				done();
+			})
+			.catch(err => done(err));
+
+	});
+
+	it('Add random item weapon (peter NOT logged in)', done => {
+		peter = testUsers.peter;
+		peter.sendAuth('/item/random/weapon', 'post')
+			.then(data => {
+				assert.notExists(data);
+				done('Should not exists!');
+			})
+			.catch(err => {
+				assert.exists(err);
+				done();
+			});
+
+	});
+
+	it('Add random item weapon (peter WHEN logged in)', done => {
+		peter = testUsers.peter;
+		peter.sendLogin()
+			.then(() => peter.sendAuth('/item/random/weapon', 'post'))
+			.then(data => {
+				assert.exists(data);
+				assert.equal(data.userId, peter.id, "Item ID == User ID");
+				done();
+			})
+			.catch(err => done(err));
+	});
+
 	it('Get all items', done => {
-		sendAPIAuth('/item/list', 'get')
+		chamberlainpi.sendAuth('/item/list', 'get')
 			.then(datas => {
 				assert.exists(datas);
 				assert.equal(datas.length, 1);

@@ -15,7 +15,7 @@ describe('=REST= User-Restricted actions', () => {
 	var chamberlainpi;
 
 	it('Test User-Restricted call [FAIL EMPTY]', done => {
-		chamberlainpi = chaiG.testUsers.chamberlainpi;
+		chamberlainpi = testUsers.chamberlainpi;
 
 		sendAPI('/user/test-echo', 'post', {headers:{Authorization:'???'}})
 			.then(data => {
@@ -65,8 +65,10 @@ describe('=REST= User-Restricted actions', () => {
 	});
 
 	it('Test User-Restricted call [FAIL Logged Out]', done => {
+		assert.notExists(chamberlainpi.login.token);
+
 		sendAPI('/user/test-echo', 'post', {
-			headers: {'Authorization': $$$.encodeToken(PRIVATE.AUTH_CODE, "peter", chaiG.userLogged.token)},
+			headers: {'Authorization': $$$.encodeToken(PRIVATE.AUTH_CODE, chamberlainpi.username, chamberlainpi.login.token)},
 			body: { foo: 'bar' }
 		})
 			.then(data => {
@@ -82,7 +84,7 @@ describe('=REST= User-Restricted actions', () => {
 
 	it('Test User-Restricted call [FAIL BAD token]', done => {
 		sendAPI('/user/test-echo', 'post', {
-			headers: {'Authorization': $$$.encodeToken(PRIVATE.AUTH_CODE, chaiG.userLogged.username, "???")},
+			headers: {'Authorization': $$$.encodeToken(PRIVATE.AUTH_CODE, chamberlainpi.username, "???")},
 			body: { foo: 'bar' }
 		})
 			.then(data => {
@@ -98,10 +100,10 @@ describe('=REST= User-Restricted actions', () => {
 	});
 
 	it('Test User-Restricted call', done => {
-		sendAPI('/user/test-echo', 'post', {
-			headers: {'Authorization': chaiG.userAuth},
-			body: { foo: 'bar' }
-		})
+		chamberlainpi.sendLogin()
+			.then(() => {
+				return chamberlainpi.sendAuth('/user/test-echo', 'post', {body: { foo: 'bar' }})
+			})
 			.then(data => {
 				assert.exists(data);
 				assert(data.foo, 'bar', 'Still got {foo:bar} back?');
@@ -115,8 +117,8 @@ describe('=REST= User-Restricted actions', () => {
 
 	it('Test Password Reset', done => {
 		sendAPI('/user/forget-password', 'post', {
-			headers: {'Authorization': chaiG.userAuth},
-			body: { username: chaiG.userLogged.username, direct:1 }
+			headers: {'Authorization': chamberlainpi.getAuthorizationString()},
+			body: { username: chamberlainpi.username, direct:1 }
 		})
 			.then(data => {
 				chaiG.showTraces && trace(data);
