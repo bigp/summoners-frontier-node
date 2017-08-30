@@ -2,11 +2,13 @@
  * Created by Chamberlain on 8/11/2017.
  */
 
+const gameHelpers = require('../sv-game-helpers');
 const nodemailer = require('../sv-setup-nodemailer');
 const mgHelpers = require('../sv-mongo-helpers');
 const request = require('request-promise');
 const mongoose = mgHelpers.mongoose;
 const CONFIG = $$$.env.ini;
+const PRIVATE = CONFIG.PRIVATE;
 const Schema  = mongoose.Schema;
 const CustomTypes  = mongoose.CustomTypes;
 
@@ -22,9 +24,18 @@ module.exports = function() {
 					return $$$.send.error(res, "Can only use /add/user/ with 'POST' HTTP Verb.");
 				}
 
+				const jsonGlobals = gameHelpers.getJSONGlobals();
 				const userData = opts.data;
 				userData.username = userData.username.toLowerCase();
 				userData._password = (userData._password || $$$.md5(userData.password)).toLowerCase();
+				userData.game = {
+					currency: {
+						gold: jsonGlobals.DEFAULT_GOLD,
+						gems: jsonGlobals.DEFAULT_GEMS,
+						scrolls: jsonGlobals.DEFAULT_SCROLLS,
+						magicOrbs: jsonGlobals.DEFAULT_MAGIC,
+					}
+				};
 
 				Model.httpVerbs['POST_ONE'](req, res, next, opts);
 			},
@@ -66,8 +77,8 @@ module.exports = function() {
 						return user.save();
 					})
 					.then(user => {
-						var results = _.assign({mongoID: user._id+''}, user.toJSON());
-						mgHelpers.sendFilteredResult(res, results);
+						//var results = _.assign({mongoID: user._id+''}, user.toJSON());
+						mgHelpers.sendFilteredResult(res, user);
 					})
 					.catch(err => {
 						trace(err);
@@ -158,8 +169,11 @@ module.exports = function() {
 			'currency'(Model, req, res, next, opts) {
 				mgHelpers.authenticateUser(req, res, next)
 					.then( user => {
-						var updated = true;
+						if(!user) {
+							traceError("No user???");
+						}
 
+						var updated = true;
 						const incoming = opts.data;
 						const currency = user.game.currency;
 
@@ -177,12 +191,15 @@ module.exports = function() {
 								return $$$.send.notImplemented(res);
 						}
 
-						if(updated) return user.save();
+						if(updated) {
+							user.save()
+								.then(() => {
+									mgHelpers.sendFilteredResult(res, currency);
+								})
+								.catch(err => {throw err;});
 
-						next();
-					})
-					.then( updated => {
-						mgHelpers.sendFilteredResult(res, updated.game.currency );
+
+						} else next();
 					});
 			}
 		},
@@ -214,7 +231,22 @@ module.exports = function() {
 						username: this.username,
 						_password: this._password,
 					}
+				}).then( data => {
+					this.login.token = data.login.token;
+					return data;
 				});
+			},
+
+			sendAuth(url, method, options) {
+				if(!options) options = {};
+
+				if(!options.headers) {
+					options.headers = {
+						'Authorization': $$$.encodeToken(PRIVATE.AUTH_CODE, this.username, this.login.token)
+					};
+				}
+
+				return $$$.send.api(url, method, options);
 			}
 		},
 

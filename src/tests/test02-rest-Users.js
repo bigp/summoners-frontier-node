@@ -239,10 +239,12 @@ describe('=REST= User', () => {
 			.catch(catcher(done));
 	});
 
+	var chamberlainpi;
+
 	it('Add User (/user/add/)', done => {
 		chaiG.makeTestUsers();
 
-		const chamberlainpi = chaiG.testUsers.chamberlainpi;
+		chamberlainpi = chaiG.testUsers.chamberlainpi;
 
 		sendAPI('/user/add', 'post', {
 			body: {
@@ -254,6 +256,34 @@ describe('=REST= User', () => {
 		})
 			.then(data => {
 				_.extend(chaiG.testUsers.chamberlainpi, data);
+				assert.exists(data);
+				done();
+			})
+			.catch(err => {
+				done(err);
+			});
+	});
+
+	it('Login User (with a slight delay to modify PING timestamp)', done => {
+		setTimeout(() => {
+			chamberlainpi.sendLogin()
+				.then(data => {
+					chaiG.userLogged = data;
+					chaiG.userAuth = $$$.encodeToken(PRIVATE.AUTH_CODE, data.username, data.login.token);
+
+					assert.exists(data);
+					done();
+				})
+				.catch(err => {
+					done(err);
+				});
+		}, 100);
+	});
+
+	it('Check User Currency (/user/currency/)', done => {
+		chamberlainpi.sendAuth('/user/currency', 'get')
+			.then(data => {
+				trace(data);
 				assert.exists(data);
 				done();
 			})

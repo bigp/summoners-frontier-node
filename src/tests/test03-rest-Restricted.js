@@ -14,24 +14,9 @@ describe('=REST= User-Restricted actions', () => {
 
 	var chamberlainpi;
 
-	it('Login User (with a slight delay to modify PING timestamp)', done => {
-		chamberlainpi = chaiG.testUsers.chamberlainpi;
-		setTimeout(() => {
-			chamberlainpi.sendLogin()
-				.then(data => {
-					chaiG.userLogged = data;
-					chaiG.userAuth = $$$.encodeToken(PRIVATE.AUTH_CODE, data.username, data.login.token);
-
-					assert.exists(data);
-					done();
-				})
-				.catch(err => {
-					done(err);
-				});
-		}, 100);
-	});
-
 	it('Test User-Restricted call [FAIL EMPTY]', done => {
+		chamberlainpi = chaiG.testUsers.chamberlainpi;
+
 		sendAPI('/user/test-echo', 'post', {headers:{Authorization:'???'}})
 			.then(data => {
 				assert.notExists(data);

@@ -2,6 +2,7 @@
  * Created by Chamberlain on 8/29/2017.
  */
 
+const gameHelpers = require('../sv-game-helpers');
 const mgHelpers = require('../sv-mongo-helpers');
 const mongoose = mgHelpers.mongoose;
 const Schema  = mongoose.Schema;
@@ -9,18 +10,6 @@ const Types  = Schema.Types;
 const CustomTypes  = mongoose.CustomTypes;
 const ObjectId = Types.ObjectId;
 const CONFIG = $$$.env.ini;
-
-function getJSONItems() {
-	const jsonLoader = $$$.jsonLoader;
-	//const jsonGlobals = jsonLoader.globals;
-	const jsonSheets = jsonLoader.data.sheets;
-
-	return {
-		weapon: jsonSheets['item-weapons'].data,
-		armor: jsonSheets['item-armors'].data,
-		relic: jsonSheets['item-relics'].data
-	};
-}
 
 module.exports = function() {
 	return {
@@ -35,7 +24,7 @@ module.exports = function() {
 				mgHelpers.authenticateUser(req, res, next)
 					.then( user => {
 						if(mgHelpers.isWrongVerb(req, res, 'POST')) return;
-						const jsonItems = getJSONItems();
+						const jsonItems = gameHelpers.getJSONItems();
 						if(!jsonItems) return $$$.send.error(res, "JSON items not loaded yet.");
 
 						const jsonItem = jsonItems[req.params.type].pickRandom();

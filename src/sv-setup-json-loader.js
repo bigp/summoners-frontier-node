@@ -55,8 +55,10 @@ class JSONLoader extends Events {
 			const preset = globs[presetName] = {};
 
 			data.forEach(row => {
-				const prop = row[propToCheck];
-				const value = row[presetName];
+				var prop = row[propToCheck];
+				var value = row[presetName];
+
+				if(!isNaN(value)) value = parseFloat(value);
 
 				preset[prop] = value;
 			});
