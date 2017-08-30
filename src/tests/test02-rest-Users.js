@@ -283,7 +283,6 @@ describe('=REST= User', () => {
 	it('Check User Currency (/user/currency/)', done => {
 		chamberlainpi.sendAuth('/user/currency', 'get')
 			.then(data => {
-				trace(data);
 				assert.exists(data);
 				done();
 			})
