@@ -3,13 +3,24 @@ const fs = require('fs');
 
 module.exports = function (privatePath) {
 	const iniContent = fs.readFileSync(privatePath, 'utf-8');
-	const iniJSON = iniReader.parse(iniContent);
+	const iniJSON = recursiveToNumber(iniReader.parse(iniContent));
 	const ini = _.extend({PORT: 9000}, iniJSON);
 	const NODE_ENV = ini.NODE_ENV || process.env.NODE_ENV || 'dev';
 
 	function env(isEnv) {
 		if(!arguments.length) return NODE_ENV;
 		return NODE_ENV===isEnv;
+	}
+
+	function recursiveToNumber(obj) {
+		return _.mapValues(obj, value => {
+			if(_.isPlainObject(value)) {
+				return recursiveToNumber(value);
+			} else if(!isNaN(value)) {
+				return value | 0;
+			}
+			return value;
+		})
 	}
 
 	//Expose a "_ini" field to make it shareable on Vue-based / Webpack Configuration files:

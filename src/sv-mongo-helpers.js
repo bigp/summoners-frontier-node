@@ -8,6 +8,7 @@ const beautifulUnique = require('mongoose-beautiful-unique-validation');
 const MANDATORY_FIELDS = ['_id', 'id'];
 const ERROR_MAXLENGTH = '`{PATH}` field must be {MAXLENGTH} chars, you used {VALUE}.';
 const PRIVATE_PROP = /^_/;
+const CONFIG = $$$.env.ini;
 
 mongoose.Promise = global.Promise;
 mongoose.CustomTypes = {
@@ -130,7 +131,7 @@ const mgHelpers = {
 
 			const value = source[key];
 
-			if(_.isPlainObject(value)) {
+			if(_.isPlainObject(value) || _.isArray(value) || (value && value._doc)) {
 				return dup[key] = mgHelpers.filterMongoPrivateData(value);
 			}
 
@@ -149,7 +150,8 @@ const mgHelpers = {
 	isWrongVerb(req, res, shouldBeVerb) {
 		if(req.method===shouldBeVerb) return false;
 
-		$$$.send.error(res, `Can only use ${req.url} with '${shouldBeVerb}' HTTP Verb, you used '${req.method}'.`);
+		//$$$.send.error // new Error(
+		throw `Can only use ${req.url} with '${shouldBeVerb}' HTTP Verb, you used '${req.method}'.`;
 
 		return true;
 	},
@@ -188,6 +190,114 @@ const mgHelpers = {
 				.catch( err => {
 					USERAUTH_ERROR(err);
 				});
+		});
+	},
+
+	ifHasUniquesCheckFirst(Model, req, res, next, options) {
+		const uniqueOr = mgHelpers.getORsQuery(options.data, Model._uniques);
+		if(options.noQuery || !uniqueOr.length) {
+			return Promise.resolve();
+		}
+
+		if(Model._uniques.length > 0 && uniqueOr && !uniqueOr.$or.length) {
+			return $$$.send.error(res, 'Missing required fields.', options.data);
+		}
+
+		return Model.find(uniqueOr).exec()
+			.then(data => {
+				if (data && data.length > 0) {
+					if(Model._nameTitled==="Item") {
+						trace(data);
+						trace(options.data);
+					}
+
+					const dups = {}, result = data[0];
+
+					_.keys(options.data).forEach(key => {
+						if(mgHelpers.isPrivateField(key)) return;
+
+						const val = options.data[key];
+						if (val === result[key]) dups[key] = val;
+					});
+
+					throw new $$$.DetailedError("Data not unique.", {
+						duplicates: {
+							fields: _.keys(dups),
+							values: _.values(dups)
+						}
+					});
+				}
+			});
+	},
+
+	isValidationError(err, res, errMessage) {
+		if(!err || !err.message || !err.message.has('validation')) return false;
+		if(!errMessage) errMessage = "Validation Error occurred.";
+
+		const errors = [];
+
+		_.keys(err.errors).forEach(key => {
+			var reason = err.errors[key].message;
+			if(reason.has('is required.')) {
+				reason = reason.replace("Path", "Field");
+			}
+
+			errors.push( reason );
+		});
+
+		$$$.send.error(res, {message: errMessage, reasons: errors});
+
+		return true;
+	},
+
+	prepareRandomCountRequest(Model, req, res, next, generatorWithUser) {
+		return mgHelpers.authenticateUser(req, res, next)
+			.then( user => {
+				if (mgHelpers.isWrongVerb(req, res, 'POST')) return;
+
+				var count = req.params.count || 1;
+				if (count > CONFIG.GAME_RULES.MAX_RANDOM_COUNT) {
+					throw 'Random "count" parameter too high: ' + count;
+				}
+
+				var results = [];
+				for(var c=0; c<count; c++) {
+					results.push( generatorWithUser(user) );
+				}
+
+				return Model.create(results);
+			});
+	},
+
+	findAllByCurrentUser(Model, req, res, next, opts) {
+		return mgHelpers.authenticateUser(req, res, next)
+			.then( user => {
+				if (mgHelpers.isWrongVerb(req, res, 'GET')) return;
+
+				return Model.find({userId: user.id}).sort('id')
+			})
+			.then(items => {
+				mgHelpers.sendFilteredResult(res, items);
+			});
+	},
+
+	prepareAddRequest(Model, req, res, next, opts) {
+		return mgHelpers.authenticateUser(req, res, next)
+			.then( user => {
+				if (mgHelpers.isWrongVerb(req, res, 'POST')) return;
+
+				if (!opts.data || !opts.data.list || !opts.data.list.length) {
+					throw `Must provide a *list* of '${Model._plural}' to add.`;
+				}
+
+				return user;
+			});
+	},
+
+	sendNewestAndOldest(res, newest, oldest) {
+		return mgHelpers.sendFilteredResult(res, {
+			newest: newest ? _.sortBy(newest, 'id') : null,
+			oldest: oldest ? _.sortBy(oldest, 'id') : null
 		});
 	}
 };

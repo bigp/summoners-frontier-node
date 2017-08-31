@@ -28,7 +28,7 @@ p.remove = function(item) {
 };
 
 p.pickRandom = function() {
-	var id = (Math.random() * this.length) | 0;
+	var id = (Math.random() * this.length) >> 0;
 	return this[id];
 }
 

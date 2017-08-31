@@ -72,39 +72,10 @@ function forEachModel(schemaFile, name) {
 				return sendError(res, `Used illegal field(s) while adding to '${Model._nameTitled}'`, illegalData);
 			}
 
-			const uniqueOr = options.noQuery ? null : mgHelpers.getORsQuery(options.data, Model._uniques);
-
-			if(Model._uniques.length > 0 && uniqueOr && !uniqueOr.$or.length) {
-				return sendError(res, 'Missing required fields.', options.data);
-			}
-
-			Model.find(uniqueOr).exec()
-				.then(data => {
-					if (data && data.length > 0) {
-						if(Model._nameTitled==="Item") {
-							trace(data);
-							trace(options.data);
-						}
-
-						const dups = {}, result = data[0];
-
-						_.keys(options.data).forEach(key => {
-							if(mgHelpers.isPrivateField(key)) return;
-
-							const val = options.data[key];
-							if (val === result[key]) dups[key] = val;
-						});
-
-						throw new $$$.DetailedError("Data not unique.", {
-							duplicates: {
-								fields: _.keys(dups),
-								values: _.values(dups)
-							}
-						});
-					}
-
+			mgHelpers.ifHasUniquesCheckFirst(Model, req, res, next, options)
+				.then( () => {
 					const newUser = new Model(options.data);
-					return newUser.save()
+					return newUser.save();
 				})
 				.then(data => {
 					mgHelpers.sendFilteredResult(res, data);
@@ -114,19 +85,7 @@ function forEachModel(schemaFile, name) {
 
 					if(err.details) return sendError(res, errMessage, err.details);
 
-					if(err.message && err.message.has('validation')) {
-						const errors = [];
-						_.keys(err.errors).forEach(key => {
-							var reason = err.errors[key].message;
-							if(reason.has('is required.')) {
-								reason = reason.replace("Path", "Field");
-							}
-
-							errors.push( reason );
-						});
-
-						return sendError(res, {message: errMessage, reasons: errors});
-					}
+					if(mgHelpers.isValidationError(err, res, errMessage)) return;
 
 					sendError(res, errMessage + ' ' + err.message);
 					//trace(err);

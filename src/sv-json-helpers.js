@@ -7,18 +7,38 @@ module.exports = {
 		const jsonLoader = $$$.jsonLoader;
 		const jsonSheets = jsonLoader.data.sheets;
 
+		const weapons = jsonSheets['item-weapons'].data;
+		const armor = jsonSheets['item-armors'].data;
+		const relic = jsonSheets['item-relics'].data;
+		const allItems = [].concat(weapons, armor, relic);
+		const allIdentities = allItems.map(item => item.identity);
+		const allNames = allItems.map(item => item.name);
+
 		return {
-			weapon: jsonSheets['item-weapons'].data,
-			armor: jsonSheets['item-armors'].data,
-			relic: jsonSheets['item-relics'].data
+			weapon: weapons,
+			armor: armor,
+			relic: relic,
+
+			all: {
+				items: allItems,
+				identities: allIdentities,
+				names: allNames
+			}
 		};
 	},
 
 	getHeroes() {
 		const jsonLoader = $$$.jsonLoader;
 		const jsonSheets = jsonLoader.data.sheets;
+		const jsonHeroes = jsonSheets['heroes'].data;
 
-		return jsonSheets.heroes;
+		var dup = [].concat(jsonHeroes);
+		dup.all = {
+			identities: jsonHeroes.map(hero => hero.identity),
+			names: jsonHeroes.map(hero => hero.name)
+		};
+
+		return dup;
 	},
 
 	getJSONGlobals(preset) {
