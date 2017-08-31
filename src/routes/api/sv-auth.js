@@ -66,6 +66,48 @@ module.exports = {
 		authOK(res);
 	},
 
+	authenticateUser(req, res, next) {
+		const url = req.fullURL.split('/api/')[1];
+		if(url.startsWith('admin/') || url.startsWith('user/public/')) {
+			return next();
+		}
+
+		const USERAUTH_ERROR = (err) => $$$.send.errorCustom(res, err, "User Authentication Failed");
+
+		if(!req.auth || !(req.auth.isAdmin || req.auth.isAuth)) {
+			return USERAUTH_ERROR("Request missing OR has incorrect Authorization key.");
+		}
+
+		const authCodes = req.auth.codes;
+		if(authCodes.length<3) {
+			return USERAUTH_ERROR("Request missing parts of Authorization to determine username & token");
+		}
+
+		const username = authCodes[1];
+		const token = authCodes[2];
+
+		$$$.models.User.findOne({username: username}).exec()
+			.then( found => {
+				if(!found) throw `'${username}' not found.`;
+				if(!found.login.token) throw `'${username}' not logged in.`;
+				if(found.login.token!==token) throw `'${username}' token doesn't match`;
+
+				req.isUser = true;
+				req.auth.user = found;
+
+				found.login.datePing = new Date();
+				return found.save();
+			})
+			.then( found => {
+				//req.auth.user = found;
+
+				next();
+			})
+			.catch( err => {
+				USERAUTH_ERROR(err);
+			});
+	},
+
 	configHeaders(res) {
 		res.header('Access-Control-Allow-Origin','*');
 		res.header('Access-Control-Allow-Credentials','true');

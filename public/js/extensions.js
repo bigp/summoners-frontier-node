@@ -330,6 +330,51 @@ if(!console) {
 	}
 }
 
+if(false && process!=null) {
+	const __slice = [].slice;
+
+	//
+	// ['log', 'warn'].forEach(function(method) {
+	// 	var __consoleMethod = console[method];
+	// 	console[method] = function() {
+	// 		var stack = (new Error()).stack.split(/\n/);
+	// 		// // Chrome includes a single "Error" line, FF doesn't.
+	// 		// if (stack[0].indexOf('Error') === 0) {
+	// 		// 	stack = stack.slice(1);
+	// 		// }
+	// 		var stackStr = stack[0].trim();
+	// 		//stackStr = stackStr;
+	// 		//if(stackStr.has('Runner.<anonymous>')) stackStr = '';
+	//
+	// 		var args = __slice.apply(arguments).concat([stackStr]);
+	// 		return __consoleMethod.apply(console, args);
+	// 	};
+	// });
+
+
+	if(!GLOBALS.__oldStdoutWrite) {
+		GLOBALS.__oldStdoutWrite = process.stdout.write
+	} ;
+
+	process.stdout.write = function() {
+		var stack = (new Error()).stack.split(/\n/);
+		var stackMin = stack
+			.map( s => s.trim().split('\\').pop() )
+			//.filter( s => !/(^Error$)|(promise\.js)|(Console\.log)|(runner)|(async)|(util\.js)|(processImmediate)/i.test(s) );
+
+		var stackStr = stackMin.join('\n');
+		if(stackStr.has("runner")) {
+			stackStr = stackStr.substr(stackStr.lastIndexOf('runner'));
+		}
+
+		var args = __slice.apply(arguments).concat([stackStr]);
+		var msg = args[0];
+		//if(!msg.has("Random ") && !stackStr.has("Random ")) stackStr = '';
+
+		return GLOBALS.__oldStdoutWrite.call(process.stdout, '\n -- ' + stackStr); //msg
+	}
+}
+
 GLOBALS.trace = console.log.bind(console);
 GLOBALS.traceObj = function(o) {
 	var output = _.keys(o).sort();

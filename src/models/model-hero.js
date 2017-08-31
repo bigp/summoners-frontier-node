@@ -94,22 +94,15 @@ module.exports = function() {
 
 			':heroID/*'(Model, req, res, next, opts) {
 				const heroID = req.params.heroID;
+				const user = req.auth.user;
 
-				mgHelpers.authenticateUser(req, res, next)
-					///////////////////////// VALIDATE That the user actually owns the specified hero & item:
-					.then(user => {
-
-						//Check that this user actually owns the given IDs:
-						return $$$.models.Hero.find({userId: req.auth.user.id, id: heroID}).limit(1);
-					})
+				$$$.models.Hero.find({userId: req.auth.user.id, id: heroID}).limit(1)
 					.then( validHero => {
 						if(!validHero.length) throw 'Invalid hero ID';
 						req.validHero = validHero[0];
 						req.opts = opts;
 
-						//Pass this down to next route actions:
-
-						next();
+						next(); //Pass this down to next route actions:
 					})
 					.catch(err => {
 						$$$.send.error(res, err);
@@ -117,21 +110,16 @@ module.exports = function() {
 			},
 
 			':heroID/equip/:itemID'(Model, req, res, next, opts) {
-				if(!req.auth || !req.auth.user) return $$$.send.errorSkippedRoute(res);
+				if(!req.auth || !req.auth.user || !req.validHero) return $$$.send.errorSkippedRoute(res);
 
 				const itemID = req.params.itemID;
+				const user = req.auth.user;
 
-				$$$.models.Item.find({userId: req.auth.user.id, id: itemID}).limit(1)
+				$$$.models.Item.find({userId: user.id, id: itemID}).limit(1)
 					.then( validItem => {
 						if(!validItem.length) throw 'Invalid item ID';
+						req.previousHeroID = validItem[0].game.heroEquipped;
 						req.validItem = validItem[0];
-
-						return req;
-					})
-
-					///////////////////////// OK, now check where the item fits in the Hero's equipment slots:
-					.then(req => {
-						req.previousHeroID = req.validItem.game.heroEquipped;
 						req.validItem.game.heroEquipped = req.validHero.id;
 
 						return req.validItem.save();

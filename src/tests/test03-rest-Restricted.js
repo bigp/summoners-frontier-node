@@ -116,7 +116,7 @@ describe('=REST= User-Restricted actions', () => {
 	});
 
 	it('Test Password Reset', done => {
-		sendAPI('/user/forget-password', 'post', {
+		sendAPI('/user/public/forget-password', 'post', {
 			headers: {'Authorization': chamberlainpi.getAuthorizationString()},
 			body: { username: chamberlainpi.username, direct:1 }
 		})

@@ -43,4 +43,4 @@ const chaiG = module.exports = {
 };
 
 //Indicate to use the REST-helper methods:
-chaiG.chai.use(chaiG.chaiHTTP);
+//chaiG.chai.use(chaiG.chaiHTTP);

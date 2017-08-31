@@ -152,46 +152,9 @@ const mgHelpers = {
 		if(req.method===shouldBeVerb) return false;
 
 		//$$$.send.error // new Error(
-		throw `Can only use ${req.url} with '${shouldBeVerb}' HTTP Verb, you used '${req.method}'.`;
+		throw new Error(`Can only use ${req.url} with '${shouldBeVerb}' HTTP Verb, you used '${req.method}'.`);
 
 		return true;
-	},
-
-	authenticateUser(req, res, next) {
-		const USERAUTH_ERROR = (err) => $$$.send.errorCustom(res, err, "User Authentication Failed");
-
-		return new Promise((resolve, reject) => {
-			if(!req.auth || !(req.auth.isAdmin || req.auth.isAuth)) {
-				return USERAUTH_ERROR("Request missing OR has incorrect Authorization key.");
-			}
-
-			const authCodes = req.auth.codes;
-			if(authCodes.length<3) {
-				return USERAUTH_ERROR("Request missing parts of Authorization to determine username & token");
-			}
-
-			const username = authCodes[1];
-			const token = authCodes[2];
-
-			$$$.models.User.findOne({username: username}).exec()
-				.then( found => {
-					if(!found) throw `'${username}' not found.`;
-					if(!found.login.token) throw `'${username}' not logged in.`;
-					if(found.login.token!==token) throw `'${username}' token doesn't match`;
-
-					req.isUser = true;
-					req.auth.user = found;
-
-					found.login.datePing = new Date();
-					return found.save();
-				})
-				.then( found => {
-					resolve(found);
-				})
-				.catch( err => {
-					USERAUTH_ERROR(err);
-				});
-		});
 	},
 
 	ifHasUniquesCheckFirst(Model, req, res, next, options) {
@@ -252,47 +215,47 @@ const mgHelpers = {
 	},
 
 	prepareRandomCountRequest(Model, req, res, next, generatorWithUser) {
-		return mgHelpers.authenticateUser(req, res, next)
-			.then( user => {
-				if (mgHelpers.isWrongVerb(req, res, 'POST')) return;
+		return new Promise((resolve, reject) => {
+			if (mgHelpers.isWrongVerb(req, res, 'POST')) return;
 
-				var count = req.params.count || 1;
-				if (count > CONFIG.GAME_RULES.MAX_RANDOM_COUNT) {
-					throw 'Random "count" parameter too high: ' + count;
-				}
+			const user = req.auth.user;
 
-				var results = [];
-				for(var c=0; c<count; c++) {
-					results.push( generatorWithUser(user) );
-				}
+			var count = req.params.count || 1;
+			if (count > CONFIG.GAME_RULES.MAX_RANDOM_COUNT) {
+				throw `Random "count" parameter too high: ${count} in "${req.fullURL}"`;
+			}
 
-				return Model.create(results);
-			});
+			var results = [];
+			for(var c=0; c<count; c++) {
+				results.push( generatorWithUser(user) );
+			}
+
+			resolve( Model.create(results) );
+		});
 	},
 
 	findAllByCurrentUser(Model, req, res, next, opts) {
-		return mgHelpers.authenticateUser(req, res, next)
-			.then( user => {
-				if (mgHelpers.isWrongVerb(req, res, 'GET')) return;
+		return new Promise((resolve, reject) => {
+			if (mgHelpers.isWrongVerb(req, res, 'GET')) return;
 
-				return Model.find({userId: user.id}).sort('id')
-			})
+			resolve( Model.find({userId: req.auth.user.id}).sort('id') )
+
+		})
 			.then(items => {
 				mgHelpers.sendFilteredResult(res, items);
 			});
 	},
 
 	prepareAddRequest(Model, req, res, next, opts) {
-		return mgHelpers.authenticateUser(req, res, next)
-			.then( user => {
-				if (mgHelpers.isWrongVerb(req, res, 'POST')) return;
+		return new Promise((resolve, reject) => {
+			if (mgHelpers.isWrongVerb(req, res, 'POST')) return;
 
-				if (!opts.data || !opts.data.list || !opts.data.list.length) {
-					throw `Must provide a *list* of '${Model._plural}' to add.`;
-				}
+			if (!opts.data || !opts.data.list || !opts.data.list.length) {
+				throw `Must provide a *list* of '${Model._plural}' to add.`;
+			}
 
-				return user;
-			});
+			resolve(req.auth.user);
+		});
 	},
 
 	sendNewestAndOldest(res, newest, oldest) {

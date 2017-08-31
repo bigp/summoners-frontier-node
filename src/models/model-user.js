@@ -19,9 +19,9 @@ module.exports = function() {
 		blacklistVerbs: "GET_ONE GET_MANY POST_ONE POST_MANY DELETE_ONE DELETE_MANY".split(' '),
 
 		customRoutes: {
-			add(Model, req, res, next, opts) {
+			'public/add'(Model, req, res, next, opts) {
 				if(req.method!=='POST') {
-					return $$$.send.error(res, "Can only use /add/user/ with 'POST' HTTP Verb.");
+					return $$$.send.error(res, "Can only use /user/add/ with 'POST' HTTP Verb.");
 				}
 
 				const jsonGlobals = gameHelpers.getJSONGlobals();
@@ -40,7 +40,7 @@ module.exports = function() {
 				Model.httpVerbs['POST_ONE'](req, res, next, opts);
 			},
 
-			login(Model, req, res, next, opts) {
+			'public/login'(Model, req, res, next, opts) {
 				const data = opts.data;
 				opts.data.username = (opts.data.username || '').toLowerCase();
 				opts.data.email = (opts.data.email || '').toLowerCase();
@@ -84,31 +84,9 @@ module.exports = function() {
 						trace(err);
 						$$$.send.errorCustom(res, err, LOGIN_FAILED);
 					});
-
 			},
 
-			logout(Model, req, res, next, opts) {
-				mgHelpers.authenticateUser(req, res, next)
-					.then( user => {
-						//Clear the current fields:
-						user.login.token = ''; //Clear the token
-						user.login.datePing = $$$.nullDate();
-
-						return user.save();
-					})
-					.then(loggedOut => {
-						$$$.send.result(res, "Logout OK.");
-					})
-			},
-
-			'test-echo'(Model, req, res, next, opts) {
-				mgHelpers.authenticateUser(req, res, next)
-					.then( user => {
-						$$$.send.result(res, _.extend({name: user.name, username: user.username}, opts.data));
-					})
-			},
-
-			'forget-password'(Model, req, res, next, opts) {
+			'public/forget-password'(Model, req, res, next, opts) {
 				const q = {username: opts.data.username};
 
 				Model.findOne(q).exec()
@@ -141,66 +119,79 @@ module.exports = function() {
 			//
 			// }
 
-			//////////////////////////////////////////////////////////////
+			'logout'(Model, req, res, next, opts) {
+				const user = req.auth.user;
 
-			'game'(Model, req, res, next, opts) {
-				mgHelpers.authenticateUser(req, res, next)
-					.then( user => {
-						if(req.method!=="GET") return $$$.send.error("Can only use 'GET' on this URL.");
+				//Clear the current fields:
+				user.login.token = ''; //Clear the token
+				user.login.datePing = $$$.nullDate();
 
-						mgHelpers.sendFilteredResult(res, user.game);
+				user.save()
+					.then(() => {
+						$$$.send.result(res, {logout: true});
 					});
 			},
 
+			'test-echo'(Model, req, res, next, opts) {
+				const user = req.auth.user;
+				$$$.send.result(res, _.extend({name: user.name, username: user.username}, opts.data));
+			},
+
+			//////////////////////////////////////////////////////////////
+
+			'game'(Model, req, res, next, opts) {
+				const user = req.auth.user;
+				if(mgHelpers.isWrongVerb(req, res, "GET")) return;
+
+				mgHelpers.sendFilteredResult(res, user.game);
+			},
+
 			'completed-act-zone'(Model, req, res, next, opts) {
+				const user = req.auth.user;
 				const actZone = opts.data.actZone;
+
 				if(isNaN(actZone)) return $$$.send.error(res, "Missing actZone.");
 
-				mgHelpers.authenticateUser(req, res, next)
-					.then( user => {
-						user.game.actsZones.completed = actZone;
-						return user.save();
-					})
+				user.game.actsZones.completed = actZone;
+				user.save()
 					.then( updated => {
 						mgHelpers.sendFilteredResult(res, updated.game.actsZones);
 					});
 			},
 
 			'currency'(Model, req, res, next, opts) {
-				mgHelpers.authenticateUser(req, res, next)
-					.then( user => {
-						if(!user) {
-							traceError("No user???");
-						}
+				const user = req.auth.user;
 
-						var updated = true;
-						const incoming = opts.data;
-						const currency = user.game.currency;
+				if(!user) throw 'Missing user!';
 
-						switch(req.method) {
-							case 'GET':
-								updated = false;
-								return mgHelpers.sendFilteredResult(res, currency);
-							case 'PUT':
-								_.keys(incoming).forEach(coinType => {
-									if(_.isNull(currency[coinType])) return;
-									currency[coinType] += incoming[coinType];
-								});
-								break;
-							default:
-								return $$$.send.notImplemented(res);
-						}
+				const incoming = opts.data;
+				const currency = user.game.currency;
 
-						if(updated) {
-							user.save()
-								.then(() => {
-									mgHelpers.sendFilteredResult(res, currency);
-								})
-								.catch(err => {throw err;});
+				var updated = true;
+
+				switch(req.method) {
+					case 'GET':
+						updated = false;
+						return mgHelpers.sendFilteredResult(res, currency);
+					case 'PUT':
+						_.keys(incoming).forEach(coinType => {
+							if(_.isNull(currency[coinType])) return;
+							currency[coinType] += incoming[coinType];
+						});
+						break;
+					default:
+						return $$$.send.notImplemented(res);
+				}
+
+				if(updated) {
+					user.save()
+						.then(() => {
+							mgHelpers.sendFilteredResult(res, currency);
+						})
+						.catch(err => {throw err;});
 
 
-						} else next();
-					});
+				} else next();
 			}
 		},
 
@@ -226,7 +217,7 @@ module.exports = function() {
 			},
 
 			sendLogin() {
-				return $$$.send.api('/user/login', 'post', {
+				return $$$.send.api('/user/public/login', 'post', {
 					body: {
 						username: this.username,
 						_password: this._password,

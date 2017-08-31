@@ -194,10 +194,13 @@ function forEachModel(schemaFile, name) {
 		});
 	});
 
-	api.use(Model.__route + "$", modelRouter('_ONE', {isAdmin:1}));
-	api.use(Model.__route + "/last", modelRouter('_ONE', {reverse:1, isAdmin:1}) );
-	api.use(Model.__routes + "$", modelRouter('_MANY', {isAdmin:1}));
-	api.use(Model.__routes + '/count', (req, res, next) => {
+	const adminRoute = '/admin' + Model.__route;
+	const adminRoutes = '/admin' + Model.__routes;
+
+	api.use(adminRoute + "$", modelRouter('_ONE', {isAdmin:1}));
+	api.use(adminRoute + "/last", modelRouter('_ONE', {reverse:1, isAdmin:1}) );
+	api.use(adminRoutes + "$", modelRouter('_MANY', {isAdmin:1}));
+	api.use(adminRoutes + '/count', (req, res, next) => {
 		if(!req.auth.isAdmin) return sendError(res, "Can't count here.");
 
 		Model.count((err, count) => {

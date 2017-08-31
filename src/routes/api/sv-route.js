@@ -14,6 +14,13 @@ module.exports = function(route) {
 
 	SECURE_ROUTES();
 
+	//Ok all other routes beyond this point requires USER-AUTHENTICATED TOKENS!!!
+	route.use('/*', auth.authenticateUser);
+
+	route.use('/*', (req, res, next, err) => {
+		traceError("API ERROR: " + err);
+	});
+
 	////////////////////////////////////////////////////////////////////////////////////////////////
 
 	function PUBLIC_ROUTES() {

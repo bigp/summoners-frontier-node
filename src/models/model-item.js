@@ -65,6 +65,14 @@ module.exports = function() {
 					})
 			},
 
+			// 'list/equipped/:heroID?'(Model, req, res, next, opts) {
+			// 	mgHelpers.authenticateUser(req, res, next)
+			// 		.
+			// 		.catch(err => {
+			// 			$$$.send.error(res, "Could not get list of items for user ID: " + req.auth.user.id, err);
+			// 		})
+			// },
+
 			'add'(Model, req, res, next, opts) {
 				mgHelpers.prepareAddRequest(Model, req, res, next, opts)
 					.then( user => {

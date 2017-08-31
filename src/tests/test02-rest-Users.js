@@ -33,7 +33,7 @@ describe('=REST= User', () => {
 	});
 
 	it('Get User (first)', done => {
-		sendAPI('/user')
+		sendAPI('/admin/user')
 			.then(data => {
 				assert.exists(data, 'JSON data exists');
 				assert.equal(data.name, 'Pierre', 'name is correct');
@@ -44,7 +44,7 @@ describe('=REST= User', () => {
 	});
 
 	it('Get User (last)', done => {
-		sendAPI('/user/last')
+		sendAPI('/admin/user/last')
 			.then(data => {
 				assert.exists(data, 'JSON data exists');
 				assert.equal(data.name, 'Peter', 'name is correct');
@@ -56,7 +56,7 @@ describe('=REST= User', () => {
 	});
 
 	it('Get Users (ALL)', done => {
-		sendAPI('/users')
+		sendAPI('/admin/users')
 			.then(data => {
 				assert.exists(data, 'JSON data exists');
 				assert.equal(data.length, 2, 'data.length correct?');
@@ -68,7 +68,7 @@ describe('=REST= User', () => {
 	});
 
 	it('Get Users (Pierre)', done => {
-		sendAPI('/users?name=Pierre')
+		sendAPI('/admin/users?name=Pierre')
 			.then(data => {
 				assert.exists(data, 'JSON data exists');
 				assert.equal(data.length, 1, 'Has correct entries');
@@ -78,7 +78,7 @@ describe('=REST= User', () => {
 	});
 
 	it('Get User (Peter by email)', done => {
-		sendAPI('/user?email=peter@gmail.com')
+		sendAPI('/admin/user?email=peter@gmail.com')
 			.then(data => {
 				assert.exists(data, 'JSON data exists');
 				assert.equal(data.name, 'Peter', 'Should be Peter');
@@ -89,7 +89,7 @@ describe('=REST= User', () => {
 	});
 
 	it('Get User (FAIL by unknown prop)', done => {
-		sendAPI('/user?foo=bar')
+		sendAPI('/admin/user?foo=bar')
 			.then(data => {
 				assert.notExists(data);
 			})
@@ -100,7 +100,7 @@ describe('=REST= User', () => {
 	});
 
 	it('Add User (Temp: Jon)', done => {
-		sendAPI('/user', 'post', { body: getJonBody() })
+		sendAPI('/admin/user', 'post', { body: getJonBody() })
 			.then(data => {
 				assert.exists(data, 'JSON data added.');
 				assert.equal(data.name, 'Jon', 'name is correct');
@@ -114,7 +114,7 @@ describe('=REST= User', () => {
 	});
 
 	it('Remove User (Try FAIL)', done => {
-		sendAPI('/user?_id=123', 'delete')
+		sendAPI('/admin/user?_id=123', 'delete')
 			.then(data => {
 				assert.notExists(data);
 				assert.equal(data.n, 0, 'Should have removed 0 entry.');
@@ -127,7 +127,7 @@ describe('=REST= User', () => {
 	});
 
 	it('Remove User (Try OK)', done => {
-		sendAPI('/user?id=' + tempUserRemoved.id, 'delete')
+		sendAPI('/admin/user?id=' + tempUserRemoved.id, 'delete')
 			.then(data => {
 				assert.exists(data);
 				assert.equal(data.n, 1, 'Should have removed 1 entry.');
@@ -138,7 +138,7 @@ describe('=REST= User', () => {
 	});
 
 	it('Get Users Count', done => {
-		sendAPI('/users/count')
+		sendAPI('/admin/users/count')
 			.then(data => {
 				assert.exists(data);
 				assert.equal(data.count, 2, "Get correct count.");
@@ -148,7 +148,7 @@ describe('=REST= User', () => {
 	});
 
 	it("Update User (TestUsers.pierre's email)", done => {
-		sendAPI('/user?id=' + testUsers.pierre.id, 'put', { body: {email: "changed@gmail.com"} })
+		sendAPI('/admin/user?id=' + testUsers.pierre.id, 'put', { body: {email: "changed@gmail.com"} })
 			.then(data => {
 				assert.exists(data);
 				assert.equal(data.name, testUsers.pierre.name, 'Same name');
@@ -160,7 +160,7 @@ describe('=REST= User', () => {
 	});
 
 	it('Add User (OK with same name, after previous duplicate JON was removed)', done => {
-		sendAPI('/user', 'post', { body: getJonBody() })
+		sendAPI('/admin/user', 'post', { body: getJonBody() })
 			.then(data => {
 				assert.exists(data, 'JSON data added.');
 				assert.equal(data.name, 'Jon', 'name is correct');
@@ -172,7 +172,7 @@ describe('=REST= User', () => {
 	});
 
 	it('Add User (FAIL with id)', done => {
-		sendAPI('/user', 'post', {
+		sendAPI('/admin/user', 'post', {
 			body: {
 				id: 1,
 				name: 'Jon',
@@ -193,7 +193,7 @@ describe('=REST= User', () => {
 	});
 
 	it('Add User (FAIL with duplicate)', done => {
-		sendAPI('/user', 'post', { body: getJonBody() })
+		sendAPI('/admin/user', 'post', { body: getJonBody() })
 			.then(data => {
 				assert.notExists(data);
 				done();
@@ -205,7 +205,7 @@ describe('=REST= User', () => {
 	});
 
 	it('Get Users (ALL)', done => {
-		sendAPI('/users')
+		sendAPI('/admin/users')
 			.then(data => {
 				done();
 			})
@@ -213,10 +213,10 @@ describe('=REST= User', () => {
 	});
 
 
-	it('Add User (/user/add/)', done => {
+	it('Add User (/user/public/add/)', done => {
 		chamberlainpi = testUsers.chamberlainpi;
 
-		chamberlainpi.sendAuth('/user/add', 'post', "*")
+		chamberlainpi.sendAuth('/user/public/add', 'post', "*")
 			.then(data => {
 				_.extend(testUsers.chamberlainpi, data);
 				assert.exists(data);
