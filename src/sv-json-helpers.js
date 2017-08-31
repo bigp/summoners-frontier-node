@@ -45,5 +45,18 @@ module.exports = {
 		if(!preset) preset = 'preset-1';
 
 		return $$$.jsonLoader.globals[preset];
-	}
+	},
+
+	// makeItemSchema() {
+	// 	return {
+	// 		identity: CustomTypes.String128({required:true}),
+	// 		heroEquipped: CustomTypes.Number({default: 0}),
+	// 		randomSeeds: {
+	// 			quality: CustomTypes.Number({default: 1}),
+	// 			affix: CustomTypes.Number({default: 1}),
+	// 			itemLevel: CustomTypes.Number({default: 1}),
+	// 			variance: CustomTypes.Number({default: 1}),
+	// 		},
+	// 	}
+	// }
 }

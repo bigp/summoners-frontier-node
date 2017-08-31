@@ -49,9 +49,9 @@ describe('=REST= Heroes', () => {
 		chamberlainpi.sendAuth('/hero/add', 'post', {
 			body: {
 				list: [
-					{identity: 'hero_marauder', randomSeed: 1},
-					{identity: 'hero_guardian', randomSeed: 2},
-					{identity: 'hero_battlemage', randomSeed: 3},
+					{identity: 'hero_marauder', randomSeeds: {variance: 1}},
+					{identity: 'hero_guardian', randomSeeds: {variance: 2}},
+					{identity: 'hero_battlemage', randomSeeds: {variance: 3}},
 				]
 			}
 		})
@@ -70,8 +70,8 @@ describe('=REST= Heroes', () => {
 			body: {
 				showAll:1,
 				list: [
-					{identity: 'hero_marauder', randomSeed: 4},
-					{identity: 'hero_guardian', randomSeed: 5},
+					{identity: 'hero_marauder', randomSeeds: {variance: 4}},
+					{identity: 'hero_guardian', randomSeeds: {variance: 5}},
 				]
 			}
 		})

@@ -43,12 +43,19 @@ module.exports = function() {
 
 					const gameData = itemData.game = {};
 					gameData.identity = jsonItem.identity;
-					gameData.randomSeed = (Math.random() * 100) | 0;
 					gameData.isEquipped = false;
+					gameData.randomSeeds = {
+						quality: $$$.randInt(),
+						affix: $$$.randInt(),
+						itemLevel: $$$.randInt(),
+						variance: $$$.randInt(),
+					};
 					//gameData.heroEquipped = '';
 
 					return itemData;
 				}
+
+
 			},
 
 			'list'(Model, req, res, next, opts) {
@@ -113,8 +120,13 @@ module.exports = function() {
 			/////////////////////////////////// GAME-SPECIFIC:
 			game: {
 				identity: CustomTypes.String128({required:true}),
-				randomSeed: CustomTypes.Number({required:true}),
 				heroEquipped: CustomTypes.Number({default: 0}),
+				randomSeeds: {
+					quality: CustomTypes.LargeInt({default: 1}),
+					affix: CustomTypes.LargeInt({default: 1}),
+					itemLevel: CustomTypes.LargeInt({default: 1}),
+					variance: CustomTypes.LargeInt({default: 1}),
+				},
 			}
 		}
 	};

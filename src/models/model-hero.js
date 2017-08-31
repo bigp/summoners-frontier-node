@@ -97,7 +97,7 @@ module.exports = function() {
 				const itemID = req.params.itemID;
 
 				mgHelpers.authenticateUser(req, res, next)
-					///////////////////////// VALIDATE USER OWNS HERO & ITEM:
+					///////////////////////// VALIDATE That the user actually owns the specified hero & item:
 					.then(user => {
 
 						//Check that this user actually owns the given IDs:
@@ -171,17 +171,26 @@ module.exports = function() {
 			/////////////////////////////////// GAME-SPECIFIC:
 			game: {
 				identity: CustomTypes.String128({required:true}),
-				randomSeed: CustomTypes.Number(),
 				isExploring: {type: Boolean, default: false},
+				randomSeeds: {
+					variance: CustomTypes.LargeInt({default: 1}),
+				},
 
-				items: {
-					helm: CustomTypes.Number({default: 0}),
-					chest: CustomTypes.Number({default: 0}),
-					gloves: CustomTypes.Number({default: 0}),
-					boots: CustomTypes.Number({default: 0}),
-					relic: CustomTypes.Number({default: 0}),
-					weapon: CustomTypes.Number({default: 0}),
-				}
+				//TODO: THINK ABOUT CACHING THESE!!! (when we hit the 1M items / heroes)
+				// items: [
+				// 	{
+				// 		item:
+				// 	}
+				// ]
+
+				// items: {
+				// 	helm: CustomTypes.Number({default: 0}),
+				// 	chest: CustomTypes.Number({default: 0}),
+				// 	gloves: CustomTypes.Number({default: 0}),
+				// 	boots: CustomTypes.Number({default: 0}),
+				// 	relic: CustomTypes.Number({default: 0}),
+				// 	weapon: CustomTypes.Number({default: 0}),
+				// }
 			}
 		}
 	};

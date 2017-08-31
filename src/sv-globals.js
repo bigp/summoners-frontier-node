@@ -90,6 +90,11 @@ _.extend($$$, {
 		return new Date().toString();
 	},
 
+	randInt(range) {
+		if(!range) range = 100;
+		return (Math.random() * range) | 0;
+	},
+
 	nullDate() {
 		const nullDate = new Date();
 		nullDate.setTime(0);
