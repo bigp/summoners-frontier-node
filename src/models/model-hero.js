@@ -47,6 +47,9 @@ module.exports = function() {
 
 			'list'(Model, req, res, next, opts) {
 				mgHelpers.findAllByCurrentUser(Model, req, res, next, opts)
+					.then(items => {
+						mgHelpers.sendFilteredResult(res, items);
+					})
 					.catch(err => {
 						$$$.send.error(res, "Could not get list of heroes for user ID: " + req.auth.user.id, err);
 					})

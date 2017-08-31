@@ -58,20 +58,27 @@ module.exports = function() {
 
 			},
 
-			'list'(Model, req, res, next, opts) {
+			'list$'(Model, req, res, next, opts) {
 				mgHelpers.findAllByCurrentUser(Model, req, res, next, opts)
+					.then(items => {
+						mgHelpers.sendFilteredResult(res, items);
+					})
 					.catch(err => {
 						$$$.send.error(res, "Could not get list of items for user ID: " + req.auth.user.id, err);
 					})
 			},
 
-			// 'list/equipped/:heroID?'(Model, req, res, next, opts) {
-			// 	mgHelpers.authenticateUser(req, res, next)
-			// 		.
-			// 		.catch(err => {
-			// 			$$$.send.error(res, "Could not get list of items for user ID: " + req.auth.user.id, err);
-			// 		})
-			// },
+			'equipped-on/:heroID?'(Model, req, res, next, opts) {
+				opts.query = {'game.heroEquipped': req.params.heroID};
+
+				mgHelpers.findAllByCurrentUser(Model, req, res, next, opts)
+					.then(items => {
+						mgHelpers.sendFilteredResult(res, items);
+					})
+					.catch(err => {
+						$$$.send.error(res, "Could not get list of items for user ID: " + req.auth.user.id, err.message);
+					})
+			},
 
 			'add'(Model, req, res, next, opts) {
 				mgHelpers.prepareAddRequest(Model, req, res, next, opts)

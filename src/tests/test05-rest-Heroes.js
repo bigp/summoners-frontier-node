@@ -45,6 +45,19 @@ describe('=REST= Heroes', () => {
 
 	});
 
+	it('Generate random Heroes weapon (FAIL UNAUTHORIZED)', done => {
+		sendAPI('/hero/random/19', 'post')
+			.then(data => {
+				assert.notExists(data);
+				done('Should not exists!');
+			})
+			.catch(err => {
+				assert.exists(err);
+				done();
+			});
+
+	});
+
 	it('Add Custom Heroes (chamberlainpi)', done => {
 		chamberlainpi.sendAuth('/hero/add', 'post', {
 			body: {
@@ -161,5 +174,29 @@ describe('=REST= Heroes', () => {
 				assert.exists(err);
 				done();
 			});
+	});
+
+	it('Check equipped items (chamberlainpi on hero1)', done => {
+		const hero1 = chamberlainpi.heroes[1];
+
+		chamberlainpi.sendAuth(`/item/equipped-on/${hero1.id}`, 'get')
+			.then(data => {
+				assert.exists(data);
+				assert.equal(data.length, 1);
+				assert.equal(data[0].userId, chamberlainpi.id);
+				assert.equal(data[0].game.heroEquipped, hero1.id);
+				done();
+			})
+			.catch(err => done(err));
+	});
+
+	it('Check equipped items (chamberlainpi on hero 9999 [EMPTY])', done => {
+		chamberlainpi.sendAuth(`/item/equipped-on/9999`, 'get')
+			.then(data => {
+				assert.exists(data);
+				assert.equal(data.length, 0);
+				done();
+			})
+			.catch(err => done(err));
 	});
 });

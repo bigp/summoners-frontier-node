@@ -238,12 +238,10 @@ const mgHelpers = {
 		return new Promise((resolve, reject) => {
 			if (mgHelpers.isWrongVerb(req, res, 'GET')) return;
 
-			resolve( Model.find({userId: req.auth.user.id}).sort('id') )
+			const q = _.extend({userId: req.auth.user.id}, opts.query);
 
-		})
-			.then(items => {
-				mgHelpers.sendFilteredResult(res, items);
-			});
+			resolve( Model.find(q).sort('id') )
+		});
 	},
 
 	prepareAddRequest(Model, req, res, next, opts) {
