@@ -120,7 +120,7 @@ module.exports = function() {
 			/////////////////////////////////// GAME-SPECIFIC:
 			game: {
 				identity: CustomTypes.String128({required:true}),
-				heroEquipped: CustomTypes.Number({default: 0}),
+				heroEquipped: CustomTypes.Number({default: 0, index: true}),
 				randomSeeds: {
 					quality: CustomTypes.LargeInt({default: 1}),
 					affix: CustomTypes.LargeInt({default: 1}),

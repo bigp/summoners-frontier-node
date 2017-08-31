@@ -17,8 +17,14 @@ function mongoSetup() {
 	return new Promise((resolve, reject) => {
 		trace("MONGO setup: ".yellow + `initialized (Connecting using "${MONGO_ENV}").`);
 
+		const mongoConfig = {
+			config: {
+				autoIndex: false
+			}
+		};
+
 		const mongoURL = `mongodb://${CONFIG.USER}:${CONFIG.PASS}@localhost:${CONFIG.PORT}/${CONFIG.DB}?authSource=${CONFIG.DB_ADMIN}`;
-		const conn = mongoose.connect(mongoURL);
+		const conn = mongoose.connect(mongoURL, mongoConfig);
 		const db = mongoose.connection.db;
 		conn.then(resolve).catch(reject);
 

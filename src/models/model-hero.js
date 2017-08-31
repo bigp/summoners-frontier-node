@@ -118,39 +118,50 @@ module.exports = function() {
 
 					///////////////////////// OK, now check where the item fits in the Hero's equipment slots:
 					.then(req => {
-						const jsonItems = gameHelpers.getItems();
-						const jsonAllItems = jsonItems.all.items;
-						const itemIdentity = req.validItem.game.identity;
-						const itemLookup = jsonAllItems.find(item => item.identity === itemIdentity);
-						const equipType = itemLookup['equipment-type'];
+						req.previousHeroID = req.validItem.game.heroEquipped;
+						req.validItem.game.heroEquipped = heroID;
 
-						var itemClass = "weapon";
-						if(equipType) {
-							itemClass = equipType.toLowerCase();
-						}
-
-						const isItemAlreadyEquipped = req.validItem.game.heroEquipped > 0;
-						const isHeroAlreadyEquipped = req.validHero.game.items[itemClass] > 0;
-
-						if(isItemAlreadyEquipped || isHeroAlreadyEquipped) {
-							return $$$.send.result(res, {ok: -1});
-						} else {
-							req.validItem.game.heroEquipped = heroID;
-							req.validHero.game.items[itemClass] = itemID;
-
-							return Promise.all([
-								req.validItem.save(),
-								req.validHero.save(),
-							]);
-						}
+						return req.validItem.save();
 					})
-					.then( results => {
-						//trace(results);
+					.then(validItem => {
 						mgHelpers.sendFilteredResult(res, {
-							item: results[0],
-							hero: results[1]
+							previousHeroID: req.previousHeroID,
+							item: validItem
 						});
 					})
+					// 	const jsonItems = gameHelpers.getItems();
+					// 	const jsonAllItems = jsonItems.all.items;
+					// 	const itemIdentity = req.validItem.game.identity;
+					// 	const itemLookup = jsonAllItems.find(item => item.identity === itemIdentity);
+					// 	const equipType = itemLookup['equipment-type'];
+					//
+					// 	var itemClass = "weapon";
+					// 	if(equipType) {
+					// 		itemClass = equipType.toLowerCase();
+					// 	}
+					//
+					// 	const isItemAlreadyEquipped = req.validItem.game.heroEquipped > 0;
+					// 	const isHeroAlreadyEquipped = req.validHero.game.items[itemClass] > 0;
+					//
+					// 	if(isItemAlreadyEquipped || isHeroAlreadyEquipped) {
+					// 		return $$$.send.result(res, {ok: -1});
+					// 	} else {
+					// 		req.validItem.game.heroEquipped = heroID;
+					// 		req.validHero.game.items[itemClass] = itemID;
+					//
+					// 		return Promise.all([
+					// 			req.validItem.save(),
+					// 			req.validHero.save(),
+					// 		]);
+					// 	}
+					// })
+					// .then( results => {
+					// 	//trace(results);
+					// 	mgHelpers.sendFilteredResult(res, {
+					// 		item: results[0],
+					// 		hero: results[1]
+					// 	});
+					// })
 					.catch(err => {
 						$$$.send.error(res, err);
 					});
