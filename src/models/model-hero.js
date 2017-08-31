@@ -129,39 +129,6 @@ module.exports = function() {
 							item: validItem
 						});
 					})
-					// 	const jsonItems = gameHelpers.getItems();
-					// 	const jsonAllItems = jsonItems.all.items;
-					// 	const itemIdentity = req.validItem.game.identity;
-					// 	const itemLookup = jsonAllItems.find(item => item.identity === itemIdentity);
-					// 	const equipType = itemLookup['equipment-type'];
-					//
-					// 	var itemClass = "weapon";
-					// 	if(equipType) {
-					// 		itemClass = equipType.toLowerCase();
-					// 	}
-					//
-					// 	const isItemAlreadyEquipped = req.validItem.game.heroEquipped > 0;
-					// 	const isHeroAlreadyEquipped = req.validHero.game.items[itemClass] > 0;
-					//
-					// 	if(isItemAlreadyEquipped || isHeroAlreadyEquipped) {
-					// 		return $$$.send.result(res, {ok: -1});
-					// 	} else {
-					// 		req.validItem.game.heroEquipped = heroID;
-					// 		req.validHero.game.items[itemClass] = itemID;
-					//
-					// 		return Promise.all([
-					// 			req.validItem.save(),
-					// 			req.validHero.save(),
-					// 		]);
-					// 	}
-					// })
-					// .then( results => {
-					// 	//trace(results);
-					// 	mgHelpers.sendFilteredResult(res, {
-					// 		item: results[0],
-					// 		hero: results[1]
-					// 	});
-					// })
 					.catch(err => {
 						$$$.send.error(res, err);
 					});
@@ -169,7 +136,6 @@ module.exports = function() {
 		},
 
 		methods: {
-
 			// createToken() { return ''; },
 		},
 
@@ -193,15 +159,6 @@ module.exports = function() {
 				// 		item:
 				// 	}
 				// ]
-
-				// items: {
-				// 	helm: CustomTypes.Number({default: 0}),
-				// 	chest: CustomTypes.Number({default: 0}),
-				// 	gloves: CustomTypes.Number({default: 0}),
-				// 	boots: CustomTypes.Number({default: 0}),
-				// 	relic: CustomTypes.Number({default: 0}),
-				// 	weapon: CustomTypes.Number({default: 0}),
-				// }
 			}
 		}
 	};

@@ -107,7 +107,6 @@ module.exports = function() {
 		},
 
 		methods: {
-
 			// createToken() { return ''; },
 		},
 
