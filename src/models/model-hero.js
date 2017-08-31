@@ -92,9 +92,8 @@ module.exports = function() {
 					});
 			},
 
-			':heroID/equip/:itemID'(Model, req, res, next, opts) {
+			':heroID/*'(Model, req, res, next, opts) {
 				const heroID = req.params.heroID;
-				const itemID = req.params.itemID;
 
 				mgHelpers.authenticateUser(req, res, next)
 					///////////////////////// VALIDATE That the user actually owns the specified hero & item:
@@ -106,9 +105,23 @@ module.exports = function() {
 					.then( validHero => {
 						if(!validHero.length) throw 'Invalid hero ID';
 						req.validHero = validHero[0];
+						req.opts = opts;
 
-						return $$$.models.Item.find({userId: req.auth.user.id, id: itemID}).limit(1);
+						//Pass this down to next route actions:
+
+						next();
 					})
+					.catch(err => {
+						$$$.send.error(res, err);
+					});
+			},
+
+			':heroID/equip/:itemID'(Model, req, res, next, opts) {
+				if(!req.auth || !req.auth.user) return $$$.send.errorSkippedRoute(res);
+
+				const itemID = req.params.itemID;
+
+				$$$.models.Item.find({userId: req.auth.user.id, id: itemID}).limit(1)
 					.then( validItem => {
 						if(!validItem.length) throw 'Invalid item ID';
 						req.validItem = validItem[0];
@@ -119,7 +132,7 @@ module.exports = function() {
 					///////////////////////// OK, now check where the item fits in the Hero's equipment slots:
 					.then(req => {
 						req.previousHeroID = req.validItem.game.heroEquipped;
-						req.validItem.game.heroEquipped = heroID;
+						req.validItem.game.heroEquipped = req.validHero.id;
 
 						return req.validItem.save();
 					})

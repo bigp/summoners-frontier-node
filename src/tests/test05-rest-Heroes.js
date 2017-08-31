@@ -150,4 +150,16 @@ describe('=REST= Heroes', () => {
 				done();
 			});
 	});
+
+	it('Equip item to a hero (FAIL UNAUTHORIZED)', done => {
+		sendAPI(`/hero/1/equip/9999`, 'put')
+			.then(data => {
+				assert.notExists(data);
+				done('Should not exists!');
+			})
+			.catch(err => {
+				assert.exists(err);
+				done();
+			});
+	});
 });

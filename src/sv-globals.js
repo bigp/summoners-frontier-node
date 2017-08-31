@@ -141,6 +141,10 @@ _.extend($$$, {
 			return false;
 		},
 
+		errorSkippedRoute(res) {
+			this.error(res, "Route improperly called / skipped a pre-route: " + res.req.url);
+		},
+
 		errorCustom(res, errMessage, errTitle) {
 			res.statusMessage = errTitle;
 			return this.error(res, errMessage);
