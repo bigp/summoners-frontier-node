@@ -104,19 +104,50 @@ describe('=REST= Heroes', () => {
 		const hero0 = chamberlainpi.heroes[0];
 		const item0 = chamberlainpi.items[0];
 
-		chamberlainpi.sendAuth(`/hero/${hero0.id}/equip/${item0.id}`, 'put', {
-			body: {
-				item: {id: item0.id}
-			}
-		})
+		chamberlainpi.sendAuth(`/hero/${hero0.id}/equip/${item0.id}`, 'put')
 			.then(datas => {
-				trace(JSON.stringify(datas, null, '  ').yellow);
-				//trace(hero0);
-				//trace(item0);
-				assert.exists(datas);
+				assert.exists(datas.item);
+				assert.equal(datas.previousHeroID, 0);
 				done();
 			})
 			.catch(err => done(err));
 
+	});
+
+	it('Equip item to a hero (PASS FROM PREVIOUS HERO!)', done => {
+		const hero1 = chamberlainpi.heroes[1];
+		const item0 = chamberlainpi.items[0];
+
+		chamberlainpi.sendAuth(`/hero/${hero1.id}/equip/${item0.id}`, 'put')
+			.then(datas => {
+				assert.exists(datas.item);
+				assert.equal(datas.previousHeroID, 1);
+				done();
+			})
+			.catch(err => done(err));
+	});
+
+	it('Equip item to a hero (FAIL with WRONG HERO ID)', done => {
+		chamberlainpi.sendAuth(`/hero/9999/equip/1`, 'put')
+			.then(data => {
+				assert.notExists(data);
+				done('Should not exists!');
+			})
+			.catch(err => {
+				assert.exists(err);
+				done();
+			});
+	});
+
+	it('Equip item to a hero (FAIL with WRONG ITEM ID)', done => {
+		chamberlainpi.sendAuth(`/hero/1/equip/9999`, 'put')
+			.then(data => {
+				assert.notExists(data);
+				done('Should not exists!');
+			})
+			.catch(err => {
+				assert.exists(err);
+				done();
+			});
 	});
 });
