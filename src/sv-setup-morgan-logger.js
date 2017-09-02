@@ -33,6 +33,8 @@ module.exports = {
 	setupLogger(app) {
 		if(!_.isTruthy($$$.env.ini.MORGAN.ENABLED)) return;
 
+		trace("MORGAN setup: ".yellow + "initialized.");
+
 		morgan.token('padded-time', function(req, res, digits) {
 			if(!digits) digits = 10;
 			const time = this['response-time'](req, res) + ' ms';

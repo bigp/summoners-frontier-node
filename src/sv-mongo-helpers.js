@@ -152,7 +152,7 @@ const mgHelpers = {
 		$$$.send.result(res, filteredData);
 	},
 
-	isWrongVerb(req, res, shouldBeVerb) {
+	isWrongVerb(req, shouldBeVerb) {
 		if(req.method===shouldBeVerb) return false;
 
 		//$$$.send.error // new Error(
@@ -220,7 +220,7 @@ const mgHelpers = {
 
 	prepareRandomCountRequest(Model, req, res, next, generatorWithUser) {
 		return new Promise((resolve, reject) => {
-			if (mgHelpers.isWrongVerb(req, res, 'POST')) return;
+			if (mgHelpers.isWrongVerb(req, 'POST')) return;
 
 			const user = req.auth.user;
 
@@ -240,7 +240,7 @@ const mgHelpers = {
 
 	findAllByCurrentUser(Model, req, res, next, opts) {
 		return new Promise((resolve, reject) => {
-			if (mgHelpers.isWrongVerb(req, res, 'GET')) return;
+			if (mgHelpers.isWrongVerb(req, 'GET')) return;
 
 			const q = _.extend({userId: req.auth.user.id}, opts.query);
 
@@ -250,7 +250,7 @@ const mgHelpers = {
 
 	prepareAddRequest(Model, req, res, next, opts) {
 		return new Promise((resolve, reject) => {
-			if (mgHelpers.isWrongVerb(req, res, 'POST')) return;
+			if (mgHelpers.isWrongVerb(req, 'POST')) return;
 
 			if (!opts.data || !opts.data.list || !opts.data.list.length) {
 				throw `Must provide a *list* of '${Model._plural}' to add.`;
@@ -265,7 +265,16 @@ const mgHelpers = {
 			newest: newest ? _.sortBy(newest, 'id') : null,
 			oldest: oldest ? _.sortBy(oldest, 'id') : null
 		});
-	}
+	},
+
+	prepareRemoveRequest(req, q) {
+		if(!q) q = {};
+		return new Promise((resolve, reject) => {
+			if (mgHelpers.isWrongVerb(req, 'DELETE')) return;
+
+			resolve(_.extend(q, {userId: req.auth.user.id}));
+		});
+	},
 };
 
 module.exports = mgHelpers;

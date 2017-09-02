@@ -69,8 +69,25 @@ module.exports = function() {
 					})
 			},
 
+			'equipped-off$'(Model, req, res, next, opts) {
+				opts.query = {'game.heroEquipped': 0};
+
+				mgHelpers.findAllByCurrentUser(Model, req, res, next, opts)
+					.then(items => {
+						mgHelpers.sendFilteredResult(res, items);
+					})
+					.catch(err => {
+						$$$.send.error(res, "Could not get list of items for user ID: " + req.auth.user.id, err.message);
+					})
+			},
+
 			'equipped-on/:heroID?'(Model, req, res, next, opts) {
-				opts.query = {'game.heroEquipped': req.params.heroID};
+				const heroID = req.params.heroID;
+				if(isNaN(heroID) || heroID < 1) {
+					return $$$.send.error(res, "Must provide a Hero ID greater-than ZERO (0). Want unequipped items? Use /item/equipped-off instead.");
+				}
+
+				opts.query = {'game.heroEquipped': heroID};
 
 				mgHelpers.findAllByCurrentUser(Model, req, res, next, opts)
 					.then(items => {

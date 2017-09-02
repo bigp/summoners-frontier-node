@@ -4,12 +4,16 @@
 
 const morganLogger = $$$.morganLogger = require($$$.paths.__src + '/sv-setup-morgan-logger');
 const activeRequests = [];
-const CONFIG = $$$.env.ini.REQUEST_LIMITER;
+const INI = $$$.env.ini;
+const CONFIG = INI.REQUEST_LIMITER;
 var DEFAULTS = {limit: CONFIG.LIMIT || 15, cap: CONFIG.CAP || 20, isLogged: true};
 trace("Request limiter: ".yellow + _.jsonPretty(DEFAULTS));
 
 const MODULE = {
 	isTooMuch(req) {
+		//When testing, never have too much requests:
+		if($$$.env.isTesting) return false;
+
 		const entry = activeRequests.find(r => r.ip === req.ip);
 
 		if (!entry) {

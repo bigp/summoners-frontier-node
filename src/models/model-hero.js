@@ -141,24 +141,20 @@ module.exports = function() {
 			':heroID/remove'(Model, req, res, next, opts) {
 				const user = req.auth.user;
 				const Item = $$$.models.Item;
-				const results = {heroID: req.validHero.id};
+				const results = {};
 
-				return new Promise((resolve, reject) => {
-					if(mgHelpers.isWrongVerb(req, res, 'DELETE')) return;
+				mgHelpers.prepareRemoveRequest(req, {'game.heroEquipped': req.validHero.id})
+					.then(q => {
+						return Item.updateMany(q, {$set: {'game.heroEquipped': 0}});
 
-					const q = {userId: user.id, 'game.heroEquipped': req.validHero.id};
-					const $set = {$set: {'game.heroEquipped': 0}};
-
-					resolve( Item.updateMany(q, $set) )
-				})
+					})
 					.then( items => {
 						results.numItemsAffected = items.nModified;
 
 						return Model.remove({userId: user.id, id: req.validHero.id});
 					})
 					.then( removed => {
-						results.numRemoved = removed.toJSON().n;
-						results.game = req.validHero.game.toJSON();
+						results.heroRemoved = req.validHero.toJSON();
 
 						mgHelpers.sendFilteredResult(res, results);
 					})
@@ -172,22 +168,16 @@ module.exports = function() {
 				const Item = $$$.models.Item;
 				const results = {};
 
-				return new Promise((resolve, reject) => {
-					if(mgHelpers.isWrongVerb(req, res, 'DELETE')) return;
-
-					const q = {userId: user.id};
-					const $set = {$set: {'game.heroEquipped': 0}};
-
-					resolve( Item.updateMany(q, $set) )
-				})
+				mgHelpers.prepareRemoveRequest(req)
+					.then(q => {
+						return Item.updateMany(q, {$set: {'game.heroEquipped': 0}});
+					})
 					.then( items => {
-						trace(items);
 						results.numItemsAffected = items.nModified;
 						return Model.remove({userId: user.id});
 					})
 					.then( removed => {
 						results.numRemoved = removed.toJSON().n;
-						trace(results);
 
 						mgHelpers.sendFilteredResult(res, results);
 					})

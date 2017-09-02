@@ -24,9 +24,7 @@ Promise.all([setupRoutes(), setupMongo(), setupNodeMailer(), $$$.jsonLoader.conf
 		//trace($$$.jsonLoader.globals);
 
 		//Oh, before we go, check if we should be running the Test Suites (CHAI)...
-		const isTesting = _.isTruthy($$$.env.ini.TEST);
-
-		if(!isTesting) return;
+		if(!$$$.env.isTesting) return;
 
 		//If our TEST flag is enabled, then continue with the CHAI test suite:
 		require('./src/sv-setup-chai-tests')();

@@ -141,7 +141,7 @@ module.exports = function() {
 
 			'game'(Model, req, res, next, opts) {
 				const user = req.auth.user;
-				if(mgHelpers.isWrongVerb(req, res, "GET")) return;
+				if(mgHelpers.isWrongVerb(req, "GET")) return;
 
 				mgHelpers.sendFilteredResult(res, user.game);
 			},
