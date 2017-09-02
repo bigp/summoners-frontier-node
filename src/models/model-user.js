@@ -66,7 +66,7 @@ module.exports = function() {
 					.then(user => {
 						if(!user) {
 							traceError(password);
-							throw "Incorrect Username and Password: " + _.jsonPretty(andQuery);
+							throw "Incorrect Username and Password!";
 						}
 
 						//Always clear the password-reset on successful logins:
@@ -192,6 +192,24 @@ module.exports = function() {
 
 
 				} else next();
+			},
+
+			'everything'(Model, req, res, next, opts) {
+				const user = req.auth.user;
+				const Item = $$$.models.Item;
+				const Hero = $$$.models.Hero;
+				const q = {userId: user.id};
+				const results = {user: user};
+
+				Promise.all([
+					Item.find(q).sort('id').exec(),
+					Hero.find(q).sort('id').exec()
+				])
+					.then( belongings  => {
+						results.items = belongings[0];
+						results.heroes = belongings[1];
+						mgHelpers.sendFilteredResult(res, results);
+					});
 			}
 		},
 
@@ -277,18 +295,18 @@ module.exports = function() {
 			/////////////////////////////////// GAME-SPECIFIC:
 			game: {
 				level: {
-					current: CustomTypes.Number({default: 1}),
+					current: CustomTypes.Int({default: 1}),
 					progress: CustomTypes.Number({default: 0})
 				},
 				actsZones: {
-					completed: CustomTypes.Number(),
+					completed: CustomTypes.Int(),
 				},
 
 				currency: {
-					gold: CustomTypes.Number(),
-					gems: CustomTypes.Number(),
-					scrolls: CustomTypes.Number(),
-					magicOrbs: CustomTypes.Number(),
+					gold: CustomTypes.Int(),
+					gems: CustomTypes.Int(),
+					scrolls: CustomTypes.Int(),
+					magicOrbs: CustomTypes.Int(),
 				},
 			}
 

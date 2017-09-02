@@ -72,6 +72,10 @@ module.exports = {
 			return next();
 		}
 
+		if(url.has('/login')) {
+			return $$$.send.errorCustom(res, "Please redirect to '/user/public/login'", 'Login URL has changed.');
+		}
+
 		const USERAUTH_ERROR = (err) => $$$.send.errorCustom(res, err, "User Authentication Failed");
 
 		if(!req.auth || !(req.auth.isAdmin || req.auth.isAuth)) {

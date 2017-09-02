@@ -49,6 +49,7 @@ module.exports = function() {
 						affix: $$$.randInt(),
 						itemLevel: $$$.randInt(),
 						variance: $$$.randInt(),
+						magicFind: $$$.randInt()
 					};
 					//gameData.heroEquipped = '';
 
@@ -96,7 +97,7 @@ module.exports = function() {
 						});
 
 						if(invalidIdentities.length) {
-							throw "Some of the supplied items are invalid: " +
+							throw "Some of the supplied item identities don't exists in game's JSON: " +
 								invalidIdentities.map(n => n.identity).join(', ');
 						}
 
@@ -128,18 +129,19 @@ module.exports = function() {
 		///////////////////////////////////////////////////////////
 
 		schema: {
-			userId: CustomTypes.Number({unique:false, required:true}),
+			userId: CustomTypes.LargeInt({unique:false, required:true}),
 			dateCreated: CustomTypes.DateRequired(),
 
 			/////////////////////////////////// GAME-SPECIFIC:
 			game: {
 				identity: CustomTypes.String128({required:true}),
-				heroEquipped: CustomTypes.Number({default: 0, index: true}),
+				heroEquipped: CustomTypes.LargeInt({default: 0, index: true}),
 				randomSeeds: {
 					quality: CustomTypes.LargeInt({default: 1}),
 					affix: CustomTypes.LargeInt({default: 1}),
 					itemLevel: CustomTypes.LargeInt({default: 1}),
 					variance: CustomTypes.LargeInt({default: 1}),
+					magicFind: CustomTypes.Number({default: 1})
 				},
 			}
 		}

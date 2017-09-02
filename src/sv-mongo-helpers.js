@@ -2,6 +2,7 @@
  * Created by Chamberlain on 8/15/2017.
  */
 const mongoose = require('mongoose');
+const NumberInt = require('mongoose-int32');
 const changeCase = require('change-case');
 const autoIncrement = require('mongoose-auto-increment');
 const beautifulUnique = require('mongoose-beautiful-unique-validation');
@@ -10,10 +11,12 @@ const ERROR_MAXLENGTH = '`{PATH}` field must be {MAXLENGTH} chars, you used {VAL
 const PRIVATE_PROP = /^_/;
 const CONFIG = $$$.env.ini;
 
+
 mongoose.Promise = global.Promise;
 mongoose.CustomTypes = {
+	Int: (opt) => _.extend({type: NumberInt, default:0, min: 0, max: 10000}, opt),
 	Number: (opt) => _.extend({type: Number, default:0, min: 0, max: 10000}, opt),
-	LargeInt: (opt) => _.extend({type: Number, default:0, min: 0, max: 2000000000}, opt),
+	LargeInt: (opt) => _.extend({type: NumberInt, default:0, min: 0, max: 2000000000}, opt),
 	String32: (opt) => _.extend({type: String, trim: true, maxlength: [32, ERROR_MAXLENGTH]}, opt),
 	String128: (opt) => _.extend({type: String, trim: true, maxlength: [128, ERROR_MAXLENGTH]}, opt),
 	String256: (opt) => _.extend({type: String, trim: true, maxlength: [256, ERROR_MAXLENGTH]}, opt),
@@ -65,6 +68,7 @@ const mgHelpers = {
 		schema.plugin(autoIncrement.plugin, {
 			model: name,
 			field: 'id',
+			type: NumberInt,
 			startAt: 1,
 		});
 	},
@@ -152,7 +156,7 @@ const mgHelpers = {
 		if(req.method===shouldBeVerb) return false;
 
 		//$$$.send.error // new Error(
-		throw new Error(`Can only use ${req.url} with '${shouldBeVerb}' HTTP Verb, you used '${req.method}'.`);
+		throw `Can only use ${req.url} with '${shouldBeVerb}' HTTP Verb, you used '${req.method}'.`;
 
 		return true;
 	},

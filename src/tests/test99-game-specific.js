@@ -44,6 +44,25 @@ describe('=GAME= Specific User Actions', () => {
 
 	});
 
+	it('GET EVERYTHING!', done => {
+		chamberlainpi.sendAuth('/user/everything', 'get')
+			.then(data => {
+				assert.exists(data);
+				assert.exists(data.user);
+				assert.exists(data.user.login);
+				assert.exists(data.user.login.token);
+				assert.exists(data.user.game);
+				assert.exists(data.user.game.currency);
+				assert.exists(data.items);
+				assert.exists(data.items[0]);
+				assert.exists(data.heroes);
+				assert.exists(data.heroes[0]);
+				done();
+			})
+			.catch(err => done(err));
+
+	});
+
 	it('Logout', done => {
 		chamberlainpi.sendAuth('/user/logout', 'post')
 			.then(data => {

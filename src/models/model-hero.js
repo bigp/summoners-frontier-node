@@ -71,7 +71,7 @@ module.exports = function() {
 						});
 
 						if(invalidIdentities.length) {
-							throw "Some of the supplied heroes are invalid: " +
+							throw "Some of the supplied hero identities don't exists in game's JSON: " +
 								invalidIdentities.map(n => n.identity).join(', ');
 						}
 
@@ -136,6 +136,64 @@ module.exports = function() {
 					.catch(err => {
 						$$$.send.error(res, err);
 					});
+			},
+
+			':heroID/remove'(Model, req, res, next, opts) {
+				const user = req.auth.user;
+				const Item = $$$.models.Item;
+				const results = {heroID: req.validHero.id};
+
+				return new Promise((resolve, reject) => {
+					if(mgHelpers.isWrongVerb(req, res, 'DELETE')) return;
+
+					const q = {userId: user.id, 'game.heroEquipped': req.validHero.id};
+					const $set = {$set: {'game.heroEquipped': 0}};
+
+					resolve( Item.updateMany(q, $set) )
+				})
+					.then( items => {
+						results.numItemsAffected = items.nModified;
+
+						return Model.remove({userId: user.id, id: req.validHero.id});
+					})
+					.then( removed => {
+						results.numRemoved = removed.toJSON().n;
+						results.game = req.validHero.game.toJSON();
+
+						mgHelpers.sendFilteredResult(res, results);
+					})
+					.catch(err => {
+						$$$.send.error(res, err);
+					});
+			},
+
+			'remove-all'(Model, req, res, next, opts) {
+				const user = req.auth.user;
+				const Item = $$$.models.Item;
+				const results = {};
+
+				return new Promise((resolve, reject) => {
+					if(mgHelpers.isWrongVerb(req, res, 'DELETE')) return;
+
+					const q = {userId: user.id};
+					const $set = {$set: {'game.heroEquipped': 0}};
+
+					resolve( Item.updateMany(q, $set) )
+				})
+					.then( items => {
+						trace(items);
+						results.numItemsAffected = items.nModified;
+						return Model.remove({userId: user.id});
+					})
+					.then( removed => {
+						results.numRemoved = removed.toJSON().n;
+						trace(results);
+
+						mgHelpers.sendFilteredResult(res, results);
+					})
+					.catch(err => {
+						$$$.send.error(res, err);
+					});
 			}
 		},
 
@@ -146,7 +204,7 @@ module.exports = function() {
 		///////////////////////////////////////////////////////////
 
 		schema: {
-			userId: CustomTypes.Number(),
+			userId: CustomTypes.LargeInt(),
 			dateCreated: CustomTypes.DateRequired(),
 
 			/////////////////////////////////// GAME-SPECIFIC:
