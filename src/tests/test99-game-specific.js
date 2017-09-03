@@ -63,6 +63,23 @@ describe('=GAME= Specific User Actions', () => {
 
 	});
 
+	it('REMOVE EVERTHING!', done => {
+		chamberlainpi.sendAuth('/user/everything/remove', 'delete')
+			.then(data => {
+				assert.exists(data, 'data exists.');
+				assert.exists(data.user, 'user exists.');
+				assert.exists(data.user.login, 'login exists.');
+				assert.exists(data.user.login.token, 'token exists.');
+				assert.exists(data.user.game, 'game exists.');
+				assert.exists(data.user.game.currency, 'currency exists.');
+				assert.exists(data.itemsRemoved, 'items exists.');
+				assert.exists(data.heroesRemoved, 'heroes exists.');
+				done();
+			})
+			.catch(err => done(err));
+
+	});
+
 	it('Logout', done => {
 		chamberlainpi.sendAuth('/user/logout', 'post')
 			.then(data => {

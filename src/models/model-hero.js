@@ -99,39 +99,12 @@ module.exports = function() {
 				const heroID = req.params.heroID;
 				const user = req.auth.user;
 
-				$$$.models.Hero.find({userId: req.auth.user.id, id: heroID}).limit(1)
+				Model.find({userId: req.auth.user.id, id: heroID}).limit(1)
 					.then( validHero => {
 						if(!validHero.length) throw 'Invalid hero ID';
 						req.validHero = validHero[0];
-						req.opts = opts;
 
 						next(); //Pass this down to next route actions:
-					})
-					.catch(err => {
-						$$$.send.error(res, err);
-					});
-			},
-
-			':heroID/equip/:itemID'(Model, req, res, next, opts) {
-				if(!req.auth || !req.auth.user || !req.validHero) return $$$.send.errorSkippedRoute(res);
-
-				const itemID = req.params.itemID;
-				const user = req.auth.user;
-
-				$$$.models.Item.find({userId: user.id, id: itemID}).limit(1)
-					.then( validItem => {
-						if(!validItem.length) throw 'Invalid item ID';
-						req.previousHeroID = validItem[0].game.heroEquipped;
-						req.validItem = validItem[0];
-						req.validItem.game.heroEquipped = req.validHero.id;
-
-						return req.validItem.save();
-					})
-					.then(validItem => {
-						mgHelpers.sendFilteredResult(res, {
-							previousHeroID: req.previousHeroID,
-							item: validItem
-						});
 					})
 					.catch(err => {
 						$$$.send.error(res, err);
@@ -141,9 +114,10 @@ module.exports = function() {
 			':heroID/remove'(Model, req, res, next, opts) {
 				const user = req.auth.user;
 				const Item = $$$.models.Item;
+				const validHero = req.validHero;
 				const results = {};
 
-				mgHelpers.prepareRemoveRequest(req, {'game.heroEquipped': req.validHero.id})
+				mgHelpers.prepareRemoveRequest(req, {'game.heroEquipped': validHero.id})
 					.then(q => {
 						return Item.updateMany(q, {$set: {'game.heroEquipped': 0}});
 
@@ -151,10 +125,10 @@ module.exports = function() {
 					.then( items => {
 						results.numItemsAffected = items.nModified;
 
-						return Model.remove({userId: user.id, id: req.validHero.id});
+						return Model.remove({userId: user.id, id: validHero.id});
 					})
 					.then( removed => {
-						results.heroRemoved = req.validHero.toJSON();
+						results.removed = validHero.toJSON();
 
 						mgHelpers.sendFilteredResult(res, results);
 					})
@@ -187,7 +161,11 @@ module.exports = function() {
 			}
 		},
 
-		methods: { /* createToken() { return ''; }, */ },
+		methods: {
+			toDebugID() {
+				return this.game.identity+"#" + this.id;
+			}
+		},
 
 		///////////////////////////////////////////////////////////
 

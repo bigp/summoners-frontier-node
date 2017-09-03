@@ -153,7 +153,7 @@ describe('=REST= Items', () => {
 
 	});
 
-	it('Add custom item (INVALID for peter)', done => {
+	it('Add custom item (FAIL - INVALID for peter)', done => {
 		peter.sendAuth('/item/add', 'post', {
 			body: {
 				list: [
@@ -174,7 +174,7 @@ describe('=REST= Items', () => {
 
 	});
 
-	it('Add custom item (NO LIST for peter)', done => {
+	it('Add custom item (FAIL - missing LIST for peter)', done => {
 		peter.sendAuth('/item/add', 'post', {
 			body: {
 				empty: true
@@ -191,6 +191,7 @@ describe('=REST= Items', () => {
 
 	});
 
+	var peterItem;
 	it('Add custom item (VALID for peter)', done => {
 		peter.sendAuth('/item/add', 'post', {
 			body: {
@@ -205,8 +206,144 @@ describe('=REST= Items', () => {
 				assert.exists(datas);
 				assert.exists(datas.newest);
 				assert.exists(datas.oldest);
+
+				peterItem = datas.newest[0];
 				done();
 			})
 
+	});
+
+	///////////////////////////////////////////////////// REMOVE ITEMS:
+
+	it('Remove item (FAIL wrong VERB)', done => {
+		peter.sendAuth(`/item/${peterItem.id}/remove`, 'get')
+			.then(datas => {
+				assert.notExists(datas);
+				done();
+			})
+			.catch(err => {
+				assert.exists(err);
+				done();
+			});
+
+	});
+
+	it('Remove item (FAIL wrong id 9999)', done => {
+		peter.sendAuth(`/item/9999/remove`, 'delete')
+			.then(datas => {
+				assert.notExists(datas);
+				done();
+			})
+			.catch(err => {
+				assert.exists(err);
+				done();
+			});
+
+	});
+
+	it('Remove ALL items (FAIL wrong VERB)', done => {
+		peter.sendAuth(`/item/remove-all`, 'get')
+			.then(datas => {
+				assert.notExists(datas);
+				done();
+			})
+			.catch(err => {
+				assert.exists(err);
+				done();
+			});
+
+	});
+
+	it('Remove ALL items (peter)', done => {
+		peter.sendAuth(`/item/remove-all`, 'delete')
+			.then(data => {
+				assert.exists(data);
+				assert.equal(data.numRemoved, 5, "numRemoved");
+				done();
+			})
+			.catch(err => {
+				done(err);
+			});
+
+	});
+
+	it('Get all items (peter, after deleting)', done => {
+		peter.sendAuth('/item/list', 'get')
+			.then(datas => {
+				assert.exists(datas);
+				assert.equal(datas.length, 0, "items == 0");
+				done();
+			})
+			.catch(err => done(err));
+
+	});
+
+	/////////////////////////////////////////////////// IDENTIFY THE ITEMS:
+
+	var item1, item2;
+	it('Identify item 1 (FAIL wrong Verb)', done => {
+		item1 = chamberlainpi.items[1];
+		item2 = chamberlainpi.items[2];
+
+		chamberlainpi.sendAuth(`/item/${item1.id}/identify`, 'get')
+			.then(datas => {
+				assert.notExists(datas);
+				done();
+			})
+			.catch(err => {
+				assert.exists(err);
+				done();
+			});
+	});
+
+	it('Identify item 9999 (FAIL wrong Verb)', done => {
+		chamberlainpi.sendAuth(`/item/9999/identify`, 'get')
+			.then(datas => {
+				assert.notExists(datas);
+				done();
+			})
+			.catch(err => {
+				assert.exists(err);
+				done();
+			});
+	});
+
+	it('Identify item 1 (chamberlainpi)', done => {
+		chamberlainpi.sendAuth(`/item/${item1.id}/identify`, 'put')
+			.then(datas => {
+				assert.exists(datas);
+				done();
+			})
+			.catch(err => {
+				assert.exists(err);
+				done();
+			});
+	});
+
+	it('Identify item 1 (FAIL ALREADY IDENTIFIED)', done => {
+		chamberlainpi.sendAuth(`/item/${item1.id}/identify`, 'put')
+			.then(datas => {
+				assert.notExists(datas);
+				done();
+			})
+			.catch(err => {
+				assert.exists(err);
+				done();
+			});
+	});
+
+	it('Identify item 1 (FAIL NOT ENOUGH SCROLLS)', done => {
+		chamberlainpi.sendAuth('/user/currency', 'put', {body: {scrolls:-9999}})
+			.then(datas => {
+				return chamberlainpi.sendAuth(`/item/${item2.id}/identify`, 'put')
+			})
+			.then(datas => {
+				assert.notExists(datas);
+				done(datas);
+			})
+			.catch(err => {
+				assert.exists(err);
+				done();
+			});
 	});
 });

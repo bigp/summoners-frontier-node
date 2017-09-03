@@ -177,6 +177,10 @@ module.exports = function() {
 						_.keys(incoming).forEach(coinType => {
 							if(_.isNull(currency[coinType])) return;
 							currency[coinType] += incoming[coinType];
+
+							if(currency[coinType]<0) {
+								currency[coinType] = 0;
+							}
 						});
 						break;
 					default:
@@ -194,7 +198,7 @@ module.exports = function() {
 				} else next();
 			},
 
-			'everything'(Model, req, res, next, opts) {
+			'everything$'(Model, req, res, next, opts) {
 				const user = req.auth.user;
 				const Item = $$$.models.Item;
 				const Hero = $$$.models.Hero;
@@ -205,10 +209,35 @@ module.exports = function() {
 					Item.find(q).sort('id').exec(),
 					Hero.find(q).sort('id').exec()
 				])
-					.then( belongings  => {
-						results.items = belongings[0];
-						results.heroes = belongings[1];
+				.then( belongings  => {
+					results.items = belongings[0];
+					results.heroes = belongings[1];
+					mgHelpers.sendFilteredResult(res, results);
+				});
+			},
+
+			'everything/remove'(Model, req, res, next, opts) {
+				const user = req.auth.user;
+				const Item = $$$.models.Item;
+				const Hero = $$$.models.Hero;
+				const q = {userId: user.id};
+				const results = {user: user};
+
+				mgHelpers.prepareRemoveRequest(req)
+					.then(q => {
+						return Promise.all([
+							Item.remove(q),
+							Hero.remove(q)
+						]);
+					})
+					.then( removals => {
+						results.itemsRemoved = removals[0].toJSON().n;
+						results.heroesRemoved = removals[1].toJSON().n;
+
 						mgHelpers.sendFilteredResult(res, results);
+					})
+					.catch(err => {
+						$$$.send.error(res, err);
 					});
 			}
 		},

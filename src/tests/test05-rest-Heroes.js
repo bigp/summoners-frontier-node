@@ -120,7 +120,7 @@ describe('=REST= Heroes', () => {
 		hero1 = chamberlainpi.heroes[1];
 		item1 = chamberlainpi.items[1];
 
-		chamberlainpi.sendAuth(`/hero/${hero0.id}/equip/${item0.id}`, 'put')
+		chamberlainpi.sendAuth(`/item/${item0.id}/equip-to/${hero0.id}`, 'put')
 			.then(datas => {
 				assert.exists(datas.item);
 				assert.equal(datas.previousHeroID, 0);
@@ -131,7 +131,7 @@ describe('=REST= Heroes', () => {
 	});
 
 	it('Equip item to a hero (1 - 1)', done => {
-		chamberlainpi.sendAuth(`/hero/${hero1.id}/equip/${item1.id}`, 'put')
+		chamberlainpi.sendAuth(`/item/${item1.id}/equip-to/${hero1.id}`, 'put')
 			.then(datas => {
 				assert.exists(datas.item);
 				assert.equal(datas.previousHeroID, 0);
@@ -142,7 +142,7 @@ describe('=REST= Heroes', () => {
 	});
 
 	it('Equip item to a hero (PASS FROM PREVIOUS HERO!)', done => {
-		chamberlainpi.sendAuth(`/hero/${hero1.id}/equip/${item0.id}`, 'put')
+		chamberlainpi.sendAuth(`/item/${item0.id}/equip-to/${hero1.id}`, 'put')
 			.then(datas => {
 				assert.exists(datas.item);
 				assert.equal(datas.previousHeroID, 1);
@@ -199,7 +199,7 @@ describe('=REST= Heroes', () => {
 	});
 
 	it('Equip item to a hero (FAIL with WRONG HERO ID)', done => {
-		chamberlainpi.sendAuth(`/hero/9999/equip/1`, 'put')
+		chamberlainpi.sendAuth(`/item/1/equip-to/9999`, 'put')
 			.then(data => {
 				done('Should not exists!');
 			})
@@ -210,7 +210,7 @@ describe('=REST= Heroes', () => {
 	});
 
 	it('Equip item to a hero (FAIL with WRONG ITEM ID)', done => {
-		chamberlainpi.sendAuth(`/hero/1/equip/9999`, 'put')
+		chamberlainpi.sendAuth(`/item/9999/equip-to/1`, 'put')
 			.then(data => {
 				done('Should not exists!');
 			})
@@ -221,7 +221,7 @@ describe('=REST= Heroes', () => {
 	});
 
 	it('Equip item to a hero (FAIL UNAUTHORIZED)', done => {
-		sendAPI(`/hero/1/equip/9999`, 'put')
+		sendAPI(`/item/1/equip-to/1`, 'put')
 			.then(data => {
 				assert.notExists(data);
 				done('Should not exists!');
@@ -269,8 +269,8 @@ describe('=REST= Heroes', () => {
 			.then(data => {
 				//trace(data);
 				assert.exists(data);
-				assert.exists(data.heroRemoved);
-				assert.equal(data.heroRemoved.id, 2);
+				assert.exists(data.removed);
+				assert.equal(data.removed.id, 2);
 				assert.equal(data.numItemsAffected, 2);
 				done();
 				//trace(data);
@@ -291,7 +291,7 @@ describe('=REST= Heroes', () => {
 		chamberlainpi.sendAuth(`/hero/remove-all`, 'delete')
 			.then(data => {
 				assert.exists(data);
-				assert.notExists(data.heroID);
+				assert.notExists(data.removed);
 				assert.equal(data.numItemsAffected===0, true);
 
 				//assert.equal(data.length, 0);

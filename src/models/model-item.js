@@ -134,12 +134,131 @@ module.exports = function() {
 						return promiseAddItems();
 					})
 					.catch(err => {
-						$$$.send.error(res, "Could not add items!", err);
+						$$$.send.error(res, "Could not add items! " + (err.message || err), err);
 					});
-			}
+			},
+
+			':itemID/*'(Model, req, res, next, opts) {
+				const itemID = req.params.itemID;
+				const user = req.auth.user;
+
+				Model.find({userId: user.id, id: itemID}).limit(1)
+					.then( validItem => {
+						if(!validItem.length) throw 'Invalid item ID';
+						req.validItem = validItem[0];
+						req.opts = opts;
+
+						next(); //Pass this down to next route actions:
+					})
+					.catch(err => {
+						$$$.send.error(res, err);
+					});
+			},
+
+			':itemID/equip-to/:heroID'(Model, req, res, next, opts) {
+				const Hero = $$$.models.Hero;
+				const user = req.auth.user;
+				const heroID = req.params.heroID;
+				const validItem = req.validItem;
+				const results = {
+					item: validItem,
+					previousHeroID: validItem.game.heroEquipped,
+				};
+
+				var validHero;
+
+				return new Promise((resolve, reject) => {
+					if (mgHelpers.isWrongVerb(req, 'PUT')) return;
+
+					resolve( Hero.find({userId: user.id, id: heroID}).limit(1) );
+				})
+					.then( heroes => {
+						if(!heroes.length) throw 'Invalid hero ID';
+
+						results.hero = validHero = heroes[0];
+
+						validItem.game.heroEquipped = validHero.id;
+						return validItem.save();
+					})
+					.then( savedItem => {
+						mgHelpers.sendFilteredResult(res, results);
+					})
+					.catch( err => {
+						$$$.send.error(res, err);
+					});
+			},
+
+			':itemID/identify'(Model, req, res, next, opts) {
+				const user = req.auth.user;
+				const validItem = req.validItem;
+				const debugID = validItem.toDebugID();
+				const results = {};
+
+				return new Promise((resolve, reject) => {
+					if(mgHelpers.isWrongVerb(req, 'PUT')) return;
+
+					if(validItem.game.isIdentified) throw `ERROR ITEM_ALREADY_IDENTIFIED #` + debugID;
+					if(user.game.currency.scrolls<=0) throw `ERROR CURRENCY_NOT_ENOUGH_SCROLLS #` + debugID;
+					user.game.currency.scrolls--;
+					validItem.game.isIdentified = true;
+
+					const doBoth = Promise.all([validItem.save(), user.save()]);
+					resolve(doBoth);
+				})
+					.then( both => {
+						results.item = both[0];
+						results.user = both[1];
+						results.scrolls = user.game.currency.scrolls;
+						mgHelpers.sendFilteredResult(res, results)
+					})
+					.catch( err => {
+						$$$.send.error(res, err);
+					});
+			},
+
+			':itemID/remove'(Model, req, res, next, opts) {
+				const user = req.auth.user;
+				const validItem = req.validItem;
+				const results = {};
+
+				mgHelpers.prepareRemoveRequest(req)
+					.then(() => {
+						return Model.remove({userId: user.id, id: validItem.id});
+					})
+					.then( removed => {
+						results.removed = validItem.toJSON();
+
+						mgHelpers.sendFilteredResult(res, results);
+					})
+					.catch(err => {
+						$$$.send.error(res, err);
+					});
+			},
+
+			'remove-all'(Model, req, res, next, opts) {
+				const user = req.auth.user;
+				const results = {};
+
+				mgHelpers.prepareRemoveRequest(req)
+					.then(q => {
+						return Model.remove({userId: user.id});
+					})
+					.then( removed => {
+						results.numRemoved = removed.toJSON().n;
+
+						mgHelpers.sendFilteredResult(res, results);
+					})
+					.catch(err => {
+						$$$.send.error(res, err);
+					});
+			},
 		},
 
-		methods: { /* createToken() { return ''; }, */ },
+		methods: {
+			toDebugID() {
+				return this.game.identity+"#" + this.id;
+			}
+		},
 
 		///////////////////////////////////////////////////////////
 
@@ -150,13 +269,14 @@ module.exports = function() {
 			/////////////////////////////////// GAME-SPECIFIC:
 			game: {
 				identity: CustomTypes.String128({required:true}),
+				isIdentified: {type: Boolean, default: false},
 				heroEquipped: CustomTypes.LargeInt({default: 0, index: true}),
 				randomSeeds: {
 					quality: CustomTypes.LargeInt({default: 1}),
 					affix: CustomTypes.LargeInt({default: 1}),
 					itemLevel: CustomTypes.LargeInt({default: 1}),
 					variance: CustomTypes.LargeInt({default: 1}),
-					magicFind: CustomTypes.Number({default: 1})
+					magicFind: CustomTypes.Number({default: 1, max: 100})
 				},
 			}
 		}
