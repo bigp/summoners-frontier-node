@@ -16,6 +16,8 @@
     "async": "^2.5.0",
     "body-parser": "^1.17.2",
     "cors": "^2.8.4",
-    "mongoose-int32": "^0.2.0"
+    "moment": "^2.18.1",
+    "mongoose-int32": "^0.2.0",
+    "seedrandom": "^2.4.3"
   }
 }
