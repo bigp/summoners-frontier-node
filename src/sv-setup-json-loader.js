@@ -31,7 +31,8 @@ class JSONLoader extends Events {
 
 	onDataLoaded(json) {
 		return new Promise((resolve, reject) => {
-			this.data = json;
+			var temp = JSON.stringify(json);
+			this.data = JSON.parse(temp, this.fixParsingIssues);
 
 			if(this.options.isParseGlobals) {
 				this.parseGlobals(json);
@@ -41,6 +42,17 @@ class JSONLoader extends Events {
 			this.emit('data', this);
 		});
 
+	}
+
+	fixParsingIssues(key, value) {
+		if (typeof value !== 'string') return value;
+		var toUpper = value.toUpperCase();
+
+		if(key.startsWith('is-')) {
+			return toUpper==='TRUE';
+		}
+
+		return value;
 	}
 
 	parseGlobals(json) {

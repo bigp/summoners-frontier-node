@@ -15,7 +15,7 @@ module.exports = function() {
 	return {
 		plural: 'items',
 		whitelist: ['user', 'dateCreated', 'game.identity', 'game.heroEquipped'],
-		blacklistVerbs: "GET_ONE GET_MANY POST_ONE POST_MANY DELETE_ONE DELETE_MANY".split(' '),
+		blacklistVerbs: "GET_ONE GET_MANY POST_ONE POST_MANY DELETE_ONE DELETE_MANY PUT_ONE PUT_MANY".split(' '),
 
 		customRoutes: {
 			//////////////////////////////////////////////////////////////

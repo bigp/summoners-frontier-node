@@ -11,6 +11,8 @@ const PRIVATE = $$$.env.ini.PRIVATE;
 const sendAPI = $$$.send.api;
 
 describe('=REST= Items', () => {
+	if(chaiG.filterLevel < 2) return;
+
 	var chamberlainpi, peter;
 
 	function randomSeeds(quality, affix, itemLevel, variance) {

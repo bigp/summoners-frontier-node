@@ -10,6 +10,7 @@ const chaiG = module.exports = {
 	testUsers: {},
 
 	showTraces: _.isTruthy($$$.env.ini.MOCHA.SHOW_TRACES),
+	filterLevel: $$$.env.ini.MOCHA.FILTER_LEVEL | 0,
 
 	catcher(done) {
 		return (err) => {

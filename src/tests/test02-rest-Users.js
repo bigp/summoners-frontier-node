@@ -241,6 +241,8 @@ describe('=REST= User', () => {
 			});
 	});
 
+	if(chaiG.filterLevel < 2) return;
+
 	it('Check Currency (/user/currency/)', done => {
 		const chamberlainpi = testUsers.chamberlainpi;
 
@@ -260,13 +262,14 @@ describe('=REST= User', () => {
 
 		chamberlainpi.sendAuth('/user/currency', 'put', {
 			body: {
-				gold:1, gems:1, scrolls: 1, magicOrbs: 1
+				gold:1, gems:1, scrollsIdentify: 1, scrollsSummon: 1, magicOrbs: 1
 			}
 		})
 			.then(data => {
 				assert.equal(data.gold, currencyBefore.gold+1, "gold + 1");
 				assert.equal(data.gems, currencyBefore.gems+1, "gems + 1");
-				assert.equal(data.scrolls, currencyBefore.scrolls+1, "scrolls + 1");
+				assert.equal(data.scrollsIdentify, currencyBefore.scrollsIdentify+1, "scrolls + 1");
+				assert.equal(data.scrollsSummon, currencyBefore.scrollsSummon+1, "scrolls + 1");
 				assert.equal(data.magicOrbs, currencyBefore.magicOrbs+1, "magicOrbs + 1");
 				done();
 			})
@@ -281,13 +284,14 @@ describe('=REST= User', () => {
 
 		chamberlainpi.sendAuth('/user/currency', 'put', {
 			body: {
-				gold:-1, gems:-1, scrolls: -1, magicOrbs: -1
+				gold:-1, gems:-1, scrollsIdentify: -1, scrollsSummon: -1, magicOrbs: -1
 			}
 		})
 			.then(data => {
 				assert.equal(data.gold, currencyBefore.gold, "gold - 1");
 				assert.equal(data.gems, currencyBefore.gems, "gems - 1");
-				assert.equal(data.scrolls, currencyBefore.scrolls, "scrolls - 1");
+				assert.equal(data.scrollsIdentify, currencyBefore.scrollsIdentify, "scrolls - 1");
+				assert.equal(data.scrollsSummon, currencyBefore.scrollsSummon, "scrolls - 1");
 				assert.equal(data.magicOrbs, currencyBefore.magicOrbs, "magicOrbs - 1");
 				done();
 			})

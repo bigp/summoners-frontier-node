@@ -11,6 +11,8 @@ const PRIVATE = $$$.env.ini.PRIVATE;
 const sendAPI = $$$.send.api;
 
 describe('=REST= Heroes', () => {
+	if(chaiG.filterLevel < 2) return;
+
 	var chamberlainpi, peter, hero0, hero1, item0, item1;
 
 	it('INIT', done => {

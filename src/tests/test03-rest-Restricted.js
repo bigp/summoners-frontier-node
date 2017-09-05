@@ -11,6 +11,7 @@ const PRIVATE = $$$.env.ini.PRIVATE;
 const sendAPI = $$$.send.api;
 
 describe('=REST= User-Restricted actions', () => {
+	if(chaiG.filterLevel < 2) return;
 
 	var chamberlainpi;
 

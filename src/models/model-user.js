@@ -11,12 +11,13 @@ const CONFIG = $$$.env.ini;
 const PRIVATE = CONFIG.PRIVATE;
 const Schema  = mongoose.Schema;
 const CustomTypes  = mongoose.CustomTypes;
+const seedRandom = require('seedrandom');
 
 module.exports = function() {
 	return {
 		plural: 'users',
 		whitelist: ['name', 'email', 'username'],
-		blacklistVerbs: "GET_ONE GET_MANY POST_ONE POST_MANY DELETE_ONE DELETE_MANY".split(' '),
+		blacklistVerbs: "GET_ONE GET_MANY POST_ONE POST_MANY DELETE_ONE DELETE_MANY PUT_ONE PUT_MANY".split(' '),
 
 		customRoutes: {
 			'public/add'(Model, req, res, next, opts) {
@@ -32,7 +33,8 @@ module.exports = function() {
 					currency: {
 						gold: jsonGlobals.DEFAULT_GOLD,
 						gems: jsonGlobals.DEFAULT_GEMS,
-						scrolls: jsonGlobals.DEFAULT_SCROLLS,
+						scrollsIdentify: jsonGlobals.DEFAULT_SCROLLS_IDENTIFY,
+						scrollsSummon: jsonGlobals.DEFAULT_SCROLLS_SUMMON,
 						magicOrbs: jsonGlobals.DEFAULT_MAGIC,
 					}
 				};
@@ -299,6 +301,35 @@ module.exports = function() {
 				return this.login.token ?
 					$$$.encodeToken(PRIVATE.AUTH_CODE, this.username, this.login.token) :
 					$$$.encodeToken(PRIVATE.AUTH_CODE);
+			},
+
+			getRNG(seedName) {
+				const randomSeeds = this.game.randomSeeds;
+				const randomSeed = randomSeeds[seedName];
+				if(!randomSeed) {
+					throw new Error('The random seed name does not exists on user: ' + seedName);
+				}
+
+				const rng = seedRandom(this._id + seedName, {state: randomSeed});
+				rng._seed = randomSeed;
+
+				return rng;
+			},
+
+			setRNG(seedName, value, isSaved=true) {
+				const randomSeeds = this.game.randomSeeds;
+				const randomSeed = randomSeeds[seedName];
+				if(!randomSeed) {
+					throw new Error('The random seed name does not exists on user: ' + seedName);
+				}
+
+				randomSeeds[seedName] = value;
+
+				const user = this;
+				return new Promise((resolve, reject) => {
+					if(isSaved) return resolve( user.save() );
+					resolve(user);
+				});
 			}
 		},
 
@@ -323,6 +354,7 @@ module.exports = function() {
 
 			/////////////////////////////////// GAME-SPECIFIC:
 			game: {
+
 				level: {
 					current: CustomTypes.Int({default: 1}),
 					progress: CustomTypes.Number({default: 0})
@@ -334,9 +366,19 @@ module.exports = function() {
 				currency: {
 					gold: CustomTypes.Int(),
 					gems: CustomTypes.Int(),
-					scrolls: CustomTypes.Int(),
+					scrollsIdentify: CustomTypes.Int(),
+					scrollsSummon: CustomTypes.Int(),
 					magicOrbs: CustomTypes.Int(),
 				},
+
+				//Common, Uncommon, Magic, Rare, Unique
+				shards: {
+					common: CustomTypes.LargeInt(),
+					uncommon: CustomTypes.LargeInt(),
+					magic: CustomTypes.LargeInt(),
+					rare: CustomTypes.LargeInt(),
+					unique: CustomTypes.LargeInt(),
+				}
 			}
 
 		}

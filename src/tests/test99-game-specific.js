@@ -13,6 +13,8 @@ const sendAPIAuth = chaiG.sendAPIAuth;
 
 
 describe('=GAME= Specific User Actions', () => {
+	if(chaiG.filterLevel < 2) return;
+
 	var chamberlainpi;
 
 	it('Complete ActZone FAIL', done => {
