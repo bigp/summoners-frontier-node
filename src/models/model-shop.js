@@ -107,43 +107,25 @@ module.exports = function() {
 					qDates.push(premium._dateGenerated);
 				}
 
-				const gteDates = qDates.map(date => ({$gte: date}));
+				const queries = qDates.map(date => {
+					return Model.find({userId: user.id, dateCreated: {$gte: date}});
+				});
 
-				if(qDates.length==1) {
-					q.dateCreated = gteDates[0];
-				} else {
-					q.dateCreated = {$or: gteDates};
-				}
+				Promise.all(queries)
+					.then( oneOrBoth => {
+						var uniq;
 
-				Model.find(q) //.sort({dateCreated: -1})
-					.then( recentPurchases => {
-						result.recentPurchases = recentPurchases;
+						if(oneOrBoth.length==1) uniq = oneOrBoth[0];
+						else {
+							const merged = oneOrBoth[0].concat( oneOrBoth[1] );
+							uniq = _.uniq(merged, 'id');
+						}
+
+						result.recentPurchases = uniq;
 						mgHelpers.sendFilteredResult(res, result);
 					})
-					.catch(err => $$$.send.error(res, 'Could not get recently purchased items!', result));
+					.catch(err => $$$.send.error(res, 'Could not get recently purchased items!', err.message));
 
-
-
-				// Model.find({userId: user.id}).sort({dateCreated: -1}).limit(1)
-				// 	.then( userPremiums => {
-				// 		const globalData = result.global = {seed: globalSeed.seed};
-				//
-				//
-				//
-				// 		// if(userPremiums && userPremiums.length) {
-				// 		// 	const userPremium = userPremiums[0];
-				// 		// 	const premiumGameData = userPremium.game;
-				// 		// 	const datePurchased = moment(premiumGameData.datePurchased);
-				// 		// 	const premium = result.premium = {seed: premiumGameData.premiumSeed};
-				// 		// 	premium.itemsPurchased = premiumGameData.itemsPurchased;
-				// 		//
-				// 		// 	createExpiryAndSecondsLeft(premium, datePurchased);
-				// 		//
-				// 		// 	result.isPremium = true;
-				// 		// }
-				//
-				// 		mgHelpers.sendFilteredResult(res, result);
-				// 	});
 			},
 
 			'buy-seed'(Model, req, res, next, opts) {
