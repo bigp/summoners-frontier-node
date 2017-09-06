@@ -335,4 +335,28 @@ class DetailedError extends Error {
 	}
 }
 
+class Timer {
+	constructor(loop, time, isStarting=false) {
+		this._interval = -1;
+		this._time = time;
+		this._loop = loop;
+
+		if(isStarting) this.start();
+	}
+
+	start(isTriggeredImmediately) {
+		//1000 * 60
+		this.stop();
+		_interval = setInterval(this._loop, this._time);
+		if(isTriggeredImmediately) this._loop();
+	}
+
+	stop() {
+		if(this._interval<0) return;
+		clearInterval(this._interval);
+		this._interval = -1;
+	}
+}
+
 $$$.DetailedError = DetailedError;
+$$$.Timer = Timer;

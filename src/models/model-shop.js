@@ -17,7 +17,7 @@ module.exports = function() {
 
 	var User, Shop;
 	var globalSeed = {}, lastItemKeys = [], isInited = false;
-	var _interval = -1;
+	var timer = new $$$.Timer(loop, 1000 * 60);
 
 	process.nextTick( () => {
 		User = $$$.models.User;
@@ -29,23 +29,10 @@ module.exports = function() {
 			if(isInited) return resolve();
 			isInited = true;
 
-			startLoop();
-			loop();
+			timer.start(true);
 
 			resolve();
 		});
-	}
-
-	function startLoop() {
-		stopLoop();
-		_interval = setInterval( loop, 1000 * 60);
-	}
-
-	function stopLoop() {
-		if(_interval<0) return;
-
-		clearInterval( _interval);
-		_interval = -1;
 	}
 
 	function loop() {
@@ -103,7 +90,7 @@ module.exports = function() {
 
 						next();
 					})
-					.catch(err => $$$.send.error(res, "Could not initialize the Shop collection!"));
+					.catch(err => $$$.send.error(res, "Could not initialize the Shop collection! " + err.message));
 
 				//next();
 			},
@@ -167,6 +154,9 @@ module.exports = function() {
 					.catch(err => $$$.send.error(res, 'Could not get recently purchased items!', err.message));
 
 			},
+
+			//'get-key' (timestamp & seed)
+			//'refresh-key' (roll the response from 'get-key' in here as well).
 
 			'buy/*'(Model, req, res, next, opts) {
 				if(mgHelpers.isWrongVerb(req, 'POST')) return;
@@ -253,16 +243,13 @@ module.exports = function() {
 
 			/////////////////////////////////// GAME-SPECIFIC:
 			game: {
-				isPremium: {type:Boolean, default:false},
-
 				guid: CustomTypes.String128(),
 				seed: CustomTypes.LargeInt({min: -1, default: -1, required: true}),
 				_dateGenerated: CustomTypes.DateRequired({default: new Date(0)}),
 
 				item: {
-					guid: CustomTypes.String128({required: true}),
-					identify: CustomTypes.String32({required: true}),
-					name: CustomTypes.String32({required: true})
+					index: CustomTypes.String128({required: true}),
+					seed: CustomTypes.String32({required: true}),
 				}
 			}
 		}
