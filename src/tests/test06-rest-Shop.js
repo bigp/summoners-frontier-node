@@ -29,54 +29,10 @@ describe('=REST= Shop', () => {
 				assert.exists(err);
 				done();
 			});
-
 	});
 
 	it('Get seed (chamberlainpi)', done => {
-		chamberlainpi.sendAuth('/shop/seed', 'get')
-			.then(datas => {
-				assert.exists(datas);
-				//assert.exists(datas.global);
-
-				shopInfo = datas;
-
-				setTimeout(() => {
-					done();
-				}, delay);
-			})
-			.catch(err => done(err));
-
-	});
-
-	it('Buy Item GLOBAL (chamberlainpi)', done => {
-		chamberlainpi.sendAuth('/shop/buy/item', 'post', {
-			body: {
-				guid: shopInfo.guid,
-				item: {
-					guid: shopInfo.itemKeys[0],
-					id: 1,
-					identify: 'GLOBAL_ITEM',
-					name: 'A cool name for a global item'
-				}
-			}
-		})
-			.then(datas => {
-				assert.exists(datas);
-				assert.exists(datas.game);
-				assert.exists(datas.dateCreated);
-				assert.equal(datas.userId, chamberlainpi.id, "User ID matches.");
-				assert.equal(datas.game.isPremium, false, "Is NOT Premium item.");
-
-				setTimeout(() => {
-					done();
-				}, delay);
-
-			})
-			.catch(err => done(err));
-	});
-
-	it('Get seed again (chamberlainpi)', done => {
-		chamberlainpi.sendAuth('/shop/seed', 'get')
+		chamberlainpi.sendAuth('/shop/key', 'get')
 			.then(datas => {
 				assert.exists(datas);
 				//assert.exists(datas.global);
@@ -90,110 +46,168 @@ describe('=REST= Shop', () => {
 			.catch(err => done(err));
 	});
 
-	it('Buy & Get Seed PREMIUM (chamberlainpi)', done => {
-		chamberlainpi.sendAuth('/shop/seed', 'post')
-			.then(datas => {
-				assert.exists(datas);
-
-				shopInfo = datas;
-
-				setTimeout(() => {
-					done();
-				}, delay);
-			})
-			.catch(err => done(err));
-
-	});
-
-	it('Buy Item PREMIUM (chamberlainpi)', done => {
-		chamberlainpi.sendAuth('/shop/buy/item', 'post', {
-			body: {
-				guid: shopInfo.guid,
-				item: {
-					guid: shopInfo.itemKeys[0],
-					id: 1,
-					isPremium: true,
-					identify: 'some_cool_name',
-					name: 'A cool name for an item'
-				}
-			}
-		})
-			.then(datas => {
-				assert.exists(datas);
-				assert.equal(datas.userId, chamberlainpi.id, "User ID matches.");
-				assert.equal(datas.game.isPremium, true, "It IS a Premium item.");
-
-				setTimeout(() => {
-					done();
-				}, delay);
-
-			})
-			.catch(err => done(err));
-
-	});
-
-	it('Get seed PREMIUM (chamberlainpi)', done => {
-		chamberlainpi.sendAuth('/shop/seed', 'get')
-			.then(datas => {
-				assert.exists(datas);
-				assert.exists(datas.recentPurchases);
-				assert.equal(datas.recentPurchases.length, 2, 'Should have couple recent purchases.');
-				assert.equal(datas.recentPurchases[1], shopInfo.itemKeys[0], 'Should have matching item keys.');
-
-				shopInfo = datas;
-
-				setTimeout(() => {
-					done();
-				}, delay);
-
-			})
-			.catch(err => done(err));
-
-	});
-
-
-
-	it('Get seed (peter)', done => {
-		peter.sendLogin()
-			.then(() => peter.sendAuth('/shop/seed', 'get'))
-			.then(datas => {
-				assert.exists(datas);
-				//assert.exists(datas.global);
-
-				shopInfo = datas;
-
-				setTimeout(() => {
-					done();
-				}, delay);
-			})
-			.catch(err => done(err));
-
-	});
-
-	it('Buy Item GLOBAL (peter)', done => {
-		peter.sendAuth('/shop/buy/item', 'post', {
-			body: {
-				guid: shopInfo.guid,
-				item: {
-					guid: shopInfo.itemKeys[0],
-					id: 1,
-					identify: 'GLOBAL_ITEM_FOR_PETER',
-					name: 'A cool name for a global item'
-				}
-			}
-		})
-			.then(datas => {
-				assert.exists(datas);
-				assert.exists(datas.game);
-				assert.exists(datas.dateCreated);
-				assert.equal(datas.userId, peter.id, "User ID matches.");
-				assert.equal(datas.game.isPremium, false, "Is NOT Premium item.");
-
-				setTimeout(() => {
-					done();
-				}, delay);
-
-			})
-			.catch(err => done(err));
-	});
+	// it('Get seed (chamberlainpi)', done => {
+	// 	chamberlainpi.sendAuth('/shop/seed', 'get')
+	// 		.then(datas => {
+	// 			assert.exists(datas);
+	// 			//assert.exists(datas.global);
+	//
+	// 			shopInfo = datas;
+	//
+	// 			setTimeout(() => {
+	// 				done();
+	// 			}, delay);
+	// 		})
+	// 		.catch(err => done(err));
+	//
+	// });
+	//
+	// it('Buy Item GLOBAL (chamberlainpi)', done => {
+	// 	chamberlainpi.sendAuth('/shop/buy/item', 'post', {
+	// 		body: {
+	// 			guid: shopInfo.guid,
+	// 			item: {
+	// 				guid: shopInfo.itemKeys[0],
+	// 				id: 1,
+	// 				identify: 'GLOBAL_ITEM',
+	// 				name: 'A cool name for a global item'
+	// 			}
+	// 		}
+	// 	})
+	// 		.then(datas => {
+	// 			assert.exists(datas);
+	// 			assert.exists(datas.game);
+	// 			assert.exists(datas.dateCreated);
+	// 			assert.equal(datas.userId, chamberlainpi.id, "User ID matches.");
+	// 			assert.equal(datas.game.isPremium, false, "Is NOT Premium item.");
+	//
+	// 			setTimeout(() => {
+	// 				done();
+	// 			}, delay);
+	//
+	// 		})
+	// 		.catch(err => done(err));
+	// });
+	//
+	// it('Get seed again (chamberlainpi)', done => {
+	// 	chamberlainpi.sendAuth('/shop/seed', 'get')
+	// 		.then(datas => {
+	// 			assert.exists(datas);
+	// 			//assert.exists(datas.global);
+	//
+	// 			shopInfo = datas;
+	//
+	// 			setTimeout(() => {
+	// 				done();
+	// 			}, delay);
+	// 		})
+	// 		.catch(err => done(err));
+	// });
+	//
+	// it('Buy & Get Seed PREMIUM (chamberlainpi)', done => {
+	// 	chamberlainpi.sendAuth('/shop/seed', 'post')
+	// 		.then(datas => {
+	// 			assert.exists(datas);
+	//
+	// 			shopInfo = datas;
+	//
+	// 			setTimeout(() => {
+	// 				done();
+	// 			}, delay);
+	// 		})
+	// 		.catch(err => done(err));
+	//
+	// });
+	//
+	// it('Buy Item PREMIUM (chamberlainpi)', done => {
+	// 	chamberlainpi.sendAuth('/shop/buy/item', 'post', {
+	// 		body: {
+	// 			guid: shopInfo.guid,
+	// 			item: {
+	// 				guid: shopInfo.itemKeys[0],
+	// 				id: 1,
+	// 				isPremium: true,
+	// 				identify: 'some_cool_name',
+	// 				name: 'A cool name for an item'
+	// 			}
+	// 		}
+	// 	})
+	// 		.then(datas => {
+	// 			assert.exists(datas);
+	// 			assert.equal(datas.userId, chamberlainpi.id, "User ID matches.");
+	// 			assert.equal(datas.game.isPremium, true, "It IS a Premium item.");
+	//
+	// 			setTimeout(() => {
+	// 				done();
+	// 			}, delay);
+	//
+	// 		})
+	// 		.catch(err => done(err));
+	//
+	// });
+	//
+	// it('Get seed PREMIUM (chamberlainpi)', done => {
+	// 	chamberlainpi.sendAuth('/shop/seed', 'get')
+	// 		.then(datas => {
+	// 			assert.exists(datas);
+	// 			assert.exists(datas.recentPurchases);
+	// 			assert.equal(datas.recentPurchases.length, 2, 'Should have couple recent purchases.');
+	// 			assert.equal(datas.recentPurchases[1], shopInfo.itemKeys[0], 'Should have matching item keys.');
+	//
+	// 			shopInfo = datas;
+	//
+	// 			setTimeout(() => {
+	// 				done();
+	// 			}, delay);
+	//
+	// 		})
+	// 		.catch(err => done(err));
+	//
+	// });
+	//
+	//
+	//
+	// it('Get seed (peter)', done => {
+	// 	peter.sendLogin()
+	// 		.then(() => peter.sendAuth('/shop/seed', 'get'))
+	// 		.then(datas => {
+	// 			assert.exists(datas);
+	// 			//assert.exists(datas.global);
+	//
+	// 			shopInfo = datas;
+	//
+	// 			setTimeout(() => {
+	// 				done();
+	// 			}, delay);
+	// 		})
+	// 		.catch(err => done(err));
+	//
+	// });
+	//
+	// it('Buy Item GLOBAL (peter)', done => {
+	// 	peter.sendAuth('/shop/buy/item', 'post', {
+	// 		body: {
+	// 			guid: shopInfo.guid,
+	// 			item: {
+	// 				guid: shopInfo.itemKeys[0],
+	// 				id: 1,
+	// 				identify: 'GLOBAL_ITEM_FOR_PETER',
+	// 				name: 'A cool name for a global item'
+	// 			}
+	// 		}
+	// 	})
+	// 		.then(datas => {
+	// 			assert.exists(datas);
+	// 			assert.exists(datas.game);
+	// 			assert.exists(datas.dateCreated);
+	// 			assert.equal(datas.userId, peter.id, "User ID matches.");
+	// 			assert.equal(datas.game.isPremium, false, "Is NOT Premium item.");
+	//
+	// 			setTimeout(() => {
+	// 				done();
+	// 			}, delay);
+	//
+	// 		})
+	// 		.catch(err => done(err));
+	// });
 });

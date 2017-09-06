@@ -385,14 +385,8 @@ module.exports = function() {
 						seed: CustomTypes.LargeInt({min: -1, required: true, default: -1}),
 						_dateGenerated: CustomTypes.DateRequired({default: new Date(0)}),
 					}
-					// premium: {
-					// 	guid: CustomTypes.String128(),
-					// 	seed: CustomTypes.LargeInt({min: -1, required: true, default: -1}),
-					// 	_dateGenerated: CustomTypes.DateRequired({default: new Date(0)}),
-					// }
 				}
 			}
-
 		}
 	};
 };

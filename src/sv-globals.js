@@ -336,7 +336,7 @@ class DetailedError extends Error {
 }
 
 class Timer {
-	constructor(loop, time, isStarting=false) {
+	constructor(time, loop, isStarting=false) {
 		this._interval = -1;
 		this._time = time;
 		this._loop = loop;
@@ -347,7 +347,7 @@ class Timer {
 	start(isTriggeredImmediately) {
 		//1000 * 60
 		this.stop();
-		_interval = setInterval(this._loop, this._time);
+		this._interval = setInterval(this._loop, this._time);
 		if(isTriggeredImmediately) this._loop();
 	}
 
