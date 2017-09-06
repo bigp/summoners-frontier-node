@@ -129,6 +129,13 @@ _.extend($$$, {
 
 	send: {
 		error(res, errMessage, data) {
+			const isResOK = res.constructor.name==='ServerResponse';
+			if(!isResOK) {
+				var stack = new Error().stack;
+				trace(errMessage);
+				throw new Error("\nYou may have mixed the 'res' arguments in the send.error call...\n".red + stack);
+			}
+
 			const err = {
 				url: res.req.fullURL,
 				headers: $$$.send.makeResponseHeader(res),

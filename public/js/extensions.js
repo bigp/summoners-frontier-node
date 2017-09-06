@@ -276,7 +276,7 @@ _.omit = function(obj, blacklist) {
 	return newObj;
 };
 
-_.prom = function prom(cbErrorOrPromise) {
+_.promise = function prom(cbErrorOrPromise) {
 	return new Promise((resolve, reject) => {
 		var result = cbErrorOrPromise();
 		resolve(result);

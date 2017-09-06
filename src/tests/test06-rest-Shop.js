@@ -20,8 +20,8 @@ describe('=REST= Shop', () => {
 		done();
 	});
 
-	it('Get seed without authorization (FAIL)', done => {
-		sendAPI('/shop/seed', 'get')
+	it('1 Get key without authorization (FAIL)', done => {
+		sendAPI('/shop/key', 'get')
 			.then(data => {
 				done('Should not exists!');
 			})
@@ -31,7 +31,18 @@ describe('=REST= Shop', () => {
 			});
 	});
 
-	it('Get seed (chamberlainpi)', done => {
+	it('1.1 Get key (FAIL with Wrong Verb)', done => {
+		chamberlainpi.sendAuth('/shop/key', 'delete')
+			.then(data => {
+				done('Should not exists!');
+			})
+			.catch(err => {
+				assert.exists(err);
+				done();
+			});
+	});
+
+	it('2 Get key (chamberlainpi)', done => {
 		chamberlainpi.sendAuth('/shop/key', 'get')
 			.then(datas => {
 				assert.exists(datas);
@@ -41,45 +52,26 @@ describe('=REST= Shop', () => {
 
 				setTimeout(() => {
 					done();
-					trace(shopInfo);
 				}, delay);
 			})
 			.catch(err => done(err));
 	});
 
-	it('Get seed (chamberlainpi)', done => {
+	it('3 Get key (chamberlainpi)', done => {
 		chamberlainpi.sendAuth('/shop/key', 'get')
 			.then(datas => {
 				assert.exists(datas);
-				//assert.exists(datas.global);
 
 				shopInfo = datas;
 
 				setTimeout(() => {
 					done();
-					trace(shopInfo);
 				}, delay);
 			})
 			.catch(err => done(err));
 	});
 
-	it('Get seed (chamberlainpi)', done => {
-		chamberlainpi.sendAuth('/shop/key', 'get')
-			.then(datas => {
-				assert.exists(datas);
-				//assert.exists(datas.global);
-
-				shopInfo = datas;
-
-				setTimeout(() => {
-					done();
-					trace(shopInfo);
-				}, delay);
-			})
-			.catch(err => done(err));
-	});
-
-	it('Refresh the key (chamberlainpi FAIL with Wrong Verb)', done => {
+	it('4 Refresh key (chamberlainpi FAIL with Wrong Verb)', done => {
 		chamberlainpi.sendAuth('/shop/key/refresh', 'get')
 			.then(data => {
 				done('Should not exists!');
@@ -90,12 +82,111 @@ describe('=REST= Shop', () => {
 			});
 	});
 
-	it('Refresh the key (chamberlainpi)', done => {
+	it('4 Refresh key (chamberlainpi FAIL missing POST data)', done => {
 		chamberlainpi.sendAuth('/shop/key/refresh', 'put')
 			.then(data => {
-				trace(data);
+				done('Should not exists!');
+			})
+			.catch(err => {
+				assert.exists(err);
+				done();
+			});
+	});
+
+	it('5 Refresh the key (chamberlainpi)', done => {
+		chamberlainpi.sendAuth('/shop/key/refresh', 'put', {
+			body: {
+				cost: {gold:1}
+			}
+		})
+			.then(data => {
+				shopInfo = data;
 				done();
 			})
 			.catch(err => done(err));
+	});
+	
+	/////////////////////////////////////////////////////////////////
+	
+	function failTest(header, body) {
+		it(header, done => {
+			if(_.isFunction(body)) body = body();
+			chamberlainpi.sendAuth('/shop/buy/item', 'post', body)
+				.then(data => {
+					done('Should not exists!');
+				})
+				.catch(err => {
+					assert.exists(err);
+					done();
+				});
+		});
+	}
+
+	failTest('/buy/item ... (chamberlainpi FAIL missing item)');
+	failTest('/buy/item ... (chamberlainpi FAIL item empty)', {
+		body: {
+			item: {}
+		}
+	});
+
+	failTest('/buy/item ... (chamberlainpi FAIL missing seed)', {
+		body: {
+			item: {index: 0}
+		}
+	});
+
+	failTest('/buy/item ... (chamberlainpi FAIL missing valid seed)', {
+		body: {
+			item: {index: 0, seed: -1}
+		}
+	});
+
+	failTest('/buy/item ... (chamberlainpi FAIL missing cost)', () => {
+		return {
+			body: {
+				item: {index: 0, seed: shopInfo.refreshKey.seed}
+			}
+		}
+	});
+
+	failTest('/buy/item ... (chamberlainpi FAIL missing cost fields)', () => {
+		return {
+			body: {
+				item: {index: 0, seed: shopInfo.refreshKey.seed},
+				cost: {}
+			}
+		}
+	});
+
+	failTest('/buy/item ... (chamberlainpi FAIL invalid cost value [negative])', () => {
+		return {
+			body: {
+				item: {index: 0, seed: shopInfo.refreshKey.seed},
+				cost: {gold: -1}
+			}
+		}
+	});
+
+	it('/buy/item ... (chamberlainpi OK)', done => {
+		chamberlainpi.sendAuth('/shop/buy/item', 'post', {
+			body: {
+				item: {index: 0, seed: shopInfo.refreshKey.seed},
+				cost: {gold: 1}
+			}
+		})
+			.then(data => {
+				assert.exists(data);
+				done(); //'Should not exists!'
+			})
+			.catch(err => done(err));
+	});
+
+	failTest('/buy/item ... (chamberlainpi FAIL item already exists valid cost)', () => {
+		return {
+			body: {
+				item: {index: 0, seed: shopInfo.refreshKey.seed},
+				cost: {gold: 1}
+			}
+		}
 	});
 });
