@@ -61,10 +61,10 @@ module.exports = function() {
 
 	function createExpiryAndSecondsLeft(source) {
 		if(!source) return null;
-		const results = source.toJSON ? source.toJSON() : source;
+		const results = source.toJSON ? source.toJSON() : _.clone(source);
 		const date = moment(source._dateGenerated);
 
-		results.dateExpires = date.clone().add(1, 'hour');
+		results.dateExpires = date.clone().add(0.5, 'minutes');
 		results.secondsLeft = results.dateExpires.diff(moment(), "seconds");
 		return results;
 	}
@@ -187,10 +187,15 @@ module.exports = function() {
 				const item = opts.data.item;
 				const isPremium = guid===shopSession.premium.guid;
 				const isGlobal = guid===shopSession.global.guid;
+				const wantsPremium = item.isPremium===true;
 
 				_.prom(() => {
 					if(!isGlobal && !isPremium) {
 						throw 'Wrong seed-GUID provided, needs to match global OR premium seed.';
+					}
+
+					if(wantsPremium && !isPremium) {
+						throw 'Looks like you wanted a Premium item, but given seed GUID is for Global list.';
 					}
 
 					const validKeys = lastItemKeys.concat( globalSeed.itemKeys );
@@ -227,7 +232,9 @@ module.exports = function() {
 						mgHelpers.sendFilteredResult(res, saved);
 					})
 					.catch( err => {
-						$$$.send.error(res, "Could not buy item: " + err.message);
+						trace(item);
+						trace(shopSession);
+						$$$.send.error(res, "Could not buy item: " + (err.message || err));
 					});
 			}
 		},
