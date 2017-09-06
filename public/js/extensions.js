@@ -276,6 +276,13 @@ _.omit = function(obj, blacklist) {
 	return newObj;
 };
 
+_.prom = function prom(cbErrorOrPromise) {
+	return new Promise((resolve, reject) => {
+		var result = cbErrorOrPromise();
+		resolve(result);
+	})
+}
+
 function AsyncEach(objList, funcList, cb) {
 	this.objList = objList;
 	this.funcList = _.isArray(funcList) ? funcList : [funcList];

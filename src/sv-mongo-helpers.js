@@ -125,6 +125,8 @@ const mgHelpers = {
 	//Recursively filters any "_..." prefixed property:
 	filterMongoPrivateData(data) {
 		if(_.isArray(data)) {
+			if(!_.isPlainObject(data[0])) return data;
+
 			return data.map(mgHelpers.filterMongoPrivateData);
 		}
 
