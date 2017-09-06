@@ -339,7 +339,7 @@ module.exports = function() {
 			name: CustomTypes.String128({required:true}),
 			username: CustomTypes.String128({required:true, unique: 'Already have a user with this username ({VALUE})'}),
 			email: CustomTypes.String128({required:true, unique: 'Already have a user with this email ({VALUE})'}),
-			_password: CustomTypes.String32({required:true}),
+			_password: CustomTypes.String128({required:true}),
 			_passwordResetGUID: CustomTypes.String128(),
 
 			dateCreated: CustomTypes.DateRequired(),
@@ -354,7 +354,6 @@ module.exports = function() {
 
 			/////////////////////////////////// GAME-SPECIFIC:
 			game: {
-
 				level: {
 					current: CustomTypes.Int({default: 1}),
 					progress: CustomTypes.Number({default: 0})
@@ -378,6 +377,14 @@ module.exports = function() {
 					magic: CustomTypes.LargeInt(),
 					rare: CustomTypes.LargeInt(),
 					unique: CustomTypes.LargeInt(),
+				},
+
+				shopInfo: {
+					premium: {
+						guid: CustomTypes.String128(),
+						seed: CustomTypes.LargeInt({min: -1, required: true, default: -1}),
+						_dateGenerated: CustomTypes.DateRequired({default: new Date(0)}),
+					}
 				}
 			}
 

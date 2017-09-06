@@ -12,6 +12,7 @@ const sendAPI = $$$.send.api;
 
 describe('=REST= Shop', () => {
 	var chamberlainpi, peter;
+	var delay = 1000;
 
 	it('INIT', done => {
 		chamberlainpi = testUsers.chamberlainpi;
@@ -23,9 +24,10 @@ describe('=REST= Shop', () => {
 		chamberlainpi.sendAuth('/shop/seed', 'get')
 			.then(datas => {
 				assert.exists(datas);
-				done();
-				trace(datas);
-
+				setTimeout(() => {
+					done();
+					trace(datas);
+				}, delay);
 			})
 			.catch(err => done(err));
 
@@ -35,9 +37,12 @@ describe('=REST= Shop', () => {
 		chamberlainpi.sendAuth('/shop/buy-seed', 'post')
 			.then(datas => {
 				assert.exists(datas);
-				done();
-				trace(datas);
 
+				setTimeout(() => {
+					done();
+					trace("BOUGHT A PREMIUM SEED!");
+					trace(datas.game.shopInfo);
+				}, delay);
 			})
 			.catch(err => done(err));
 
@@ -47,8 +52,13 @@ describe('=REST= Shop', () => {
 		chamberlainpi.sendAuth('/shop/seed', 'get')
 			.then(datas => {
 				assert.exists(datas);
-				done();
-				trace(datas);
+				assert.exists(datas.premium, "Premium seed and expiry details.");
+
+				setTimeout(() => {
+					done();
+					trace(datas);
+				}, delay);
+
 			})
 			.catch(err => done(err));
 

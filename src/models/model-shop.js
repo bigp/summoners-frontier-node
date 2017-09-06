@@ -31,13 +31,15 @@ module.exports = function() {
 			isInited = true;
 
 			startLoop();
+			loop();
+
 			resolve();
 		});
 	}
 
 	function startLoop() {
 		stopLoop();
-		_interval = setInterval( loop, 1000 );
+		_interval = setInterval( loop, 1000 * 60);
 	}
 
 	function stopLoop() {
@@ -49,9 +51,20 @@ module.exports = function() {
 
 	function loop() {
 		globalSeed = {
+			guid: _.guid(),
 			seed: (Math.random() * 2000000000) | 0,
-			dateGenerated: moment()
+			_dateGenerated: new Date()
 		}
+	}
+
+	function createExpiryAndSecondsLeft(source) {
+		if(!source) return null;
+		const results = source.toJSON ? source.toJSON() : source;
+		const date = moment(source._dateGenerated);
+
+		results.dateExpires = date.clone().add(1, 'hour');
+		results.secondsLeft = results.dateExpires.diff(moment(), "seconds");
+		return results;
 	}
 
 	return {
@@ -76,54 +89,86 @@ module.exports = function() {
 			},
 
 			'seed'(Model, req, res, next, opts) {
+				var result = {};
+
+				if(!globalSeed) return $$$.send.error(res, 'SHOP NOT INITIALIZED!');
+
+				result.global = createExpiryAndSecondsLeft(globalSeed);
+
 				const user = req.auth.user;
-				const result = {};
+				const shopInfo = user.game.shopInfo;
+				const premium = shopInfo.premium;
+				const premiumData = createExpiryAndSecondsLeft(premium);
+				const q = {userId: user.id};
+				const qDates = [globalSeed._dateGenerated];
 
-				Model.find({userId: user.id}).sort({dateCreated: -1}).limit(1)
-					.then( results => {
-						if(!results || !results.length) {
-							result.seed = globalSeed;
-							result.dateExpires = globalSeed.dateGenerated
+				if(premiumData && premiumData.secondsLeft>0) {
+					result.premium = premiumData;
+					qDates.push(premium._dateGenerated);
+				}
 
-							return mgHelpers.sendFilteredResult(res, result);
-						}
-						mgHelpers.sendFilteredResult(res, {randomSeed: 'premium-based'});
-					});
+				const gteDates = qDates.map(date => ({$gte: date}));
 
-				//const numItems = isNaN(req.params.numItems) ? 10 : (req.params.numItems | 0);
-				// const shopItemsFixed = req.shopItemsFixed;
+				if(qDates.length==1) {
+					q.dateCreated = gteDates[0];
+				} else {
+					q.dateCreated = {$or: gteDates};
+				}
+
+				Model.find(q) //.sort({dateCreated: -1})
+					.then( recentPurchases => {
+						result.recentPurchases = recentPurchases;
+						mgHelpers.sendFilteredResult(res, result);
+					})
+					.catch(err => $$$.send.error(res, 'Could not get recently purchased items!', result));
+
+
+
+				// Model.find({userId: user.id}).sort({dateCreated: -1}).limit(1)
+				// 	.then( userPremiums => {
+				// 		const globalData = result.global = {seed: globalSeed.seed};
 				//
-				// mgHelpers.sendFilteredResult(res, [{ok: 1}]);
 				//
-				// return;
 				//
-				// user.setRNG("shopRefreshes", req.rng._seed + 1)
-				// 	.then(updated => {
-				// 		// updated
+				// 		// if(userPremiums && userPremiums.length) {
+				// 		// 	const userPremium = userPremiums[0];
+				// 		// 	const premiumGameData = userPremium.game;
+				// 		// 	const datePurchased = moment(premiumGameData.datePurchased);
+				// 		// 	const premium = result.premium = {seed: premiumGameData.premiumSeed};
+				// 		// 	premium.itemsPurchased = premiumGameData.itemsPurchased;
+				// 		//
+				// 		// 	createExpiryAndSecondsLeft(premium, datePurchased);
+				// 		//
+				// 		// 	result.isPremium = true;
+				// 		// }
+				//
+				// 		mgHelpers.sendFilteredResult(res, result);
 				// 	});
-
-
-				// Model.
-				// 	.then(items => {
-				// 		mgHelpers.sendFilteredResult(res, items);
-				// 	})
-				// 	.catch(err => {
-				// 		$$$.send.error(res, "Could not get list of heroes for user ID: " + req.auth.user.id, err);
-				// 	})
 			},
 
 			'buy-seed'(Model, req, res, next, opts) {
 				if(mgHelpers.isWrongVerb(req, 'POST')) return;
 
-				var shopItem = new Model();
-				shopItem.userId = req.auth.user.id;
-				shopItem.game.premiumSeed = (Math.random() * 2000000000) | 0;
-				shopItem.game.datePurchased = new Date();
+				const user = req.auth.user;
+				const shopInfo = user.game.shopInfo;
+				const premium = shopInfo.premium;
 
-				shopItem.save()
+				// const shopItem = new Model();
+				// shopItem.userId = user.id;
+				premium.guid = _.guid();
+				premium.seed = (Math.random() * 2000000000) | 0;
+				premium._dateGenerated = new Date();
+
+				user.save()
 					.then( saved => {
 						mgHelpers.sendFilteredResult(res, saved);
 					})
+			},
+
+			'buy-item'(Model, req, res, next, opts) {
+				if(mgHelpers.isWrongVerb(req, 'PUT')) return;
+
+				mgHelpers.sendFilteredResult(res, {test: 'testing buy-item'});
 			}
 		},
 
@@ -141,17 +186,15 @@ module.exports = function() {
 
 			/////////////////////////////////// GAME-SPECIFIC:
 			game: {
-				premiumSeed: {},
-				datePurchased: CustomTypes.DateRequired(),
+				userPremium: {
+					seed: CustomTypes.LargeInt({min: -1, default: -1, required: true}),
+					datePurchased: CustomTypes.DateRequired(),
+				},
 
-				//randomSeed: {},
-
-				// identity: CustomTypes.String128({required:true, unique: 'Shop items must be uniquely named!'}),
-				// itemDataIdentity: CustomTypes.String128({required:true}),
-				// quantity: CustomTypes.Int({max: 10000}),
-				// isPremium: {type: Boolean, default: false},
-				// isIdentified: {type: Boolean, default: false},
-				// numPurchased: CustomTypes.LargeInt(),
+				item: {
+					id: CustomTypes.LargeInt({required: true}),
+					name: CustomTypes.String32({required: true})
+				}
 			}
 		}
 	};
