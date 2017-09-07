@@ -21,11 +21,12 @@ module.exports = function() {
 		unit: shopExpiresSplit[1]
 	};
 
-	var User, Shop;
+	var User, Shop, Item;
 
 	process.nextTick( () => {
 		User = $$$.models.User;
 		Shop = $$$.models.Shop;
+		Item = $$$.models.Item;
 	});
 
 	function createExpiryAndSecondsLeft(source) {
@@ -155,6 +156,8 @@ module.exports = function() {
 				const currency = user.game.currency;
 				const itemData = opts.data.item;
 				const refreshKey = req.shopSession.refreshKey;
+				const results = { isPurchased: true };
+
 				var itemCost;
 
 				_.promise(() => {
@@ -178,10 +181,17 @@ module.exports = function() {
 				})
 					.then( existingItems => {
 						if(existingItems && existingItems.length>0) {
-							throw 'You already have this item purchased: ' + _.jsonPretty(existingItems[0]);
+							throw 'You already purchased this item: ' + _.jsonPretty(existingItems[0]);
 						}
 
+						//Add the items to the list:
+						return Item.addItems(req, res, next, opts);
+					})
+					.then( itemResults => {
 						subtractCost(itemCost, currency);
+
+						//TODO for multiple items, solve why the '_...' private properties leak through this!
+						results.item = itemResults.newest[0];
 
 						const shopItem = new Model();
 						shopItem.userId = user.id;
@@ -196,15 +206,20 @@ module.exports = function() {
 						]);
 					})
 					.then( savedUserAndShopItem => {
-						var results = {
-							isPurchased: true,
-							currency: currency,
-							shop: savedUserAndShopItem[1].toJSON()
-						};
+						results.currency = currency;
+						results.shop = savedUserAndShopItem[1].toJSON();
 
 						mgHelpers.sendFilteredResult(res, results);
 					})
 					.catch(err => $$$.send.error(res, err.message || err));
+			},
+
+			'sell/item'(Model, req, res, next, opts) {
+				_.promise(() => {
+					if(mgHelpers.isWrongVerb(req, 'DELETE')) return;
+
+					$$$.send.result(res, {ok: 1});
+				})
 			}
 		},
 

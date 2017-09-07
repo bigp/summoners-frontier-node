@@ -12,6 +12,54 @@ const ObjectId = Types.ObjectId;
 const CONFIG = $$$.env.ini;
 
 module.exports = function() {
+	var User, Shop, Item;
+
+	process.nextTick( () => {
+		User = $$$.models.User;
+		Shop = $$$.models.Shop;
+		Item = $$$.models.Item;
+
+		Item.addItems = addItems;
+	});
+
+	function addItems(req, res, next, opts) {
+		return mgHelpers.prepareAddRequest(Item, req, res, next, opts)
+			.then( user => {
+				const jsonItems = gameHelpers.getItems();
+				const validIdentities = jsonItems.all.identities;
+
+				var invalidIdentities = [];
+				const items = opts.data.list.map(item => {
+					if(!validIdentities.has(item.identity)) {
+						invalidIdentities.push(item);
+					}
+
+					return { userId: user.id, game: item };
+				});
+
+				if(invalidIdentities.length) {
+					throw "Some of the supplied item identities don't exists in game's JSON: " +
+					invalidIdentities.map(n => n.identity).join(', ');
+				}
+
+				function promiseAddItems(oldest) {
+					return Item.create(items)
+						.then(newest => {
+							return mgHelpers.makeNewestAndOldest(newest, oldest);
+						});
+				}
+
+				//This 'showAll' option allows to include a 'itemsOld' entry in the results:
+				if(_.isTruthy(opts.data.showAll)) {
+					return Item.find({userId: user.id}).exec()
+						.then(promiseAddItems);
+				}
+
+				return promiseAddItems();
+			})
+	}
+
+
 	return {
 		plural: 'items',
 		whitelist: ['user', 'dateCreated', 'game.identity', 'game.heroEquipped'],
@@ -55,8 +103,6 @@ module.exports = function() {
 
 					return itemData;
 				}
-
-
 			},
 
 			'list$'(Model, req, res, next, opts) {
@@ -99,39 +145,9 @@ module.exports = function() {
 			},
 
 			'add'(Model, req, res, next, opts) {
-				mgHelpers.prepareAddRequest(Model, req, res, next, opts)
-					.then( user => {
-						const jsonItems = gameHelpers.getItems();
-						const validIdentities = jsonItems.all.identities;
-
-						var invalidIdentities = [];
-						const items = opts.data.list.map(item => {
-							if(!validIdentities.has(item.identity)) {
-								invalidIdentities.push(item);
-							}
-
-							return { userId: user.id, game: item };
-						});
-
-						if(invalidIdentities.length) {
-							throw "Some of the supplied item identities don't exists in game's JSON: " +
-								invalidIdentities.map(n => n.identity).join(', ');
-						}
-
-						function promiseAddItems(oldest) {
-							return Model.create(items)
-								.then(newest => {
-									mgHelpers.sendNewestAndOldest(res, newest, oldest);
-								});
-						}
-
-						//This 'showAll' option allows to include a 'itemsOld' entry in the results:
-						if(_.isTruthy(opts.data.showAll)) {
-							return Model.find({userId: user.id}).exec()
-								.then(promiseAddItems);
-						}
-
-						return promiseAddItems();
+				addItems(req, res, next, opts)
+					.then(results => {
+						mgHelpers.sendFilteredResult(res, results);
 					})
 					.catch(err => {
 						$$$.send.error(res, "Could not add items! " + (err.message || err), err);

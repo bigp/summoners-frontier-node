@@ -40,6 +40,10 @@ const chaiG = module.exports = {
 			email: 'jon@gmail.com',
 			_password: $$$.md5('pi3rr3'),
 		});
+	},
+
+	randomItemSeeds(quality, affix, itemLevel, variance) {
+		return {quality: quality, affix: affix, itemLevel: itemLevel, variance: variance};
 	}
 };
 

@@ -12,6 +12,7 @@ const sendAPI = $$$.send.api;
 
 describe('=REST= Shop', () => {
 	var chamberlainpi, peter, shopInfo;
+	const randomItemSeeds = chaiG.randomItemSeeds;
 	var delay = 1000;
 
 	it('INIT', done => {
@@ -167,16 +168,29 @@ describe('=REST= Shop', () => {
 		}
 	});
 
+	failTest('/buy/item ... (chamberlainpi FAIL missing item list)', () => {
+		return {
+			body: {
+				item: {index: 0, seed: shopInfo.refreshKey.seed},
+				cost: {gold: 1}
+			}
+		}
+	});
+
+	var newItem;
 	it('/buy/item ... (chamberlainpi OK)', done => {
 		chamberlainpi.sendAuth('/shop/buy/item', 'post', {
 			body: {
 				item: {index: 0, seed: shopInfo.refreshKey.seed},
-				cost: {gold: 1}
+				cost: {gold: 1},
+				list: [{identity: 'item_sword', randomSeeds: randomItemSeeds(4,4,4,4)}],
 			}
 		})
 			.then(data => {
 				assert.exists(data);
 				trace(data);
+				newItem = data.item;
+				assert.exists(newItem);
 				done(); //'Should not exists!'
 			})
 			.catch(err => done(err));
@@ -189,6 +203,21 @@ describe('=REST= Shop', () => {
 				cost: {gold: 1}
 			}
 		}
+	});
+
+	it('/sell/item ... (chamberlainpi OK to sell)', done => {
+		chamberlainpi.sendAuth('/shop/sell/item', 'delete', {
+			body: {
+				item: newItem,
+				cost: {gold: 1},
+			}
+		})
+			.then(data => {
+				assert.exists(data);
+				trace(data);
+				done();
+			})
+			.catch(err => done(err));
 	});
 
 	it('Get key AND show bought items (chamberlainpi)', done => {

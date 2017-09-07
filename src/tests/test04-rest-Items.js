@@ -15,9 +15,8 @@ describe('=REST= Items', () => {
 
 	var chamberlainpi, peter;
 
-	function randomSeeds(quality, affix, itemLevel, variance) {
-		return {quality: quality, affix: affix, itemLevel: itemLevel, variance: variance};
-	}
+	const randomItemSeeds = chaiG.randomItemSeeds;
+
 
 	it('Generate random item weapon (chamberlainpi)', done => {
 		chamberlainpi = testUsers.chamberlainpi;
@@ -123,9 +122,9 @@ describe('=REST= Items', () => {
 		chamberlainpi.sendAuth('/item/add', 'post', {
 			body: {
 				list: [
-					{identity: 'item_sword', randomSeeds: randomSeeds(1,1,1,1)},
-					{identity: 'item_scythe', randomSeeds: randomSeeds(2,2,2,2)},
-					{identity: 'item_sword', randomSeeds: randomSeeds(3,3,3,3)}
+					{identity: 'item_sword', randomSeeds: randomItemSeeds(1,1,1,1)},
+					{identity: 'item_scythe', randomSeeds: randomItemSeeds(2,2,2,2)},
+					{identity: 'item_sword', randomSeeds: randomItemSeeds(3,3,3,3)}
 				]
 			}
 		})
@@ -159,9 +158,9 @@ describe('=REST= Items', () => {
 		peter.sendAuth('/item/add', 'post', {
 			body: {
 				list: [
-					{identity: 'item_sword', randomSeeds: randomSeeds(4,4,4,4)},
-					{identity: 'item_bazooka', randomSeeds: randomSeeds(5,5,5,5)},
-					{identity: 'item_frying_pan', randomSeeds: randomSeeds(6,6,6,6)},
+					{identity: 'item_sword', randomSeeds: randomItemSeeds(4,4,4,4)},
+					{identity: 'item_bazooka', randomSeeds: randomItemSeeds(5,5,5,5)},
+					{identity: 'item_frying_pan', randomSeeds: randomItemSeeds(6,6,6,6)},
 				]
 			}
 		})
@@ -199,7 +198,7 @@ describe('=REST= Items', () => {
 			body: {
 				showAll: 1,
 				list: [
-					{identity: 'item_sword', randomSeeds: randomSeeds(7,7,7,7)},
+					{identity: 'item_sword', randomSeeds: randomItemSeeds(7,7,7,7)},
 				]
 			}
 		})

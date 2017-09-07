@@ -262,11 +262,11 @@ const mgHelpers = {
 		});
 	},
 
-	sendNewestAndOldest(res, newest, oldest) {
-		return mgHelpers.sendFilteredResult(res, {
+	makeNewestAndOldest(newest, oldest) {
+		return {
 			newest: newest ? _.sortBy(newest, 'id') : null,
 			oldest: oldest ? _.sortBy(oldest, 'id') : null
-		});
+		};
 	},
 
 	prepareRemoveRequest(req, q) {

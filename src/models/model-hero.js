@@ -78,7 +78,10 @@ module.exports = function() {
 						function promiseAddItems(oldest) {
 							return Model.create(heroes)
 								.then(newest => {
-									mgHelpers.sendNewestAndOldest(res, newest, oldest);
+									return mgHelpers.makeNewestAndOldest(newest, oldest);
+								})
+								.then(results => {
+									mgHelpers.sendFilteredResult(res, results);
 								});
 						}
 
