@@ -103,10 +103,18 @@ module.exports = function() {
 				var refreshKey = createExpiryAndSecondsLeft(shopInfo.refreshKey);
 				req.shopSession = { refreshKey: refreshKey };
 
-				if(refreshKey.secondsLeft < 0) {
-					return refreshUserKey(req).then(() => next());
-				}
-				next();
+				Model.find({userId: user.id, 'game.item.seed': refreshKey.seed })
+					.then( purchases => {
+						var purchaseIndices = purchases.map( i => i.game.item.index );
+
+						refreshKey.purchased = purchaseIndices;
+
+						if(refreshKey.secondsLeft < 0) {
+							return refreshUserKey(req).then(() => next());
+						}
+
+						next();
+					});
 			},
 
 			'key$/'(Model, req, res, next, opts) {
@@ -215,12 +223,11 @@ module.exports = function() {
 			/////////////////////////////////// GAME-SPECIFIC:
 			game: {
 				//guid: CustomTypes.String128(),
-				seed: CustomTypes.LargeInt({min: -1, default: -1, required: true}),
 				_dateGenerated: CustomTypes.DateRequired({default: new Date(0)}),
 
 				item: {
 					index: CustomTypes.String128({required: true}),
-					seed: CustomTypes.String32({required: true}),
+					seed: CustomTypes.LargeInt({min: -1, default: -1, required: true}),
 				},
 
 				cost: {

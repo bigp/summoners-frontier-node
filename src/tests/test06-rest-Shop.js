@@ -176,6 +176,7 @@ describe('=REST= Shop', () => {
 		})
 			.then(data => {
 				assert.exists(data);
+				trace(data);
 				done(); //'Should not exists!'
 			})
 			.catch(err => done(err));
@@ -188,5 +189,20 @@ describe('=REST= Shop', () => {
 				cost: {gold: 1}
 			}
 		}
+	});
+
+	it('Get key AND show bought items (chamberlainpi)', done => {
+		chamberlainpi.sendAuth('/shop/key', 'get')
+			.then(datas => {
+				assert.exists(datas);
+
+				shopInfo = datas;
+				trace(datas);
+
+				setTimeout(() => {
+					done();
+				}, delay);
+			})
+			.catch(err => done(err));
 	});
 });

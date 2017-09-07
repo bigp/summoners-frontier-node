@@ -303,34 +303,34 @@ module.exports = function() {
 					$$$.encodeToken(PRIVATE.AUTH_CODE);
 			},
 
-			getRNG(seedName) {
-				const randomSeeds = this.game.randomSeeds;
-				const randomSeed = randomSeeds[seedName];
-				if(!randomSeed) {
-					throw new Error('The random seed name does not exists on user: ' + seedName);
-				}
-
-				const rng = seedRandom(this._id + seedName, {state: randomSeed});
-				rng._seed = randomSeed;
-
-				return rng;
-			},
-
-			setRNG(seedName, value, isSaved=true) {
-				const randomSeeds = this.game.randomSeeds;
-				const randomSeed = randomSeeds[seedName];
-				if(!randomSeed) {
-					throw new Error('The random seed name does not exists on user: ' + seedName);
-				}
-
-				randomSeeds[seedName] = value;
-
-				const user = this;
-				return new Promise((resolve, reject) => {
-					if(isSaved) return resolve( user.save() );
-					resolve(user);
-				});
-			}
+			// getRNG(seedName) {
+			// 	const randomSeeds = this.game.randomSeeds;
+			// 	const randomSeed = randomSeeds[seedName];
+			// 	if(!randomSeed) {
+			// 		throw new Error('The random seed name does not exists on user: ' + seedName);
+			// 	}
+			//
+			// 	const rng = seedRandom(this._id + seedName, {state: randomSeed});
+			// 	rng._seed = randomSeed;
+			//
+			// 	return rng;
+			// },
+			//
+			// setRNG(seedName, value, isSaved=true) {
+			// 	const randomSeeds = this.game.randomSeeds;
+			// 	const randomSeed = randomSeeds[seedName];
+			// 	if(!randomSeed) {
+			// 		throw new Error('The random seed name does not exists on user: ' + seedName);
+			// 	}
+			//
+			// 	randomSeeds[seedName] = value;
+			//
+			// 	const user = this;
+			// 	return new Promise((resolve, reject) => {
+			// 		if(isSaved) return resolve( user.save() );
+			// 		resolve(user);
+			// 	});
+			// }
 		},
 
 		///////////////////////////////////////////////////////////
