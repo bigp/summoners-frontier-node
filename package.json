@@ -9,15 +9,28 @@
   "scripts": {
     "start": "nodemon sf-dev.js"
   },
-  "devDependencies": {
-    "express": "^4.15.4"
-  },
   "dependencies": {
     "async": "^2.5.0",
     "body-parser": "^1.17.2",
+    "chai": "^4.1.2",
+    "change-case": "^3.0.1",
+    "colors": "^1.1.2",
     "cors": "^2.8.4",
+    "express": "^4.15.4",
+    "express-session": "^1.15.5",
+    "fs-extra": "^4.0.1",
+    "ini": "^1.3.4",
+    "mocha": "^3.5.0",
     "moment": "^2.18.1",
+    "mongoose": "^4.11.10",
+    "mongoose-auto-increment": "^5.0.1",
+    "mongoose-beautiful-unique-validation": "^7.0.0",
     "mongoose-int32": "^0.2.0",
+    "morgan": "^1.8.2",
+    "nodemailer": "^4.1.0",
+    "request": "^2.81.0",
+    "request-promise": "^4.2.1",
+    "rotating-file-stream": "^1.2.2",
     "seedrandom": "^2.4.3"
   }
 }
