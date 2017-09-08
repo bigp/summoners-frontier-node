@@ -109,10 +109,10 @@ describe('=REST= Shop', () => {
 	
 	/////////////////////////////////////////////////////////////////
 	
-	function failTest(header, body) {
-		it(header, done => {
+	function failTest(url, header, body) {
+		it(`/shop${url} ... ${header}`, done => {
 			if(_.isFunction(body)) body = body();
-			chamberlainpi.sendAuth('/shop/buy/item', 'post', body)
+			chamberlainpi.sendAuth('/shop' + url, 'post', body)
 				.then(data => {
 					done('Should not exists!');
 				})
@@ -123,26 +123,26 @@ describe('=REST= Shop', () => {
 		});
 	}
 
-	failTest('/buy/item ... (chamberlainpi FAIL missing item)');
-	failTest('/buy/item ... (chamberlainpi FAIL item empty)', {
+	failTest('/buy/item', '(chamberlainpi FAIL missing item)');
+	failTest('/buy/item', '(chamberlainpi FAIL item empty)', {
 		body: {
 			item: {}
 		}
 	});
 
-	failTest('/buy/item ... (chamberlainpi FAIL missing seed)', {
+	failTest('/buy/item', '(chamberlainpi FAIL missing seed)', {
 		body: {
 			item: {index: 0}
 		}
 	});
 
-	failTest('/buy/item ... (chamberlainpi FAIL missing valid seed)', {
+	failTest('/buy/item', '(chamberlainpi FAIL missing valid seed)', {
 		body: {
 			item: {index: 0, seed: -1}
 		}
 	});
 
-	failTest('/buy/item ... (chamberlainpi FAIL missing cost)', () => {
+	failTest('/buy/item', '(chamberlainpi FAIL missing cost)', () => {
 		return {
 			body: {
 				item: {index: 0, seed: shopInfo.refreshKey.seed}
@@ -150,7 +150,7 @@ describe('=REST= Shop', () => {
 		}
 	});
 
-	failTest('/buy/item ... (chamberlainpi FAIL missing cost fields)', () => {
+	failTest('/buy/item', '(chamberlainpi FAIL missing cost fields)', () => {
 		return {
 			body: {
 				item: {index: 0, seed: shopInfo.refreshKey.seed},
@@ -159,7 +159,7 @@ describe('=REST= Shop', () => {
 		}
 	});
 
-	failTest('/buy/item ... (chamberlainpi FAIL invalid cost value [negative])', () => {
+	failTest('/buy/item', '(chamberlainpi FAIL invalid cost value [negative])', () => {
 		return {
 			body: {
 				item: {index: 0, seed: shopInfo.refreshKey.seed},
@@ -168,7 +168,7 @@ describe('=REST= Shop', () => {
 		}
 	});
 
-	failTest('/buy/item ... (chamberlainpi FAIL missing item list)', () => {
+	failTest('/buy/item', '(chamberlainpi FAIL missing item list)', () => {
 		return {
 			body: {
 				item: {index: 0, seed: shopInfo.refreshKey.seed},
@@ -188,7 +188,6 @@ describe('=REST= Shop', () => {
 		})
 			.then(data => {
 				assert.exists(data);
-				trace(data);
 				newItem = data.item;
 				assert.exists(newItem);
 				done(); //'Should not exists!'
@@ -196,11 +195,27 @@ describe('=REST= Shop', () => {
 			.catch(err => done(err));
 	});
 
-	failTest('/buy/item ... (chamberlainpi FAIL item already exists valid cost)', () => {
+	failTest('/buy/item', '(chamberlainpi FAIL item already exists valid cost)', () => {
 		return {
 			body: {
 				item: {index: 0, seed: shopInfo.refreshKey.seed},
 				cost: {gold: 1}
+			}
+		}
+	});
+
+	failTest('/sell/item', '(chamberlainpi FAIL missing item)', () => {
+		return {
+			body: {
+				cost: {gold: 1}
+			}
+		}
+	});
+
+	failTest('/sell/item', '(chamberlainpi FAIL missing cost)', () => {
+		return {
+			body: {
+				item: newItem
 			}
 		}
 	});
@@ -214,7 +229,10 @@ describe('=REST= Shop', () => {
 		})
 			.then(data => {
 				assert.exists(data);
-				trace(data);
+				assert.exists(data.currency);
+				assert.isTrue(data.currency.gold === (chamberlainpi.game.currency.gold + 1), 'Should have some extra gold');
+				assert.isTrue(data.isSold, 'isSold == true?');
+				assert.isTrue(data.numItemsSold===1, 'numItemsSold == 1?');
 				done();
 			})
 			.catch(err => done(err));
@@ -224,9 +242,14 @@ describe('=REST= Shop', () => {
 		chamberlainpi.sendAuth('/shop/key', 'get')
 			.then(datas => {
 				assert.exists(datas);
+				assert.exists(datas.refreshKey, 'Has a refreshKey');
+				assert.isTrue(datas.refreshKey.seed>-1, 'Has a seed');
+				assert.isTrue(datas.refreshKey.secondsLeft>=0, 'Has secondsLeft');
+				assert.isArray(datas.refreshKey.purchased, 'Has purchased[] array.');
+				assert.isTrue(datas.refreshKey.purchased.length===1, 'Has 1 purchase.');
+				assert.isTrue(datas.refreshKey.purchased[0]===0, 'Purchase[0] === 0.');
 
 				shopInfo = datas;
-				trace(datas);
 
 				setTimeout(() => {
 					done();

@@ -84,9 +84,10 @@ module.exports = function() {
 		return false;
 	}
 
-	function subtractCost(cost, currency) {
+	function modifyCost(cost, currency, isSubtract=false) {
+		const multiplier = (isSubtract ? -1 : 1);
 		_.keys(cost).forEach( key => {
-			currency[key] -= cost[key];
+			currency[key] += multiplier * cost[key];
 		});
 	}
 
@@ -136,7 +137,7 @@ module.exports = function() {
 					if(mgHelpers.isWrongVerb(req, 'PUT')) return;
 					if(isCostMissing(cost, currency)) return;
 
-					subtractCost(cost, currency);
+					modifyCost(cost, currency, true);
 
 					return refreshUserKey(req);
 				})
@@ -188,7 +189,7 @@ module.exports = function() {
 						return Item.addItems(req, res, next, opts);
 					})
 					.then( itemResults => {
-						subtractCost(itemCost, currency);
+						modifyCost(itemCost, currency);
 
 						//TODO for multiple items, solve why the '_...' private properties leak through this!
 						results.item = itemResults.newest[0];
@@ -215,11 +216,36 @@ module.exports = function() {
 			},
 
 			'sell/item'(Model, req, res, next, opts) {
+				const user = req.auth.user;
+				const currency = user.game.currency;
+				const cost = opts.data.cost;
+				const item = opts.data.item;
+				const results = {isSold: true};
+
 				_.promise(() => {
 					if(mgHelpers.isWrongVerb(req, 'DELETE')) return;
 
-					$$$.send.result(res, {ok: 1});
+					if(!item) throw 'Missing "item" field in POST data!';
+					if(!item.id) throw 'Missing "item.id" field in POST data!';
+
+					if(isCostMissing(cost, currency)) return;
+
+					modifyCost(cost, currency, false);
+
+					return Promise.all([
+						Item.remove({userId: user.id, id: item.id}),
+						user.save()
+					]);
 				})
+					.then( both => {
+						const removalStatus = both[0].toJSON();
+
+						//const userSaved = both[1];
+						results.numItemsSold = removalStatus.n;
+						results.currency = currency;
+						mgHelpers.sendFilteredResult(res, results);
+					})
+					.catch(err => $$$.send.error(res, err.message || err));
 			}
 		},
 
@@ -241,7 +267,7 @@ module.exports = function() {
 				_dateGenerated: CustomTypes.DateRequired({default: new Date(0)}),
 
 				item: {
-					index: CustomTypes.String128({required: true}),
+					index: CustomTypes.Int({required: true}),
 					seed: CustomTypes.LargeInt({min: -1, default: -1, required: true}),
 				},
 
