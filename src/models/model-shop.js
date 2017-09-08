@@ -54,7 +54,7 @@ module.exports = function() {
 		return user.save();
 	}
 
-	function isCostMissing(cost, currency) {
+	function isCostMissing(cost, currency, hasSufficient) {
 		const ERROR_COST = 'Missing "cost" field on POST data (specify gold / gems / magic / etc.).';
 
 		if(!cost) throw ERROR_COST;
@@ -72,7 +72,7 @@ module.exports = function() {
 				throw 'Invalid currency type, user does not have any: ' + coinType;
 			}
 
-			if(currency[coinType] < value) {
+			if(hasSufficient && currency[coinType] < value) {
 				throw `Insufficient ${coinType} to purchase this item.`;
 			}
 
@@ -84,10 +84,9 @@ module.exports = function() {
 		return false;
 	}
 
-	function modifyCost(cost, currency, isSubtract=false) {
-		const multiplier = (isSubtract ? -1 : 1);
+	function modifyCost(cost, currency, multiplier) {
 		_.keys(cost).forEach( key => {
-			currency[key] += multiplier * cost[key];
+			currency[key] += multiplier * Math.abs(cost[key]);
 		});
 	}
 
@@ -135,9 +134,9 @@ module.exports = function() {
 
 				_.promise(() => {
 					if(mgHelpers.isWrongVerb(req, 'PUT')) return;
-					if(isCostMissing(cost, currency)) return;
+					if(isCostMissing(cost, currency, true)) return;
 
-					modifyCost(cost, currency, true);
+					modifyCost(cost, currency, -1);
 
 					return refreshUserKey(req);
 				})
@@ -172,7 +171,7 @@ module.exports = function() {
 
 					itemCost = opts.data.cost;
 
-					if(isCostMissing(itemCost, currency)) return;
+					if(isCostMissing(itemCost, currency, true)) return;
 
 					return Model.find({
 						userId: user.id,
@@ -189,7 +188,7 @@ module.exports = function() {
 						return Item.addItems(req, res, next, opts);
 					})
 					.then( itemResults => {
-						modifyCost(itemCost, currency);
+						modifyCost(itemCost, currency, -1);
 
 						//TODO for multiple items, solve why the '_...' private properties leak through this!
 						results.item = itemResults.newest[0];
@@ -228,9 +227,9 @@ module.exports = function() {
 					if(!item) throw 'Missing "item" field in POST data!';
 					if(!item.id) throw 'Missing "item.id" field in POST data!';
 
-					if(isCostMissing(cost, currency)) return;
+					if(isCostMissing(cost, currency, false)) return;
 
-					modifyCost(cost, currency, false);
+					modifyCost(cost, currency, 1);
 
 					return Promise.all([
 						Item.remove({userId: user.id, id: item.id}),
