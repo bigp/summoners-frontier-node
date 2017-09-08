@@ -17,6 +17,7 @@ mongoose.CustomTypes = {
 	Int: (opt) => _.extend({type: NumberInt, default:0, min: 0, max: 10000}, opt),
 	Number: (opt) => _.extend({type: Number, default:0, min: 0, max: 10000}, opt),
 	LargeInt: (opt) => _.extend({type: NumberInt, default:0, min: 0, max: 2000000000}, opt),
+	String16: (opt) => _.extend({type: String, trim: true, maxlength: [16, ERROR_MAXLENGTH]}, opt),
 	String32: (opt) => _.extend({type: String, trim: true, maxlength: [32, ERROR_MAXLENGTH]}, opt),
 	String128: (opt) => _.extend({type: String, trim: true, maxlength: [128, ERROR_MAXLENGTH]}, opt),
 	String256: (opt) => _.extend({type: String, trim: true, maxlength: [256, ERROR_MAXLENGTH]}, opt),
@@ -24,6 +25,7 @@ mongoose.CustomTypes = {
 };
 
 const mgHelpers = {
+	TESTING: false,
 	MANDATORY_FIELDS: MANDATORY_FIELDS,
 	mongoose: mongoose,
 
@@ -125,10 +127,10 @@ const mgHelpers = {
 	//Recursively filters any "_..." prefixed property:
 	filterMongoPrivateData(data) {
 		if(_.isArray(data)) {
-			if(!_.isPlainObject(data[0])) return data;
-
 			return data.map(mgHelpers.filterMongoPrivateData);
 		}
+
+		if(!_.isPlainObject(data) && !data.toJSON) return data;
 
 		const dup = {};
 		const source = data.toJSON ? data.toJSON() : data;

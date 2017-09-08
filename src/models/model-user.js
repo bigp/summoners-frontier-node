@@ -14,6 +14,18 @@ const CustomTypes  = mongoose.CustomTypes;
 const seedRandom = require('seedrandom');
 
 module.exports = function() {
+	var User, Item, Hero, Shop, LootCrate;
+
+	process.nextTick(() => {
+		traceProps($$$.models);
+
+		User = $$$.models.User;
+		Hero = $$$.models.Hero;
+		Shop = $$$.models.Shop;
+		Item = $$$.models.Item;
+		LootCrate = $$$.models.Lootcrate;
+	});
+
 	return {
 		plural: 'users',
 		whitelist: ['name', 'email', 'username'],
@@ -202,26 +214,28 @@ module.exports = function() {
 
 			'everything$'(Model, req, res, next, opts) {
 				const user = req.auth.user;
-				const Item = $$$.models.Item;
-				const Hero = $$$.models.Hero;
 				const q = {userId: user.id};
 				const results = {user: user};
 
 				Promise.all([
 					Item.find(q).sort('id').exec(),
-					Hero.find(q).sort('id').exec()
+					Hero.find(q).sort('id').exec(),
+					LootCrate.find(q).sort('id').exec(),
 				])
 				.then( belongings  => {
 					results.items = belongings[0];
 					results.heroes = belongings[1];
+					results.lootCrates = belongings[2];
+
 					mgHelpers.sendFilteredResult(res, results);
-				});
+				})
+					.catch(err => {
+						$$$.send.error(res, err.message || err);
+					})
 			},
 
 			'everything/remove'(Model, req, res, next, opts) {
 				const user = req.auth.user;
-				const Item = $$$.models.Item;
-				const Hero = $$$.models.Hero;
 				const q = {userId: user.id};
 				const results = {user: user};
 
@@ -229,12 +243,14 @@ module.exports = function() {
 					.then(q => {
 						return Promise.all([
 							Item.remove(q),
-							Hero.remove(q)
+							Hero.remove(q),
+							LootCrate.remove(q)
 						]);
 					})
 					.then( removals => {
 						results.itemsRemoved = removals[0].toJSON().n;
 						results.heroesRemoved = removals[1].toJSON().n;
+						results.lootCratesRemoved = removals[2].toJSON().n;
 
 						mgHelpers.sendFilteredResult(res, results);
 					})
@@ -302,35 +318,6 @@ module.exports = function() {
 					$$$.encodeToken(PRIVATE.AUTH_CODE, this.username, this.login.token) :
 					$$$.encodeToken(PRIVATE.AUTH_CODE);
 			},
-
-			// getRNG(seedName) {
-			// 	const randomSeeds = this.game.randomSeeds;
-			// 	const randomSeed = randomSeeds[seedName];
-			// 	if(!randomSeed) {
-			// 		throw new Error('The random seed name does not exists on user: ' + seedName);
-			// 	}
-			//
-			// 	const rng = seedRandom(this._id + seedName, {state: randomSeed});
-			// 	rng._seed = randomSeed;
-			//
-			// 	return rng;
-			// },
-			//
-			// setRNG(seedName, value, isSaved=true) {
-			// 	const randomSeeds = this.game.randomSeeds;
-			// 	const randomSeed = randomSeeds[seedName];
-			// 	if(!randomSeed) {
-			// 		throw new Error('The random seed name does not exists on user: ' + seedName);
-			// 	}
-			//
-			// 	randomSeeds[seedName] = value;
-			//
-			// 	const user = this;
-			// 	return new Promise((resolve, reject) => {
-			// 		if(isSaved) return resolve( user.save() );
-			// 		resolve(user);
-			// 	});
-			// }
 		},
 
 		///////////////////////////////////////////////////////////
