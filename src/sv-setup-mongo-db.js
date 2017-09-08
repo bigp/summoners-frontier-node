@@ -19,7 +19,8 @@ function mongoSetup() {
 
 		const mongoConfig = {
 			config: {
-				autoIndex: false
+				autoIndex: false,
+				useMongoClient: true
 			}
 		};
 
