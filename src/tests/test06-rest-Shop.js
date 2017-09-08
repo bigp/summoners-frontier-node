@@ -190,6 +190,7 @@ describe('=REST= Shop', () => {
 				assert.exists(data);
 				newItem = data.item;
 				assert.exists(newItem);
+				chamberlainpi.game.currency = data.currency;
 				done(); //'Should not exists!'
 			})
 			.catch(err => done(err));
