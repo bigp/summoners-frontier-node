@@ -165,6 +165,19 @@ const mgHelpers = {
 		return true;
 	},
 
+	hasMissingFields(obj, paramNames) {
+		if(_.isString(paramNames)) {
+			paramNames = paramNames.split(',');
+		}
+
+		for(var p=0; p<paramNames.length; p++) {
+			var param = paramNames[p];
+			if(!obj[param]) throw `Missing field '${param}' on object:\n` + _.jsonPretty(obj);
+		}
+
+		return false;
+	},
+
 	ifHasUniquesCheckFirst(Model, req, res, next, options) {
 		const uniqueOr = mgHelpers.getORsQuery(options.data, Model._uniques);
 		if(options.noQuery || !uniqueOr.length) {

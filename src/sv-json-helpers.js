@@ -2,11 +2,11 @@
  * Created by Chamberlain on 8/30/2017.
  */
 
+const jsonLoader = $$$.jsonLoader;
+const jsonSheets = jsonLoader.data.sheets;
+
 module.exports = {
 	getItems() {
-		const jsonLoader = $$$.jsonLoader;
-		const jsonSheets = jsonLoader.data.sheets;
-
 		const weapons = jsonSheets['item-weapons'].data;
 		const armor = jsonSheets['item-armors'].data;
 		const relic = jsonSheets['item-relics'].data;
@@ -28,8 +28,6 @@ module.exports = {
 	},
 
 	getHeroes() {
-		const jsonLoader = $$$.jsonLoader;
-		const jsonSheets = jsonLoader.data.sheets;
 		const jsonHeroes = jsonSheets['heroes'].data;
 
 		var dup = [].concat(jsonHeroes);
@@ -48,9 +46,15 @@ module.exports = {
 	},
 
 	getShopItems() {
-		const jsonLoader = $$$.jsonLoader;
-		const jsonSheets = jsonLoader.data.sheets;
 		const jsonShopItems = jsonSheets['shop-items-fixed'].data;
 		return jsonShopItems;
+	},
+
+	getActZones() {
+		const jsonActZones = jsonSheets['zones'].data;
+		return {
+			zones: jsonActZones,
+			actZoneIDs: jsonActZones.map(zone => (zone['act-zone'] | 0))
+		}
 	}
 }

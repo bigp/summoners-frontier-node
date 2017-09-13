@@ -2,6 +2,7 @@
  * Created by Chamberlain on 8/14/2017.
  */
 const chaiG = require('../sv-chai-globals');
+const moment = require('moment');
 
 const assert = chaiG.chai.assert;
 const catcher = chaiG.catcher;
@@ -242,6 +243,47 @@ describe('=REST= Heroes', () => {
 				done();
 			})
 			.catch(err => done(err));
+	});
+
+	////////////////////////////////////////////////////// TAP-ABILITY:
+
+	it('Update Tap-Ability on a hero (1)', done => {
+		const now = moment();
+		const before = moment().subtract(5, 'minutes');
+
+		chamberlainpi.sendAuth(`/hero/tap-ability/`, 'put', {
+			body: {
+				heroes: [
+					{id: 1, tapAbility: now},
+					{id: 2, tapAbility: before}
+				]
+			}
+		})
+			.then(datas => {
+				assert.exists(datas);
+				assert.isArray(datas);
+				assert.equal(datas.length, 2, "Should have updated 2 heroes.");
+				assert.equal(datas[0].id, 1, "Updated Hero 1.");
+				assert.equal(datas[1].id, 2, "Updated Hero 2.");
+				// assert.exists(datas.item);
+				// assert.equal(datas.previousHeroID, 0);
+				done();
+			})
+			.catch(err => done(err));
+
+	});
+
+	it('List available heroes (where "exploringActZone" == 0)', done => {
+		chamberlainpi.sendAuth(`/hero/list/available`, 'get')
+			.then(datas => {
+				assert.exists(datas);
+				assert.isArray(datas);
+				assert.equal(datas[0].id, 1, "Listing Hero 1.");
+				assert.equal(datas[1].id, 2, "Listing Hero 2.");
+				done();
+			})
+			.catch(err => done(err));
+
 	});
 
 	// it('Get all heroes', done => {

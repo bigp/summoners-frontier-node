@@ -342,8 +342,7 @@ module.exports = function() {
 			/////////////////////////////////// GAME-SPECIFIC:
 			game: {
 				level: {
-					current: CustomTypes.Int({default: 1}),
-					progress: CustomTypes.Number({default: 0})
+					xp: CustomTypes.LargeInt({required: true, default: 0}),
 				},
 				actsZones: {
 					completed: CustomTypes.Int(),

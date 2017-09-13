@@ -14,7 +14,7 @@ const CONFIG = $$$.env.ini;
 module.exports = function() {
 	return {
 		plural: 'heros',
-		whitelist: ['user', 'dateCreated', 'game.identity', 'game.items'],
+		whitelist: [''], //user', 'dateCreated', 'game.identity', 'game.items
 		blacklistVerbs: "GET_ONE GET_MANY POST_ONE POST_MANY DELETE_ONE DELETE_MANY PUT_ONE PUT_MANY".split(' '),
 
 		customRoutes: {
@@ -45,13 +45,30 @@ module.exports = function() {
 				}
 			},
 
-			'list'(Model, req, res, next, opts) {
+			'list$/'(Model, req, res, next, opts) {
 				mgHelpers.findAllByCurrentUser(Model, req, res, next, opts)
 					.then(items => {
 						mgHelpers.sendFilteredResult(res, items);
 					})
 					.catch(err => {
 						$$$.send.error(res, "Could not get list of heroes for user ID: " + req.auth.user.id, err);
+					})
+			},
+
+			'list/available'(Model, req, res, next, opts) {
+				const user = req.auth.user;
+
+				_.promise(() => {
+					if(mgHelpers.isWrongVerb(req, 'GET')) return;
+
+					return Model.find({userId: user.id, 'game.exploringActZone': 0});
+				})
+					.then( heroes => {
+						heroes = _.sortBy(heroes, 'id');
+						mgHelpers.sendFilteredResult(res, heroes);
+					})
+					.catch( err => {
+						$$$.send.error(res, "Could not list available heroes!", err.message || err);
 					})
 			},
 
@@ -101,6 +118,8 @@ module.exports = function() {
 			':heroID/*'(Model, req, res, next, opts) {
 				const heroID = req.params.heroID;
 				const user = req.auth.user;
+
+				if(isNaN(heroID)) return next();
 
 				Model.find({userId: req.auth.user.id, id: heroID}).limit(1)
 					.then( validHero => {
@@ -161,7 +180,43 @@ module.exports = function() {
 					.catch(err => {
 						$$$.send.error(res, err);
 					});
-			}
+			},
+
+			'tap-ability'(Model, req, res, next, opts) {
+				const user = req.auth.user;
+				const heroDatas = opts.data.heroes;
+				const heroIDs = heroDatas.map( h => h.id );
+
+				_.promise(() => {
+					if(mgHelpers.isWrongVerb(req, 'PUT')) return;
+
+					return Model.find({userId: user.id})
+						.where('id')
+						.in(heroIDs);
+				})
+					.then( heroes => {
+						var promises = [];
+						heroDatas.forEach( heroData => {
+							var myHero = heroes.find( hero => hero.id == heroData.id);
+							if(!myHero) return;
+
+							myHero.game.dateLastUsedTapAbility = heroData.tapAbility;
+
+							promises.push( myHero.save() );
+						});
+
+						return Promise.all(promises);
+					})
+					.then( updates => {
+						updates = _.sortBy(updates, 'id');
+						mgHelpers.sendFilteredResult(res, updates);
+					})
+					.catch( err => {
+						$$$.send.error(res, err);
+					});
+			},
+
+			//''
 		},
 
 		methods: {
@@ -178,18 +233,13 @@ module.exports = function() {
 
 			/////////////////////////////////// GAME-SPECIFIC:
 			game: {
+				xp: CustomTypes.LargeInt({required: true, default: 0}),
 				identity: CustomTypes.String128({required:true}),
-				isExploring: {type: Boolean, default: false},
+				exploringActZone: CustomTypes.Int({required:true, default: 0}),
+				dateLastUsedTapAbility: CustomTypes.DateRequired(),
 				randomSeeds: {
 					variance: CustomTypes.LargeInt({default: 1}),
-				},
-
-				//TODO: THINK ABOUT CACHING THESE!!! (when we hit the 1M items / heroes)
-				// items: [
-				// 	{
-				// 		item:
-				// 	}
-				// ]
+				}
 			}
 		}
 	};
