@@ -171,6 +171,25 @@ module.exports = function() {
 					});
 			},
 
+			':itemID/unequip'(Model, req, res, next, opts) {
+				const user = req.auth.user;
+				const validItem = req.validItem;
+
+				_.promise(() => {
+					if(mgHelpers.isWrongVerb(req, 'PUT')) return;
+
+					validItem.game.heroEquipped = 0;
+
+					return validItem.save();
+				})
+					.then( saved => {
+						mgHelpers.sendFilteredResult(res, saved);
+					})
+					.catch( err => {
+						$$$.send.error(res, err.message || err);
+					})
+			},
+
 			':itemID/equip-to/:heroID'(Model, req, res, next, opts) {
 				const Hero = $$$.models.Hero;
 				const user = req.auth.user;
@@ -183,10 +202,10 @@ module.exports = function() {
 
 				var validHero;
 
-				return new Promise((resolve, reject) => {
+				return _.promise(() => {
 					if (mgHelpers.isWrongVerb(req, 'PUT')) return;
 
-					resolve( Hero.find({userId: user.id, id: heroID}).limit(1) );
+					return Hero.find({userId: user.id, id: heroID}).limit(1);
 				})
 					.then( heroes => {
 						if(!heroes.length) throw 'Invalid hero ID';

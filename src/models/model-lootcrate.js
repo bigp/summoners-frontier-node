@@ -47,11 +47,8 @@ module.exports = function() {
 				_.promise(() => {
 					if(mgHelpers.isWrongVerb(req, 'POST')) return;
 					if(!crate) throw 'Missing "lootCrate" in POST data.';
-					if(!crate.lootTableIdentity) throw 'Missing "lootCrate.lootTableIdentity" in POST data.';
-					if(!crate.lootCrateType) throw 'Missing "lootCrate.lootCrateType" in POST data.';
-					if(!crate.zoneIdentity) throw 'Missing "lootCrate.zoneIdentity" in POST data.';
-					if(crate.magicFind==null || isNaN(crate.magicFind)) throw 'Missing "lootCrate.magicFind" in POST data.';
-					if(!crate.name) throw 'Missing "lootCrate.name" in POST data.';
+					if(mgHelpers.hasMissingFields(crate, 'lootTableIdentity,lootCrateType,zoneIdentity,name,magicFind')) return;
+					if(isNaN(crate.magicFind)) throw 'Invalid "magicFind" (isNaN) value in POST data.';
 
 					var lootCrate = new Model();
 					lootCrate.userId = user.id;

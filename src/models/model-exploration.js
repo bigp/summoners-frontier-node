@@ -33,7 +33,7 @@ module.exports = function() {
 			const jsonActZones = gameHelpers.getActZones();
 
 			if(!jsonActZones.actZoneIDs.has(actZoneID)) {
-				throw 'Invalid ActZone, cannot create / update Exploration: ' + actZoneID;
+				throw 'Invalid ActZone, cannot create -or- update Exploration: ' + actZoneID;
 			}
 
 			return Exploration.find({userId: user.id, 'game.actZoneID': actZoneID})
@@ -88,7 +88,8 @@ module.exports = function() {
 
 						//traceError(`An Exploration of '${actZoneID}' already exists!`);
 						trace("Left the Exploration as null!".yellow);
-						next();
+						throw 'Must provide an "isAutoCreate" bool in JSON.';
+						//next();
 					})
 					.catch( err => $$$.send.error(res, (err.message || err)));
 			},

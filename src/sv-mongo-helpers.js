@@ -172,7 +172,7 @@ const mgHelpers = {
 
 		for(var p=0; p<paramNames.length; p++) {
 			var param = paramNames[p];
-			if(!obj[param]) throw `Missing field '${param}' on object:\n` + _.jsonPretty(obj);
+			if(obj[param]==null) throw `Missing field '${param}' on object:\n` + _.jsonPretty(obj);
 		}
 
 		return false;

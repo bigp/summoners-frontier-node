@@ -108,7 +108,6 @@ describe('=REST= Heroes', () => {
 				assert.equal(datas.length, 10);
 				chamberlainpi.heroes = datas;
 				done();
-				//trace("chamberlainpi should have 10 heroes now...");
 
 			})
 			.catch(err => done(err));
@@ -160,7 +159,6 @@ describe('=REST= Heroes', () => {
 				assert.exists(data);
 				assert.equal(data.length>0, true);
 				done();
-				//trace('Total items for chamberlainpi: ' + data.length);
 			})
 			.catch(err => done(err));
 	});
@@ -171,7 +169,6 @@ describe('=REST= Heroes', () => {
 				assert.exists(data);
 				assert.equal(data.length, 0);
 				done();
-				//trace(`equipped items on Hero${hero0.id}: ` + data.length);
 			})
 			.catch(err => done(err));
 	});
@@ -184,7 +181,6 @@ describe('=REST= Heroes', () => {
 				assert.equal(data[0].userId, chamberlainpi.id);
 				assert.equal(data[0].game.heroEquipped, hero1.id);
 				done();
-				//trace(`equipped items on Hero${hero1.id}: ` + data.length);
 			})
 			.catch(err => done(err));
 	});
@@ -196,7 +192,6 @@ describe('=REST= Heroes', () => {
 				assert.equal(data.length>0,true);
 
 				done();
-				//trace('equipped items on NONE: ' + data.length);
 			})
 			.catch(err => done(err));
 	});
@@ -286,14 +281,6 @@ describe('=REST= Heroes', () => {
 
 	});
 
-	// it('Get all heroes', done => {
-	// 	chamberlainpi.sendAuth('/hero/list', 'get')
-	// 		.then(datas => {
-	// 			done();
-	// 			//trace("HERO COUNT = " + datas.length);
-	//
-	// 		}).catch(err => done(err));
-	// });
 
 	////////////////////////////////////////////////////// DELETE
 
@@ -322,36 +309,16 @@ describe('=REST= Heroes', () => {
 			.catch(err => done(err));
 	});
 
-	// it('Get all heroes', done => {
-	// 	chamberlainpi.sendAuth('/hero/list', 'get')
-	// 		.then(datas => {
-	// 			done();
-	// 			//trace("HERO COUNT = " + datas.length);
-	//
-	// 		}).catch(err => done(err));
-	// });
-
 	it('Delete hero (chamberlainpi REMOVE ALL)', done => {
 		chamberlainpi.sendAuth(`/hero/remove-all`, 'delete')
 			.then(data => {
 				assert.exists(data);
 				assert.notExists(data.removed);
 				assert.equal(data.numItemsAffected===0, true);
-
-				//assert.equal(data.length, 0);
 				done();
 			})
 			.catch(err => done(err));
 	});
-
-	// it('Get all heroes', done => {
-	// 	chamberlainpi.sendAuth('/hero/list', 'get')
-	// 		.then(datas => {
-	// 			done();
-	// 			//trace("HERO COUNT = " + datas.length);
-	//
-	// 		}).catch(err => done(err));
-	// });
 
 
 });
