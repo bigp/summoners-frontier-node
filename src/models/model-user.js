@@ -257,6 +257,24 @@ module.exports = function() {
 					.catch(err => {
 						$$$.send.error(res, err);
 					});
+			},
+
+			'xp/'(Model, req, res, next, opts) {
+				const user = req.auth.user;
+
+				_.promise(() => {
+					if(mgHelpers.isWrongVerb(req, 'PUT')) return;
+					if(isNaN(opts.data.xp)) throw 'Missing "xp" field in POST data.';
+
+					user.game.level.xp = opts.data.xp | 0;
+					return user.save();
+				})
+					.then( saved => {
+						mgHelpers.sendFilteredResult(res, saved);
+					})
+					.catch( err => {
+						$$$.send.error(res, err.message || err);
+					})
 			}
 		},
 

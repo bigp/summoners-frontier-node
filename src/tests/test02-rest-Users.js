@@ -300,6 +300,20 @@ describe('=REST= User', () => {
 			});
 	});
 
+	it('Set User XP (/user/xp/)', done => {
+		const chamberlainpi = testUsers.chamberlainpi;
+
+		chamberlainpi.sendAuth('/user/xp', 'put', {
+			body: { xp: 1234 }
+		})
+			.then(data => {
+				assert.exists(data);
+				assert.equal(data.game.level.xp, 1234, 'XP matches.');
+				done();
+			})
+			.catch(err => done(err));
+	});
+
 	it('Logout (chamberlainpi)', done => {
 		const chamberlainpi = testUsers.chamberlainpi;
 
