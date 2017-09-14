@@ -53,7 +53,7 @@ const chaiG = module.exports = {
 			testUser: null,
 
 			SET_USER: (method) => {
-				it('SETTING USER...', () => {
+				it('/.../ SETTING USER...', () => {
 					testMethods.testUser = method();
 				});
 			},

@@ -176,8 +176,6 @@ describe('=REST= Items', () => {
 	//TEST.FAIL('put::/1/identify', 'Identify item 1 (FAIL ALREADY IDENTIFIED)');
 
 	it('Identify item 1 (FAIL NOT ENOUGH SCROLLS)', done => {
-		var chamberlainpi = testUsers.chamberlainpi;
-
 		chamberlainpi.sendAuth('/user/currency', 'put', {body: {scrolls:-9999}})
 			.then(datas => {
 				return chamberlainpi.sendAuth(`/item/${item2.id}/identify`, 'put')

@@ -153,6 +153,15 @@ describe('=REST= Heroes', () => {
 			.catch(err => done(err));
 	});
 
+	it('Unequip item 0', done => {
+		chamberlainpi.sendAuth(`/item/${item0.id}/unequip`, 'put')
+			.then(data => {
+				assert.exists(data);
+				done();
+			})
+			.catch(err => done(err));
+	});
+
 	it('Get list of items (chamberlainpi)', done => {
 		chamberlainpi.sendAuth(`/item/list`, 'get')
 			.then(data => {
@@ -177,7 +186,7 @@ describe('=REST= Heroes', () => {
 		chamberlainpi.sendAuth(`/item/equipped-on/${hero1.id}`, 'get')
 			.then(data => {
 				assert.exists(data);
-				assert.equal(data.length, 2);
+				assert.equal(data.length, 1);
 				assert.equal(data[0].userId, chamberlainpi.id);
 				assert.equal(data[0].game.heroEquipped, hero1.id);
 				done();
@@ -298,13 +307,11 @@ describe('=REST= Heroes', () => {
 	it('Delete hero (chamberlainpi with hero 1)', done => {
 		chamberlainpi.sendAuth(`/hero/${hero1.id}/remove`, 'delete')
 			.then(data => {
-				//trace(data);
 				assert.exists(data);
 				assert.exists(data.removed);
 				assert.equal(data.removed.id, 2);
-				assert.equal(data.numItemsAffected, 2);
+				assert.equal(data.numItemsAffected, 1, 'Items affected.');
 				done();
-				//trace(data);
 			})
 			.catch(err => done(err));
 	});
@@ -319,6 +326,4 @@ describe('=REST= Heroes', () => {
 			})
 			.catch(err => done(err));
 	});
-
-
 });
