@@ -308,7 +308,7 @@ describe('=REST= User', () => {
 		})
 			.then(data => {
 				assert.exists(data);
-				assert.equal(data.game.level.xp, 1234, 'XP matches.');
+				assert.equal(data.game.xp, 1234, 'XP matches.');
 				done();
 			})
 			.catch(err => done(err));

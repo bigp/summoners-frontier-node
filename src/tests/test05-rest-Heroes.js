@@ -290,6 +290,20 @@ describe('=REST= Heroes', () => {
 
 	});
 
+	////////////////////////////////////////////////////// UPDATES
+
+	it('Update Hero XP (chamberlainpi hero 1)', done => {
+		chamberlainpi.sendAuth(`/hero/${hero1.id}/xp`, 'put', {
+			body: {xp: 1234}
+		})
+			.then(data => {
+				assert.exists(data);
+				assert.equal(data.game.xp, 1234, 'XP hero matches.');
+				done();
+			})
+			.catch(err => done(err));
+	});
+
 
 	////////////////////////////////////////////////////// DELETE
 

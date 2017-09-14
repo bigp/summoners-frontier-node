@@ -266,7 +266,7 @@ module.exports = function() {
 					if(mgHelpers.isWrongVerb(req, 'PUT')) return;
 					if(isNaN(opts.data.xp)) throw 'Missing "xp" field in POST data.';
 
-					user.game.level.xp = opts.data.xp | 0;
+					user.game.xp = opts.data.xp | 0;
 					return user.save();
 				})
 					.then( saved => {
@@ -359,9 +359,8 @@ module.exports = function() {
 
 			/////////////////////////////////// GAME-SPECIFIC:
 			game: {
-				level: {
-					xp: CustomTypes.LargeInt({required: true, default: 0}),
-				},
+				xp: CustomTypes.LargeInt({required: true, default: 0}),
+
 				actsZones: {
 					completed: CustomTypes.Int(),
 				},
