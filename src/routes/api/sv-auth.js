@@ -72,7 +72,7 @@ module.exports = {
 			return next();
 		}
 
-		if(url.has('/login') || url.has('/signup')) {
+		if(url.has('/login')) {
 			return $$$.send.errorCustom(res, "Please redirect to '/user/public/login'", 'Login URL has changed.');
 		}
 
