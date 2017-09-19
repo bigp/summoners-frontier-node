@@ -11,7 +11,7 @@ const PRIVATE = $$$.env.ini.PRIVATE;
 const sendAPI = $$$.send.api;
 
 describe('=REST= Shop', () => {
-	if(chaiG.filterLevel < 4) return;
+	if(chaiG.filterLevel < 5) return;
 
 	var chamberlainpi, peter, shopInfo;
 	const randomItemSeeds = chaiG.randomItemSeeds;

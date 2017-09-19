@@ -10,6 +10,7 @@ const Types  = Schema.Types;
 const CustomTypes  = mongoose.CustomTypes;
 const ObjectId = Types.ObjectId;
 const CONFIG = $$$.env.ini;
+const moment = require('moment');
 
 module.exports = function() {
 	return {
@@ -38,7 +39,7 @@ module.exports = function() {
 					var gameData = heroData.game = {};
 					gameData.identity = heroJSON.identity;
 					gameData.randomSeed = (Math.random() * 100) | 0;
-
+					gameData.skills = [0,0,0].map(s => ({ level: s }));
 					return heroData;
 				}
 			},
@@ -77,12 +78,21 @@ module.exports = function() {
 						const validIdentities = jsonHeroes.all.identities;
 
 						var invalidIdentities = [];
-						const heroes = opts.data.list.map(item => {
-							if(!validIdentities.has(item.identity)) {
-								invalidIdentities.push(item);
+						const heroes = opts.data.list.map(game => {
+							if(!validIdentities.has(game.identity)) {
+								invalidIdentities.push(game);
 							}
 
-							return { userId: user.id, game: item };
+							return {
+								userId: user.id,
+								game: _.merge(game, {
+									skills: [
+										{level: 0},
+										{level: 0},
+										{level: 0},
+									]
+								})
+							};
 						});
 
 						if(invalidIdentities.length) {
@@ -119,7 +129,7 @@ module.exports = function() {
 
 				if(isNaN(heroID)) return next();
 
-				Model.find({userId: req.auth.user.id, id: heroID}).limit(1)
+				Model.find({userId: user.id, id: heroID}).limit(1)
 					.then( validHero => {
 						if(!validHero.length) throw 'Invalid hero ID';
 						req.validHero = validHero[0];
@@ -163,6 +173,7 @@ module.exports = function() {
 					return validHero.save();
 				})
 					.then(saved => {
+						trace(saved);
 						mgHelpers.sendFilteredResult(res, saved);
 					})
 					.catch(err => {
@@ -170,25 +181,44 @@ module.exports = function() {
 					});
 			},
 
-			// ':heroID/tap-ability'(Model, req, res, next, opts) {
-			// 	const user = req.auth.user;
-			// 	const validHero = req.validHero;
-			// 	const actZone = req.params.actZone;
-			//
-			// 	_.promise(() => {
-			// 		if(mgHelpers.isWrongVerb(res, 'PUT')) return;
-			// 		if(isNaN(actZone) || actZone < 1) throw 'Invalid actZone specified: ' + actZone;
-			//
-			// 		validHero.game.exploringActZone = actZone;
-			// 		return validHero.save();
-			// 	})
-			// 		.then(saved => {
-			// 			mgHelpers.sendFilteredResult(res, saved);
-			// 		})
-			// 		.catch(err => {
-			// 			$$$.send.error(res, err.message || err);
-			// 		});
-			// },
+			':heroID/tap-ability'(Model, req, res, next, opts) {
+				const user = req.auth.user;
+				const validHero = req.validHero;
+
+				_.promise(() => {
+					if(mgHelpers.isWrongVerb(req, 'PUT')) return;
+
+					validHero.game.dateLastUsedTapAbility = moment();
+					return validHero.save();
+				})
+					.then(saved => {
+						mgHelpers.sendFilteredResult(res, saved);
+					})
+					.catch(err => {
+						$$$.send.error(res, err.message || err);
+					});
+			},
+
+			':heroID/skill-levels'(Model, req, res, next, opts) {
+				const user = req.auth.user;
+				const validHero = req.validHero;
+				const skillLevels = opts.data.skillLevels;
+
+				_.promise(() => {
+					if (mgHelpers.isWrongVerb(req, 'PUT')) return;
+
+					const levels = skillLevels.map(s => ({level: s}));
+					_.extend(validHero.game.skills, levels);
+
+					return validHero.save();
+				})
+					.then( saved => {
+						mgHelpers.sendFilteredResult(res, saved);
+					})
+					.catch(err => {
+						$$$.send.error(res, err.message || err);
+					});
+			},
 
 			':heroID/remove'(Model, req, res, next, opts) {
 				const user = req.auth.user;
@@ -201,6 +231,7 @@ module.exports = function() {
 						return Item.updateMany(q, {$set: {'game.heroEquipped': 0}});
 
 					})
+					//TODO don't forget to set explorations to 0 too! (if they also refer to the Heroes)
 					.then( items => {
 						results.numItemsAffected = items.nModified;
 
@@ -238,42 +269,6 @@ module.exports = function() {
 						$$$.send.error(res, err);
 					});
 			},
-
-			'tap-ability'(Model, req, res, next, opts) {
-				const user = req.auth.user;
-				const heroDatas = opts.data.heroes;
-				const heroIDs = heroDatas.map( h => h.id );
-
-				_.promise(() => {
-					if(mgHelpers.isWrongVerb(req, 'PUT')) return;
-
-					return Model.find({userId: user.id})
-						.where('id')
-						.in(heroIDs);
-				})
-					.then( heroes => {
-						var promises = [];
-						heroDatas.forEach( heroData => {
-							var myHero = heroes.find( hero => hero.id == heroData.id);
-							if(!myHero) return;
-
-							myHero.game.dateLastUsedTapAbility = heroData.tapAbility;
-
-							promises.push( myHero.save() );
-						});
-
-						return Promise.all(promises);
-					})
-					.then( updates => {
-						updates = _.sortBy(updates, 'id');
-						mgHelpers.sendFilteredResult(res, updates);
-					})
-					.catch( err => {
-						$$$.send.error(res, err);
-					});
-			},
-
-			//''
 		},
 
 		methods: {
@@ -296,7 +291,12 @@ module.exports = function() {
 				dateLastUsedTapAbility: CustomTypes.DateRequired(),
 				randomSeeds: {
 					variance: CustomTypes.LargeInt({default: 1}),
-				}
+				},
+				skills: [
+					new Schema({
+						level: CustomTypes.Int({required: true, default: 0})
+					}, {_id: false})
+				]
 			}
 		}
 	};

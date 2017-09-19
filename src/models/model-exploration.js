@@ -13,13 +13,18 @@ const Types  = Schema.Types;
 const CustomTypes  = mongoose.CustomTypes;
 const ObjectId = Types.ObjectId;
 const CONFIG = $$$.env.ini;
+const GAME_RULES = CONFIG.GAME_RULES;
+const moment = require('moment');
 
 module.exports = function() {
-	const GAME_RULES = CONFIG.GAME_RULES;
-	const moment = require('moment');
-
 	var User, Shop, Item, LootCrate, Exploration;
 
+	/**
+	 * Delay the models constants
+	 *
+	 * (because the for-loop iterating these model-files may not be
+	 * aware at this instant of all $$$.models until the next cycle)
+	 */
 	process.nextTick( () => {
 		User = $$$.models.User;
 		Shop = $$$.models.Shop;
@@ -37,7 +42,7 @@ module.exports = function() {
 			}
 
 			return Exploration.find({userId: user.id, 'game.actZoneID': actZoneID})
-		})
+		});
 	}
 
 	return {
@@ -46,7 +51,7 @@ module.exports = function() {
 		customRoutes: {
 			//////////////////////////////////////////////////////////////
 
-			':actZoneID/*'(Model, req, res, next, opts) {
+			':actZoneID'(Model, req, res, next, opts) {
 				const actZoneID = req.params.actZoneID | 0;
 				if(isNaN(actZoneID) || actZoneID<=0) return next();
 
@@ -79,11 +84,28 @@ module.exports = function() {
 						}
 
 						//traceError(`An Exploration of '${actZoneID}' already exists!`);
-						trace("Left the Exploration as null!".yellow);
-						throw 'Must provide an "isAutoCreate" bool in JSON.';
+						//trace("Left the Exploration as null!".yellow);
+						throw `Cannot find Exploration #${actZoneID}, did you forgot to add "isAutoCreate" to the JSON request body?`;
 						//next();
 					})
-					.catch( err => $$$.send.error(res, (err.message || err)));
+					.catch( err => {
+						$$$.send.error(res, (err.message || err))
+					});
+			},
+
+			':actZoneID$'(Model, req, res, next, opts) {
+				const user = req.auth.user;
+				const validActZone = req.validActZone;
+				if(!validActZone) return next();
+
+				_.promise(() => {
+					if(mgHelpers.isWrongVerb(req, 'GET')) return;
+
+					mgHelpers.sendFilteredResult(res, validActZone);
+				})
+					.catch( err => {
+						$$$.send.error(res, (err.message || err));
+					})
 			},
 
 			':actZoneID/update'(Model, req, res, next, opts) {
@@ -155,11 +177,11 @@ module.exports = function() {
 			/////////////////////////////////// GAME-SPECIFIC:
 			game: {
 				dateStarted: CustomTypes.DateRequired(),
-				//isCompleted: {type: Boolean, default: false},
-				//dateLastVisited: CustomTypes.DateRequired(),
 				accumulativeDamage: CustomTypes.LargeInt({required: true, default: 0}),
 				chests: CustomTypes.Int({required: true, default: 0}),
 				actZoneID: CustomTypes.Int({required:true, min: -1, default: -1}),
+				//isCompleted: {type: Boolean, default: false},
+				//dateLastVisited: CustomTypes.DateRequired(),
 			}
 		}
 	};

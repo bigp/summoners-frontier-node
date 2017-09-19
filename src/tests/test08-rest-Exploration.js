@@ -41,6 +41,20 @@ describe('=REST= Explorations', () => {
 			}
 		}
 	}, data => {
-		//trace(data);
+		assert.equal(data.game.actZoneID, 1, 'actzone is #1');
+		assert.equal(data.game.chests, 1, 'chests is #1');
+		assert.exists(data.game.dateStarted, 'dateStarted is #1');
 	});
+
+	TEST.OK('get::/1', 'Get exploration #1', null, data => {
+		assert.equal(data.id, 1, "exploration id #1");
+	});
+
+	TEST.FAIL('get::/2', 'Get exploration #2');
+
+	TEST.OK('get::/list', 'List All Explorations', null, data => {
+		assert.equal(data.length, 1, "Contains 1 exploration.");
+	});
+
+
 });

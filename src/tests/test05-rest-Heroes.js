@@ -252,23 +252,11 @@ describe('=REST= Heroes', () => {
 	////////////////////////////////////////////////////// TAP-ABILITY:
 
 	it('Update Tap-Ability on a hero (1)', done => {
-		const now = moment();
-		const before = moment().subtract(5, 'minutes');
-
-		chamberlainpi.sendAuth(`/hero/tap-ability/`, 'put', {
-			body: {
-				heroes: [
-					{id: 1, tapAbility: now},
-					{id: 2, tapAbility: before}
-				]
-			}
-		})
-			.then(datas => {
-				assert.exists(datas);
-				assert.isArray(datas);
-				assert.equal(datas.length, 2, "Should have updated 2 heroes.");
-				assert.equal(datas[0].id, 1, "Updated Hero 1.");
-				assert.equal(datas[1].id, 2, "Updated Hero 2.");
+		chamberlainpi.sendAuth(`/hero/1/tap-ability/`, 'put')
+			.then(data => {
+				assert.exists(data);
+				assert.equal(data.id, 1, "Updated Hero 1.");
+				assert.exists(data.game.dateLastUsedTapAbility, 'Date last Tap Ability');
 				// assert.exists(datas.item);
 				// assert.equal(datas.previousHeroID, 0);
 				done();
@@ -276,6 +264,31 @@ describe('=REST= Heroes', () => {
 			.catch(err => done(err));
 
 	});
+
+	////////////////////////////////////////////////////// SKILLS:
+
+	it('Update SkillLevels on a hero (1)', done => {
+		chamberlainpi.sendAuth(`/hero/1/skill-levels/`, 'put', {
+			body: {
+				skillLevels: [1, 2, 3],
+			}
+		})
+			.then(data => {
+				assert.exists(data);
+				assert.equal(data.id, 1, "Updated Hero 1.");
+				assert.exists(data.game.skills);
+
+				var levels = data.game.skills.map(s => s.level);
+				assert.equal(levels[0], 1, "Level #0");
+				assert.equal(levels[1], 2, "Level #1");
+				assert.equal(levels[2], 3, "Level #2");
+				done();
+			})
+			.catch(err => done(err));
+
+	});
+
+	////////////////////////////////////////////////////// LIST:
 
 	it('List available heroes (where "exploringActZone" == 0)', done => {
 		chamberlainpi.sendAuth(`/hero/list/available`, 'get')
@@ -306,6 +319,7 @@ describe('=REST= Heroes', () => {
 
 
 	////////////////////////////////////////////////////// DELETE
+	if(chaiG.filterLevel < 5) return;
 
 	it('Delete hero (chamberlainpi FAIL Wrong Verb)', done => {
 		chamberlainpi.sendAuth(`/hero/1/remove`, 'get')
