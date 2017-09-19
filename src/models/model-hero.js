@@ -152,6 +152,46 @@ module.exports = function() {
 					})
 			},
 
+			':heroID/exploring/:actZone'(Model, req, res, next, opts) {
+				const user = req.auth.user;
+				const validHero = req.validHero;
+				const actZone = req.params.actZone;
+
+				_.promise(() => {
+					if(mgHelpers.isWrongVerb(res, 'PUT')) return;
+					if(isNaN(actZone) || actZone < 1) throw 'Invalid actZone specified: ' + actZone;
+
+					validHero.game.exploringActZone = actZone;
+					return validHero.save();
+				})
+					.then(saved => {
+						mgHelpers.sendFilteredResult(res, saved);
+					})
+					.catch(err => {
+						$$$.send.error(res, err.message || err);
+					});
+			},
+
+			// ':heroID/tap-ability'(Model, req, res, next, opts) {
+			// 	const user = req.auth.user;
+			// 	const validHero = req.validHero;
+			// 	const actZone = req.params.actZone;
+			//
+			// 	_.promise(() => {
+			// 		if(mgHelpers.isWrongVerb(res, 'PUT')) return;
+			// 		if(isNaN(actZone) || actZone < 1) throw 'Invalid actZone specified: ' + actZone;
+			//
+			// 		validHero.game.exploringActZone = actZone;
+			// 		return validHero.save();
+			// 	})
+			// 		.then(saved => {
+			// 			mgHelpers.sendFilteredResult(res, saved);
+			// 		})
+			// 		.catch(err => {
+			// 			$$$.send.error(res, err.message || err);
+			// 		});
+			// },
+
 			':heroID/remove'(Model, req, res, next, opts) {
 				const user = req.auth.user;
 				const validHero = req.validHero;

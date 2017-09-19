@@ -48,12 +48,6 @@ module.exports = function() {
 		customRoutes: {
 			//////////////////////////////////////////////////////////////
 
-			// '*'(Model, req, res, next, opts) {
-			// 	const user = req.auth.user;
-			//
-			// 	next();
-			// },
-
 			':actZoneID/*'(Model, req, res, next, opts) {
 				const actZoneID = req.params.actZoneID | 0;
 				if(isNaN(actZoneID) || actZoneID<=0) return next();
