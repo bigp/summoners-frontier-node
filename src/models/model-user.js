@@ -28,9 +28,6 @@ module.exports = function() {
 
 	return {
 		plural: 'users',
-		whitelist: ['name', 'email', 'username'],
-		blacklistVerbs: "GET_ONE GET_MANY POST_ONE POST_MANY DELETE_ONE DELETE_MANY PUT_ONE PUT_MANY".split(' '),
-
 		customRoutes: {
 			'public/add'(Model, req, res, next, opts) {
 				_.promise(() => {

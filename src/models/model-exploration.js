@@ -42,8 +42,6 @@ module.exports = function() {
 
 	return {
 		plural: 'explorations',
-		whitelist: [''],
-		blacklistVerbs: "GET_ONE GET_MANY POST_ONE POST_MANY DELETE_ONE DELETE_MANY PUT_ONE PUT_MANY".split(' '),
 
 		customRoutes: {
 			//////////////////////////////////////////////////////////////

@@ -63,7 +63,6 @@ function forEachModel(schemaFile, name) {
 	// Add the singular & plural form of the router
 	// They each do something different for each HTTP VERB types
 	const api = $$$.routes.api;
-	const badVerbs = Model._def.blacklistVerbs || [];
 	const customRoutes = Model._def.customRoutes || {};
 	const adminRoute = '/admin' + Model.__route;
 	const adminRoutes = '/admin' + Model.__routes;
@@ -83,10 +82,6 @@ function forEachModel(schemaFile, name) {
 			customRoute(Model, req, res, next, opts);
 		});
 	});
-
-	// api.use(adminRoute + "$", (req, res, next) => {
-	//
-	// });
 
 	api.use(adminRoutes + "$", (req, res, next) => {
 		if(!req.auth.isAdmin) return sendError(res, "Only admin can call this.");

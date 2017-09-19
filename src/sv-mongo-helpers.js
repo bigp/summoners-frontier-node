@@ -57,8 +57,6 @@ const mgHelpers = {
 		Model._name = name;
 		Model._nameTitled = changeCase.title(name);
 		Model._plural = schemaDef.plural || (name + "s");
-		Model._uniques = this.getUniques(schema);
-		Model._whitelist = [].concat(this.MANDATORY_FIELDS, schemaDef.whitelist);
 		Model.__route = '/' + name;
 		Model.__routes = '/' + Model._plural;
 
@@ -75,19 +73,6 @@ const mgHelpers = {
 		});
 	},
 
-	getUniques(schema) {
-		const uniq = [];
-		_.each(schema.obj, (obj, key) => {
-			if(obj.unique) uniq.push(key);
-		});
-
-		return uniq;
-	},
-
-	getIllegals(options) {
-		return _.keys(_.pick(options.data, MANDATORY_FIELDS))
-	},
-
 	getORsQuery(obj, uniques) {
 		const uniqueData = uniques ? _.pick(obj, uniques) : obj;
 
@@ -102,26 +87,8 @@ const mgHelpers = {
 		return {$or: ORs};
 	},
 
-	getWhitelistProps(Model, req, res, customWhitelist, required) {
-		const reduced = _.pick(req.query, customWhitelist || Model._whitelist);
-		const reducedLen = _.keys(reduced).length;
-
-		if(reducedLen < _.keys(req.query).length) {
-			return $$$.send.error(res, `Attempted to query "${Model._name}" with illegal props!`);
-		}
-
-		if(required && !reducedLen) {
-			return $$$.send.error(res, `${Model._name}[${req.method}] requires some fields to query with.`);
-		}
-		return reduced;
-	},
-
 	getSorted(options, mg) {
 		return options.reverse ? mg.sort({$natural: -1}) : mg;
-	},
-
-	isPrivateField(name) {
-		return PRIVATE_PROP.test(name);
 	},
 
 	//Recursively filters any "_..." prefixed property:
@@ -136,7 +103,7 @@ const mgHelpers = {
 		const source = data.toJSON ? data.toJSON() : data;
 
 		_.keys(source).forEach((key) => {
-			if(mgHelpers.isPrivateField(key)) return;
+			if(PRIVATE_PROP.test(key)) return;
 
 			const value = source[key];
 
@@ -176,43 +143,6 @@ const mgHelpers = {
 		}
 
 		return false;
-	},
-
-	ifHasUniquesCheckFirst(Model, req, res, next, options) {
-		const uniqueOr = mgHelpers.getORsQuery(options.data, Model._uniques);
-		if(options.noQuery || !uniqueOr.length) {
-			return Promise.resolve();
-		}
-
-		if(Model._uniques.length > 0 && uniqueOr && !uniqueOr.$or.length) {
-			return $$$.send.error(res, 'Missing required fields.', options.data);
-		}
-
-		return Model.find(uniqueOr).exec()
-			.then(data => {
-				if (data && data.length > 0) {
-					if(Model._nameTitled==="Item") {
-						trace(data);
-						trace(options.data);
-					}
-
-					const dups = {}, result = data[0];
-
-					_.keys(options.data).forEach(key => {
-						if(mgHelpers.isPrivateField(key)) return;
-
-						const val = options.data[key];
-						if (val === result[key]) dups[key] = val;
-					});
-
-					throw new $$$.DetailedError("Data not unique.", {
-						duplicates: {
-							fields: _.keys(dups),
-							values: _.values(dups)
-						}
-					});
-				}
-			});
 	},
 
 	isValidationError(err, res, errMessage) {
