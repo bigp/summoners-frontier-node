@@ -391,7 +391,6 @@ module.exports = function() {
 
 				shopInfo: {
 					refreshKey: {
-						//guid: CustomTypes.String128(),
 						seed: CustomTypes.LargeInt({min: -1, default: -1}),
 						_dateGenerated: CustomTypes.DateRequired({required: false, default: new Date(0)}),
 					}
