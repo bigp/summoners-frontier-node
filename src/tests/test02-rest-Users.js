@@ -32,28 +32,28 @@ describe('=REST= User', () => {
 			.catch(catcher(done));
 	});
 
-	it('Get User (first)', done => {
-		sendAPI('/admin/user')
-			.then(data => {
-				assert.exists(data, 'JSON data exists');
-				assert.equal(data.name, 'Pierre', 'name is correct');
-
-				done();
-			})
-			.catch(catcher(done));
-	});
-
-	it('Get User (last)', done => {
-		sendAPI('/admin/user/last')
-			.then(data => {
-				assert.exists(data, 'JSON data exists');
-				assert.equal(data.name, 'Peter', 'name is correct');
-				assert.equal(data.email, 'peter@gmail.com', 'email is correct');
-
-				done();
-			})
-			.catch(catcher(done));
-	});
+	// it('Get User (first)', done => {
+	// 	sendAPI('/admin/user')
+	// 		.then(data => {
+	// 			assert.exists(data, 'JSON data exists');
+	// 			assert.equal(data.name, 'Pierre', 'name is correct');
+	//
+	// 			done();
+	// 		})
+	// 		.catch(catcher(done));
+	// });
+	//
+	// it('Get User (last)', done => {
+	// 	sendAPI('/admin/user/last')
+	// 		.then(data => {
+	// 			assert.exists(data, 'JSON data exists');
+	// 			assert.equal(data.name, 'Peter', 'name is correct');
+	// 			assert.equal(data.email, 'peter@gmail.com', 'email is correct');
+	//
+	// 			done();
+	// 		})
+	// 		.catch(catcher(done));
+	// });
 
 	it('Get Users (ALL)', done => {
 		sendAPI('/admin/users')
@@ -67,142 +67,143 @@ describe('=REST= User', () => {
 			.catch(catcher(done));
 	});
 
-	it('Get Users (Pierre)', done => {
-		sendAPI('/admin/users?name=Pierre')
-			.then(data => {
-				assert.exists(data, 'JSON data exists');
-				assert.equal(data.length, 1, 'Has correct entries');
-				done();
-			})
-			.catch(catcher(done));
-	});
+	// it('Get Users (Pierre)', done => {
+	// 	sendAPI('/admin/users?name=Pierre')
+	// 		.then(data => {
+	// 			assert.exists(data, 'JSON data exists');
+	// 			assert.equal(data.length, 1, 'Has correct entries');
+	// 			done();
+	// 		})
+	// 		.catch(catcher(done));
+	// });
+	//
+	// it('Get User (Peter by email)', done => {
+	// 	sendAPI('/admin/user?email=peter@gmail.com')
+	// 		.then(data => {
+	// 			assert.exists(data, 'JSON data exists');
+	// 			assert.equal(data.name, 'Peter', 'Should be Peter');
+	// 			assert.equal(data.email, 'peter@gmail.com', 'Should be Peter\'s email');
+	//
+	// 			done();
+	// 		});
+	// });
 
-	it('Get User (Peter by email)', done => {
-		sendAPI('/admin/user?email=peter@gmail.com')
-			.then(data => {
-				assert.exists(data, 'JSON data exists');
-				assert.equal(data.name, 'Peter', 'Should be Peter');
-				assert.equal(data.email, 'peter@gmail.com', 'Should be Peter\'s email');
-
-				done();
-			});
-	});
-
-	it('Get User (FAIL by unknown prop)', done => {
-		sendAPI('/admin/user?foo=bar')
-			.then(data => {
-				assert.notExists(data);
-			})
-			.catch(err => {
-				assert.exists(err);
-				done();
-			});
-	});
-
-	it('Add User (Temp: Jon)', done => {
-		sendAPI('/admin/user', 'post', { body: getJonBody() })
-			.then(data => {
-				assert.exists(data, 'JSON data added.');
-				assert.equal(data.name, 'Jon', 'name is correct');
-				assert.equal(data.username, 'Jon123', 'username is correct');
-
-				tempUserRemoved = data;
-
-				done();
-			})
-			.catch(catcher(done));
-	});
-
-	it('Remove User (Try FAIL)', done => {
-		sendAPI('/admin/user?_id=123', 'delete')
-			.then(data => {
-				assert.notExists(data);
-				assert.equal(data.n, 0, 'Should have removed 0 entry.');
-				done();
-			})
-			.catch(err => {
-				assert.exists(err);
-				done();
-			});
-	});
-
-	it('Remove User (Try OK)', done => {
-		sendAPI('/admin/user?id=' + tempUserRemoved.id, 'delete')
-			.then(data => {
-				assert.exists(data);
-				assert.equal(data.n, 1, 'Should have removed 1 entry.');
-				assert.equal(data.ok, 1, 'Should be ok.');
-				done();
-			})
-			.catch(catcher(done));
-	});
-
-	it('Get Users Count', done => {
-		sendAPI('/admin/users/count')
-			.then(data => {
-				assert.exists(data);
-				assert.equal(data.count, 2, "Get correct count.");
-				done();
-			})
-			.catch(catcher(done));
-	});
-
-	it("Update User (TestUsers.pierre's email)", done => {
-		sendAPI('/admin/user?id=' + testUsers.pierre.id, 'put', { body: {email: "changed@gmail.com"} })
-			.then(data => {
-				assert.exists(data);
-				assert.equal(data.name, testUsers.pierre.name, 'Same name');
-				assert.notEqual(data.email, testUsers.pierre.email, 'Different emails');
-
-				done();
-			})
-			.catch(catcher(done));
-	});
-
-	it('Add User (OK with same name, after previous duplicate JON was removed)', done => {
-		sendAPI('/admin/user', 'post', { body: getJonBody() })
-			.then(data => {
-				assert.exists(data, 'JSON data added.');
-				assert.equal(data.name, 'Jon', 'name is correct');
-				assert.equal(data.username, 'Jon123', 'username is correct');
-
-				done();
-			})
-			.catch(catcher(done));
-	});
-
-	it('Add User (FAIL with id)', done => {
-		sendAPI('/admin/user', 'post', {
-			body: {
-				id: 1,
-				name: 'Jon',
-				username: 'Jon123',
-				email: 'new-jon@gmail.com',
-				_password: 'pi3rr3',
-			}
-		})
-			.then(data => {
-				assert.notExists(data);
-				done();
-			})
-			.catch(err => {
-				assert.exists(err);
-				assert.equal(err.message.has('illegal'), true, 'Contains the word "illegal".');
-				done();
-			});
-	});
-
-	it('Add User (FAIL with duplicate)', done => {
-		sendAPI('/admin/user', 'post', { body: getJonBody() })
-			.then(data => {
-				assert.notExists(data);
-				done();
-			})
-			.catch(err => {
-				assert.exists(err);
-				done();
-			});
-	});
+	// it('Get User (FAIL by unknown prop)', done => {
+	// 	sendAPI('/admin/user?foo=bar')
+	// 		.then(data => {
+	// 			assert.notExists(data);
+	// 		})
+	// 		.catch(err => {
+	// 			assert.exists(err);
+	// 			done();
+	// 		});
+	// });
+	//
+	// it('Add User (Temp: Jon)', done => {
+	// 	sendAPI('/admin/user', 'post', { body: getJonBody() })
+	// 		.then(data => {
+	// 			assert.exists(data, 'JSON data added.');
+	// 			assert.equal(data.name, 'Jon', 'name is correct');
+	// 			assert.equal(data.username, 'Jon123', 'username is correct');
+	//
+	// 			tempUserRemoved = data;
+	//
+	// 			done();
+	// 		})
+	// 		.catch(catcher(done));
+	// });
+	//
+	// it('Remove User (Try FAIL)', done => {
+	// 	sendAPI('/admin/user?_id=123', 'delete')
+	// 		.then(data => {
+	// 			assert.notExists(data);
+	// 			assert.equal(data.n, 0, 'Should have removed 0 entry.');
+	// 			done();
+	// 		})
+	// 		.catch(err => {
+	// 			assert.exists(err);
+	// 			done();
+	// 		});
+	// });
+	//
+	// it('Remove User (Try OK)', done => {
+	// 	sendAPI('/admin/user?id=' + tempUserRemoved.id, 'delete')
+	// 		.then(data => {
+	// 			assert.exists(data);
+	// 			assert.equal(data.n, 1, 'Should have removed 1 entry.');
+	// 			assert.equal(data.ok, 1, 'Should be ok.');
+	// 			done();
+	// 		})
+	// 		.catch(catcher(done));
+	// });
+	//
+	// it('Get Users Count', done => {
+	// 	sendAPI('/admin/users/count')
+	// 		.then(data => {
+	// 			assert.exists(data);
+	// 			assert.equal(data.count, 2, "Get correct count.");
+	// 			done();
+	// 		})
+	// 		.catch(catcher(done));
+	// });
+	//
+	// it("Update User (TestUsers.pierre's email)", done => {
+	// 	sendAPI('/admin/user?id=' + testUsers.pierre.id, 'put', { body: {email: "changed@gmail.com"} })
+	// 		.then(data => {
+	// 			assert.exists(data);
+	// 			assert.equal(data.name, testUsers.pierre.name, 'Same name');
+	// 			assert.notEqual(data.email, testUsers.pierre.email, 'Different emails');
+	//
+	// 			done();
+	// 		})
+	// 		.catch(catcher(done));
+	// });
+	//
+	// it('Add User (OK with same name, after previous duplicate JON was removed)', done => {
+	// 	sendAPI('/admin/user', 'post', { body: getJonBody() })
+	// 		.then(data => {
+	// 			assert.exists(data, 'JSON data added.');
+	// 			assert.equal(data.name, 'Jon', 'name is correct');
+	// 			assert.equal(data.username, 'Jon123', 'username is correct');
+	//
+	// 			done();
+	// 		})
+	// 		.catch(catcher(done));
+	// });
+	//
+	// it('Add User (FAIL with id)', done => {
+	// 	sendAPI('/admin/user', 'post', {
+	// 		body: {
+	// 			id: 1,
+	// 			name: 'Jon',
+	// 			username: 'Jon123',
+	// 			email: 'new-jon@gmail.com',
+	// 			_password: 'pi3rr3',
+	// 		}
+	// 	})
+	// 		.then(data => {
+	// 			assert.notExists(data);
+	// 			done();
+	// 		})
+	// 		.catch(err => {
+	// 			assert.exists(err);
+	// 			assert.equal(err.message.has('illegal'), true, 'Contains the word "illegal".');
+	// 			done();
+	// 		});
+	// });
+	//
+	// it('Add User (FAIL with duplicate)', done => {
+	// 	sendAPI('/admin/user', 'post', { body: getJonBody() })
+	// 		.then(data => {
+	// 			assert.notExists(data);
+	// 			done();
+	// 		})
+	// 		.catch(err => {
+	// 			assert.exists(err);
+	// 			done();
+	// 		});
+	// });
+	//
 
 	it('Get Users (ALL)', done => {
 		sendAPI('/admin/users')

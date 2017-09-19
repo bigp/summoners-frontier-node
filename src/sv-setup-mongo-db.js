@@ -29,6 +29,7 @@ function mongoSetup() {
 		const db = mongoose.connection.db;
 		conn.then(resolve).catch(reject);
 
+		//Alias:
 		db.getCollectionNames = db.listCollections;
 
 		mgHelpers.plugins.autoIncrement.initialize(conn);
@@ -55,126 +56,6 @@ function forEachModel(schemaFile, name) {
 
 	$$$.models[Model._nameTitled] = Model;
 
-	const METHODS = Model.httpVerbs = {
-		////////////////////////////////////////////////// ONE:
-
-		GET_ONE(req, res, next, options) {
-			const q = mgHelpers.getWhitelistProps(Model, req, res);
-			if(!q) return;
-
-			mgHelpers.getSorted(options, Model.findOne(q)).exec()
-				.then(data => {
-					if (!data) return sendEmpty(res);
-					mgHelpers.sendFilteredResult(res, data);
-				})
-				.catch(err => {
-					sendError(res, `'${Model._nameTitled}' not found.`, q);
-				});
-		},
-
-		POST_ONE(req, res, next, options) {
-			const illegalData = mgHelpers.getIllegals(options);
-			if(illegalData.length) {
-				//options.data = _.omit(options.data, illegalData);
-				return sendError(res, `Used illegal field(s) while adding to '${Model._nameTitled}'`, illegalData);
-			}
-
-			mgHelpers.ifHasUniquesCheckFirst(Model, req, res, next, options)
-				.then( () => {
-					const newUser = new Model(options.data);
-					return newUser.save();
-				})
-				.then(data => {
-					mgHelpers.sendFilteredResult(res, data);
-				})
-				.catch(err => {
-					const errMessage = `Could not add '${Model._nameTitled}' in database.`;
-
-					if(err.details) return sendError(res, errMessage, err.details);
-
-					if(mgHelpers.isValidationError(err, res, errMessage)) return;
-
-					sendError(res, errMessage + ' ' + err.message);
-					//trace(err);
-				});
-		},
-
-		PUT_ONE(req, res, next, options) {
-			const q = mgHelpers.getWhitelistProps(Model, req, res, mgHelpers.MANDATORY_FIELDS, true);
-			if(!q) return;
-
-			options.new = true;
-
-			Model.findOneAndUpdate(q, {$set: options.data}, options, (err, data) => {
-				if(err || data.n===0) {
-					return sendError(res, `Could not update '${Model._nameTitled}' in database, verify query: ` + _.jsonPretty(q));
-				}
-				mgHelpers.sendFilteredResult(res, data);
-			});
-		},
-
-		DELETE_ONE(req, res, next, options) {
-			const q = mgHelpers.getWhitelistProps(Model, req, res, mgHelpers.MANDATORY_FIELDS, true);
-			if(!q) return;
-
-			Model.remove(q).exec()
-				.then(data => mgHelpers.sendFilteredResult(res, data))
-				.catch(err => {
-					sendError(res, `Could not remove '${Model._nameTitled}' with supplied queries: ` + _.keys(q));
-				});
-		},
-
-		////////////////////////////////////////////////// MANY:
-
-		GET_MANY(req, res, next, options) {
-			const q = mgHelpers.getWhitelistProps(Model, req, res);
-			if(!q) return;
-
-			mgHelpers.getSorted(options, Model.find(q)).exec()
-				.then(data => mgHelpers.sendFilteredResult(res, data))
-				.catch(err => {
-					sendError(res, `Could not get many '${Model._nameTitled}' with supplied queries: ` + _.keys(q));
-				});
-		},
-
-		POST_MANY(req, res, next, options) {
-			sendNotImplemented(res);
-		},
-
-		PUT_MANY(req, res, next, options) {
-			sendNotImplemented(res);
-		},
-
-		DELETE_MANY(req, res, next, options) {
-			sendNotImplemented(res);
-		},
-	};
-
-	function modelRouter(methodSuffix, options) {
-		if(!options) options = {};
-
-		return (req, res, next) => {
-			const methodName = req.method + methodSuffix;
-			const method = METHODS[methodName];
-
-			if(!req.auth.isAdmin && badVerbs.has(methodName)) {
-				return sendError(res, `'${name}' model does not allow this operation (${methodName})`);
-			}
-
-			if(options.isAdmin && !req.auth.isAdmin) {
-				return sendError(res, `Admin only.`);
-			}
-
-			if(!method) {
-				return sendError(res, "Oh no, bad method? " + methodName);
-			}
-
-			const opts = makeOptionsObj(req, options);
-
-			method(req, res, next, opts);
-		}
-	}
-
 	function makeOptionsObj(req, options) {
 		return _.extend({data: req.body}, options || {});
 	}
@@ -184,23 +65,41 @@ function forEachModel(schemaFile, name) {
 	const api = $$$.routes.api;
 	const badVerbs = Model._def.blacklistVerbs || [];
 	const customRoutes = Model._def.customRoutes || {};
+	const adminRoute = '/admin' + Model.__route;
+	const adminRoutes = '/admin' + Model.__routes;
 
 	_.keys(customRoutes).forEach(routeName => {
 		const __customRoute = Model.__route + "/" + routeName;
+		const __adminRoute = adminRoute + "/" + routeName;
 		const customRoute = customRoutes[routeName];
 
 		api.use(__customRoute, (req, res, next) => {
 			const opts = makeOptionsObj(req);
 			customRoute(Model, req, res, next, opts);
 		});
+
+		api.use(__adminRoute, (req, res, next) => {
+			const opts = makeOptionsObj(req);
+			customRoute(Model, req, res, next, opts);
+		});
 	});
 
-	const adminRoute = '/admin' + Model.__route;
-	const adminRoutes = '/admin' + Model.__routes;
+	// api.use(adminRoute + "$", (req, res, next) => {
+	//
+	// });
 
-	api.use(adminRoute + "$", modelRouter('_ONE', {isAdmin:1}));
-	api.use(adminRoute + "/last", modelRouter('_ONE', {reverse:1, isAdmin:1}) );
-	api.use(adminRoutes + "$", modelRouter('_MANY', {isAdmin:1}));
+	api.use(adminRoutes + "$", (req, res, next) => {
+		if(!req.auth.isAdmin) return sendError(res, "Only admin can call this.");
+
+		Model.find({})
+			.then(list => {
+				mgHelpers.sendFilteredResult(res, list);
+			})
+			.catch(err => {
+				sendError(res, err.message || err);
+			});
+	});
+
 	api.use(adminRoutes + '/count', (req, res, next) => {
 		if(!req.auth.isAdmin) return sendError(res, "Can't count here.");
 

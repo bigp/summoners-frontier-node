@@ -33,25 +33,34 @@ module.exports = function() {
 
 		customRoutes: {
 			'public/add'(Model, req, res, next, opts) {
-				if(req.method!=='POST') {
-					return $$$.send.error(res, "Can only use /user/add/ with 'POST' HTTP Verb.");
-				}
+				_.promise(() => {
+					if(mgHelpers.isWrongVerb(req, 'POST')) return;
 
-				const jsonGlobals = gameHelpers.getJSONGlobals();
-				const userData = opts.data;
-				userData.username = userData.username.toLowerCase();
-				userData._password = (userData._password || $$$.md5(userData.password)).toLowerCase();
-				userData.game = {
-					currency: {
-						gold: jsonGlobals.DEFAULT_GOLD,
-						gems: jsonGlobals.DEFAULT_GEMS,
-						scrollsIdentify: jsonGlobals.DEFAULT_SCROLLS_IDENTIFY,
-						scrollsSummon: jsonGlobals.DEFAULT_SCROLLS_SUMMON,
-						magicOrbs: jsonGlobals.DEFAULT_MAGIC,
-					}
-				};
+					const jsonGlobals = gameHelpers.getJSONGlobals();
+					const userData = opts.data;
 
-				Model.httpVerbs['POST_ONE'](req, res, next, opts);
+					userData.username = userData.username.toLowerCase();
+					userData._password = (userData._password || $$$.md5(userData.password)).toLowerCase();
+					userData.game = {
+						currency: {
+							gold: jsonGlobals.DEFAULT_GOLD,
+							gems: jsonGlobals.DEFAULT_GEMS,
+							scrollsIdentify: jsonGlobals.DEFAULT_SCROLLS_IDENTIFY,
+							scrollsSummon: jsonGlobals.DEFAULT_SCROLLS_SUMMON,
+							magicOrbs: jsonGlobals.DEFAULT_MAGIC,
+						}
+					};
+
+					const user = new User();
+					_.extend(user, userData);
+					return user.save();
+				})
+					.then(saved => {
+						mgHelpers.sendFilteredResult(res, saved);
+					})
+					.catch(err => {
+						$$$.send.error(res, err.message || err);
+					});
 			},
 
 			'public/login'(Model, req, res, next, opts) {
@@ -125,6 +134,7 @@ module.exports = function() {
 
 			},
 
+			// TODO:
 			// 'password-reset'(Model, req, res, next, opts) {
 			//
 			// },
@@ -359,7 +369,7 @@ module.exports = function() {
 
 			/////////////////////////////////// GAME-SPECIFIC:
 			game: {
-				xp: CustomTypes.LargeInt({required: true, default: 0}),
+				xp: CustomTypes.LargeInt({default: 0}),
 
 				actsZones: {
 					completed: CustomTypes.Int(),
@@ -385,8 +395,8 @@ module.exports = function() {
 				shopInfo: {
 					refreshKey: {
 						//guid: CustomTypes.String128(),
-						seed: CustomTypes.LargeInt({min: -1, required: true, default: -1}),
-						_dateGenerated: CustomTypes.DateRequired({default: new Date(0)}),
+						seed: CustomTypes.LargeInt({min: -1, default: -1}),
+						_dateGenerated: CustomTypes.DateRequired({required: false, default: new Date(0)}),
 					}
 				}
 			}
