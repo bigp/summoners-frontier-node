@@ -184,11 +184,17 @@ module.exports = function() {
 			':heroID/tap-ability'(Model, req, res, next, opts) {
 				const user = req.auth.user;
 				const validHero = req.validHero;
+				var dateTapped = opts.data.dateTapped;
 
 				_.promise(() => {
 					if(mgHelpers.isWrongVerb(req, 'PUT')) return;
+					if(!dateTapped) throw 'Missing param "dateTapped"!';
 
-					validHero.game.dateLastUsedTapAbility = moment();
+					if(_.isString(dateTapped)) {
+						dateTapped = moment(dateTapped);
+					}
+
+					validHero.game.dateLastUsedTapAbility = dateTapped;
 					return validHero.save();
 				})
 					.then(saved => {

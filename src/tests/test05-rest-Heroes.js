@@ -252,7 +252,9 @@ describe('=REST= Heroes', () => {
 	////////////////////////////////////////////////////// TAP-ABILITY:
 
 	it('Update Tap-Ability on a hero (1)', done => {
-		chamberlainpi.sendAuth(`/hero/1/tap-ability/`, 'put')
+		chamberlainpi.sendAuth(`/hero/1/tap-ability/`, 'put', {
+			body: {dateTapped: moment()}
+		})
 			.then(data => {
 				assert.exists(data);
 				assert.equal(data.id, 1, "Updated Hero 1.");
@@ -262,6 +264,18 @@ describe('=REST= Heroes', () => {
 				done();
 			})
 			.catch(err => done(err));
+
+	});
+
+	it('Update Tap-Ability on a hero (FAIL, missing dateTapped)', done => {
+		chamberlainpi.sendAuth(`/hero/1/tap-ability/`, 'put')
+			.then(data => {
+				done('Should not exists!');
+			})
+			.catch(err => {
+				assert.exists(err);
+				done();
+			});
 
 	});
 
