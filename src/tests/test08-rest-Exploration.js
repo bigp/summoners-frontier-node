@@ -31,7 +31,49 @@ describe('=REST= Explorations', () => {
 		}
 	});
 
-	TEST.OK('put::/1/update', 'Update?', {
+	TEST.FAIL('put::/1/start', 'FAIL Wrong Verb', {
+		body: {
+			isAutoCreate: true,
+			exploration: { dateStarted: moment() },
+			party: [1,2,3, 9999],
+		}
+	});
+
+	TEST.FAIL('post::/1/start', 'FAIL Missing Hero IDs', {
+		body: {
+			isAutoCreate: true,
+			exploration: { dateStarted: moment() },
+			party: [],
+		}
+	});
+
+	TEST.FAIL('post::/1/start', 'FAIL Missing Exploration data / dateStarted', {
+		body: {
+			isAutoCreate: true,
+			exploration: { dateStarted: null },
+		}
+	});
+
+	TEST.OK('post::/1/start', 'Start! (read exploration & heroes data to confirm)', {
+		body: {
+			isAutoCreate: true,
+			exploration: { dateStarted: moment() },
+			party: [1,2,3],
+		}
+	}, data => {
+		const heroes = data.heroes;
+		const explore = data.exploration;
+		assert.exists(heroes, 'Has heroes.');
+		assert.exists(explore, 'Has exploration.');
+		assert.exists(explore.game, 'Has Exploration.game.');
+		assert.exists(explore.game.dateStarted, 'Has exploration.game.dateStarted.');
+		assert.equal(explore.game.actZoneID, 1, 'ActZoneID matches.');
+		assert.equal(data.numFound, 3, '# of heroes found.');
+		assert.equal(data.numModified, 3, '# of heroes modified.');
+		assert.equal(heroes.length, 3, 'heroes[] matches length.');
+	});
+
+	TEST.OK('put::/1/update', 'Update...', {
 		body: {
 			isAutoCreate: true,
 			exploration: {

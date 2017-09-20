@@ -67,6 +67,15 @@ p.insert = (function() {
 	};
 })();
 
+
+p.sortNumeric = (function() {
+	const sortNumericFunc = (a,b) => a-b;
+
+	return function() {
+		return this.sort(sortNumericFunc);
+	};
+})();
+
 /////////////////
 p = String.prototype;
 

@@ -87,7 +87,7 @@ const chaiG = module.exports = {
 					url = urlSplit[1];
 				}
 
-				it(`/${prefix}${url} ... ${header}`, done => {
+				it(('* '.red) + `/${prefix}${url} ... ${header}`, done => {
 					if(_.isFunction(body)) body = body();
 					testMethods.testUser.sendAuth('/' + prefix + url, method, body)
 						.then(data => {

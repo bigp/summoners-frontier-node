@@ -17,7 +17,7 @@ const GAME_RULES = CONFIG.GAME_RULES;
 const moment = require('moment');
 
 module.exports = function() {
-	var User, Shop, Item, LootCrate, Exploration;
+	var User, Shop, Item, Hero, LootCrate, Exploration;
 
 	/**
 	 * Delay the models constants
@@ -29,6 +29,7 @@ module.exports = function() {
 		User = $$$.models.User;
 		Shop = $$$.models.Shop;
 		Item = $$$.models.Item;
+		Hero = $$$.models.Hero;
 		LootCrate = $$$.models.Lootcrate;
 		Exploration = $$$.models.Exploration;
 	});
@@ -106,6 +107,73 @@ module.exports = function() {
 					.catch( err => {
 						$$$.send.error(res, (err.message || err));
 					})
+			},
+
+			':actZoneID/start'(Model, req, res, next, opts) {
+				const user = req.auth.user;
+				const validActZone = req.validActZone;
+				const exploreData = opts.data.exploration;
+				const party = opts.data.party;
+				const actZoneID = req.params.actZoneID | 0;
+				const q = {userId: user.id}; //id: {$in: party}
+				const results = {};
+
+				_.promise(() => {
+					if(mgHelpers.isWrongVerb(req, 'POST')) return;
+					if(!validActZone || !validActZone.game || actZoneID<1) {
+						throw	'Invalid ExploreData, it may be missing a valid ActZoneID: ' + JSON.stringify(exploreData);
+					}
+
+					if(!exploreData.dateStarted) {
+						throw	'Missing "dateStarted" field in POST data.';
+					}
+
+					if(!party || !_.isArray(party) || party.length===0) {
+						throw	'Missing valid party information. '+
+								'Make sure to supply an array of 1 or more valid Hero IDs.';
+					}
+
+					return Hero.find(_.merge(q, {'game.exploringActZone': 0}));
+				})
+					.then( heroes => {
+						var heroesInParty = heroes.filter(hero => party.has(hero.id));
+						heroes = _.sortBy(heroes, 'id');
+						heroesInParty = _.sortBy(heroesInParty, 'id');
+
+						if(!heroesInParty || heroesInParty.length !== party.length) {
+							const heroIDs = heroes.map(h => h.id);
+							const heroInPartyIDs = heroesInParty.map(h => h.id);
+							throw [
+								'Not all Hero IDs provided match those the User has currently available:',
+								'User Heroes: ' + heroIDs.sortNumeric(),
+								'User Matching: ' + heroInPartyIDs.sortNumeric(),
+								'Party IDs: ' + party.sortNumeric()
+								].join('\n');
+						}
+
+						heroesInParty.forEach(h => h.game.exploringActZone = actZoneID);
+
+						results.heroes = heroesInParty;
+
+						const qInParty = _.merge(q, {id: {$in: party}});
+						
+						return Hero.updateMany(qInParty, {'game.exploringActZone': actZoneID});
+					})
+					.then( heroesUpdated => {
+						results.numFound = heroesUpdated.n;
+						results.numModified = heroesUpdated.nModified;
+
+						validActZone.game.dateStarted = exploreData.dateStarted;
+
+						return validActZone.save();
+					})
+					.then( saved => {
+						results.exploration = saved;
+
+						//trace("Alright, add / update the exploration now");
+						mgHelpers.sendFilteredResult(res, results);
+					})
+					.catch(err => $$$.send.error(res, (err.message || err)));
 			},
 
 			':actZoneID/update'(Model, req, res, next, opts) {
