@@ -14,6 +14,8 @@ const sendAPI = $$$.send.api;
 
 
 describe('=MONGO= Users', () => {
+	trace("Filter Level: ".magenta + chaiG.filterLevel);
+
 	var db;
 	const TEST_PASSWORD = $$$.md5('PI#RR#');
 

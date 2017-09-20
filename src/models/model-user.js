@@ -14,7 +14,7 @@ const CustomTypes  = mongoose.CustomTypes;
 const seedRandom = require('seedrandom');
 
 module.exports = function() {
-	var User, Item, Hero, Shop, LootCrate;
+	var User, Item, Hero, Shop, LootCrate, Exploration;
 
 	process.nextTick(() => {
 		traceProps($$$.models);
@@ -24,6 +24,7 @@ module.exports = function() {
 		Shop = $$$.models.Shop;
 		Item = $$$.models.Item;
 		LootCrate = $$$.models.Lootcrate;
+		Exploration = $$$.models.Exploration;
 	});
 
 	return {
@@ -97,8 +98,16 @@ module.exports = function() {
 						return user.save();
 					})
 					.then(user => {
+						var results = _.merge({
+							gitInfo: {
+								long: $$$.gitInfo.long,
+								branch: $$$.gitInfo.branch,
+								date: $$$.gitInfo.date
+							}
+						}, user.toJSON());
+
 						//var results = _.assign({mongoID: user._id+''}, user.toJSON());
-						mgHelpers.sendFilteredResult(res, user);
+						mgHelpers.sendFilteredResult(res, results);
 					})
 					.catch(err => {
 						trace(err);
@@ -228,11 +237,13 @@ module.exports = function() {
 					Item.find(q).sort('id').exec(),
 					Hero.find(q).sort('id').exec(),
 					LootCrate.find(q).sort('id').exec(),
+					Exploration.find(q).sort('id').exec(),
 				])
 				.then( belongings  => {
 					results.items = belongings[0];
 					results.heroes = belongings[1];
 					results.lootCrates = belongings[2];
+					results.explorations = belongings[3];
 
 					mgHelpers.sendFilteredResult(res, results);
 				})

@@ -3,13 +3,14 @@ require('./src/sv-globals');
 const setupRoutes = require('./src/sv-setup-routes');
 const setupMongo = require('./src/sv-setup-mongo-db');
 const setupNodeMailer = require('./src/sv-setup-nodemailer');
+const setupGithub = require('./src/sv-setup-github');
 const JSONLoader = require('./src/sv-setup-json-loader');
 const jsonConfig = { url: $$$.env.ini.JSON_URL, app: $$$.app, isParseGlobals: true };
 
 $$$.jsonLoader = new JSONLoader();
 
 //Run these first promises in parallel, and then...
-Promise.all([setupRoutes(), setupMongo(), setupNodeMailer(), $$$.jsonLoader.config(jsonConfig)])
+Promise.all([setupRoutes(), setupMongo(), setupNodeMailer(), setupGithub(), $$$.jsonLoader.config(jsonConfig)])
 	//.then(() => trace($$$.jsonLoader.globals))
 	.then(setupMongo.createMongoModels) //Creates the models (see model-XXX.js under /src/models/)
 	.then(setupRoutes.setTopLevelRoutes) //Creates the top-level / ending routes if nothing else routes them.

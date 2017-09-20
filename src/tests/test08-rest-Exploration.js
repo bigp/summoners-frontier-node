@@ -50,11 +50,18 @@ describe('=REST= Explorations', () => {
 		assert.equal(data.id, 1, "exploration id #1");
 	});
 
+	TEST.FAIL('get::/1/complete', 'Complete exploration #1 (FAIL Wrong Verb)');
 	TEST.FAIL('get::/2', 'Get exploration #2');
 
 	TEST.OK('get::/list', 'List All Explorations', null, data => {
 		assert.equal(data.length, 1, "Contains 1 exploration.");
 	});
 
+	TEST.OK('delete::/1/complete', 'Complete/Remove exploration #1', null, data => {
+		assert.isTrue(data.isRemoved, 'Exploration #1 is removed');
+		assert.equal(data.numRemoved, 1, 'Removed one exploration.');
+	});
+
+	///////////////////////////////////////TEST MORE Thoroughly...
 
 });

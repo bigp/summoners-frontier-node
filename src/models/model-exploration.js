@@ -128,22 +128,7 @@ module.exports = function() {
 					.catch( err => $$$.send.error(res, (err.message || err)));
 			},
 
-			'list/'(Model, req, res, next, opts) {
-				const user = req.auth.user;
-
-				_.promise(() => {
-					if(mgHelpers.isWrongVerb(req, 'GET')) return;
-
-					return Model.find({userId: user.id});
-				})
-					.then( results => {
-						mgHelpers.sendFilteredResult(res, results);
-					})
-					.catch( err => $$$.send.error(res, (err.message || err)));
-
-			},
-
-			'complete/:actZoneID'(Model, req, res, next, opts) {
+			':actZoneID/complete'(Model, req, res, next, opts) {
 				const user = req.auth.user;
 				const actZoneID = req.params.actZoneID | 0;
 
@@ -163,7 +148,22 @@ module.exports = function() {
 						});
 					})
 					.catch( err => $$$.send.error(res, (err.message || err)));
-			}
+			},
+
+			'list/'(Model, req, res, next, opts) {
+				const user = req.auth.user;
+
+				_.promise(() => {
+					if(mgHelpers.isWrongVerb(req, 'GET')) return;
+
+					return Model.find({userId: user.id});
+				})
+					.then( results => {
+						mgHelpers.sendFilteredResult(res, results);
+					})
+					.catch( err => $$$.send.error(res, (err.message || err)));
+
+			},
 		},
 
 		methods: {},

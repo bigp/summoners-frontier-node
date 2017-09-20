@@ -57,6 +57,7 @@ describe('=GAME= Specific User Actions', () => {
 				assert.exists(data.user.game.currency, 'currency exists.');
 				assert.exists(data.items, 'items exists.');
 				assert.exists(data.heroes, 'heroes exists.');
+				assert.exists(data.explorations, 'explorations exists.');
 				assert.equal(data.items.length>0, true, 'items > 0.');
 				assert.equal(data.heroes.length===0, true, 'heroes === 0..');
 				done();
