@@ -46,6 +46,35 @@ module.exports = function() {
 		});
 	}
 
+	function removeExploration(req, actZoneID, user) {
+		const results = {};
+		return _.promise(() => {
+			if(mgHelpers.isWrongVerb(req, 'DELETE')) return;
+			if(isNaN(actZoneID) || actZoneID<=0) throw 'Invalid Exploration ID, cannot remove it.';
+
+			return Exploration.remove({userId: user.id, id: actZoneID});
+		})
+			.then(removed => {
+				_.extend(results, removed.toJSON());
+
+				if(results.n<=0) throw `Could not remove Exploration ID#${actZoneID} - either doesn't exist or belongs to another user.`;
+
+				trace("Reset the heroes affected by this actZoneID");
+				return Hero.updateMany({
+					userId: user.id,
+					'game.exploringActZone': actZoneID
+				}, {
+					'game.exploringActZone': 0
+				});
+			})
+			.then( heroesUpdated => {
+				trace(heroesUpdated);
+				results.heroesUpdated = heroesUpdated;
+
+				return results;
+			})
+	}
+
 	return {
 		plural: 'explorations',
 
@@ -156,7 +185,7 @@ module.exports = function() {
 						results.heroes = heroesInParty;
 
 						const qInParty = _.merge(q, {id: {$in: party}});
-						
+
 						return Hero.updateMany(qInParty, {'game.exploringActZone': actZoneID});
 					})
 					.then( heroesUpdated => {
@@ -196,26 +225,37 @@ module.exports = function() {
 					.catch( err => $$$.send.error(res, (err.message || err)));
 			},
 
-			':actZoneID/complete'(Model, req, res, next, opts) {
+			':actZoneID/remove'(Model, req, res, next, opts) {
 				const user = req.auth.user;
 				const actZoneID = req.params.actZoneID | 0;
 
-				_.promise(() => {
-					if(mgHelpers.isWrongVerb(req, 'DELETE')) return;
-					if(isNaN(actZoneID) || actZoneID<=0) throw 'Invalid Exploration ID, cannot remove it.';
-
-					return Model.remove({userId: user.id, id: actZoneID});
-				})
-					.then( removed => {
-						const results = removed.toJSON();
-						if(results.n<=0) throw `Could not remove Exploration ID#${actZoneID} - either doesn't exist or belongs to another user.`;
-
+				removeExploration(req, actZoneID, user)
+					.then( results => {
 						mgHelpers.sendFilteredResult(res, {
 							isRemoved: true,
 							numRemoved: results.n
 						});
 					})
 					.catch( err => $$$.send.error(res, (err.message || err)));
+			},
+
+			':actZoneID/complete'(Model, req, res, next, opts) {
+				const user = req.auth.user;
+				const actZoneID = req.params.actZoneID | 0;
+
+				removeExploration(req, actZoneID, user)
+					.then( results => {
+						trace("On complete, could do something else...");
+						return results;
+					})
+					.then( results => {
+						mgHelpers.sendFilteredResult(res, {
+							isRemoved: true,
+							numRemoved: results.n
+						});
+					})
+					.catch( err => $$$.send.error(res, (err.message || err)));
+
 			},
 
 			'list/'(Model, req, res, next, opts) {
