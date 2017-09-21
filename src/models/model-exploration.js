@@ -177,7 +177,7 @@ module.exports = function() {
 					if(mgHelpers.isWrongVerb(req, 'PUT')) return;
 					if(!req.validActZone) throw 'Invalid ActZone (do you need to use isAutoCreate?)';
 					if(!exploreData) throw 'Missing "exploration" in POST data.';
-					if(mgHelpers.hasMissingFields(exploreData, 'accumulativeDamage,chests,dateStarted')) return;
+					if(mgHelpers.hasMissingFields(exploreData, 'accumulativeDamage,chests')) return;
 
 					_.extend(req.validActZone.game, exploreData);
 
