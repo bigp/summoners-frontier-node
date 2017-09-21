@@ -275,6 +275,25 @@ module.exports = function() {
 						$$$.send.error(res, err);
 					});
 			},
+
+			'reset-exploration'(Model, req, res, next, opts) {
+				const user = req.auth.user;
+
+				_.promise(() => {
+					if(mgHelpers.isWrongVerb(req, 'PUT')) return;
+
+					return Model.updateMany({
+						userId: user.id
+					}, {
+						// Reset heroes to zero (0)
+						'game.exploringActZone': 0
+					});
+				})
+					.then( updated => {
+						mgHelpers.sendFilteredResult(res, updated);
+					})
+					.catch( err => $$$.send.error(res, (err.message || err)));
+			}
 		},
 
 		methods: {

@@ -41,7 +41,6 @@ describe('=REST= Explorations', () => {
 
 	TEST.FAIL('post::/1/start', 'FAIL Missing Hero IDs', {
 		body: {
-			isAutoCreate: true,
 			exploration: { dateStarted: moment() },
 			party: [],
 		}
@@ -49,14 +48,12 @@ describe('=REST= Explorations', () => {
 
 	TEST.FAIL('post::/1/start', 'FAIL Missing Exploration data / dateStarted', {
 		body: {
-			isAutoCreate: true,
 			exploration: { dateStarted: null },
 		}
 	});
 
 	TEST.OK('post::/1/start', 'Start! (read exploration & heroes data to confirm)', {
 		body: {
-			isAutoCreate: true,
 			exploration: { dateStarted: moment() },
 			party: [1,2,3],
 		}
@@ -68,14 +65,13 @@ describe('=REST= Explorations', () => {
 		assert.exists(explore.game, 'Has Exploration.game.');
 		assert.exists(explore.game.dateStarted, 'Has exploration.game.dateStarted.');
 		assert.equal(explore.game.actZoneID, 1, 'ActZoneID matches.');
-		assert.equal(data.numFound, 3, '# of heroes found.');
-		assert.equal(data.numModified, 3, '# of heroes modified.');
+		assert.equal(data.numHeroes, 3, '# of heroes found.');
+		assert.equal(data.numHeroesModified, 3, '# of heroes modified.');
 		assert.equal(heroes.length, 3, 'heroes[] matches length.');
 	});
 
 	TEST.OK('put::/1/update', 'Update...', {
 		body: {
-			isAutoCreate: true,
 			exploration: {
 				accumulativeDamage: 1,
 				chests: 1,
@@ -88,18 +84,38 @@ describe('=REST= Explorations', () => {
 		assert.exists(data.game.dateStarted, 'dateStarted is #1');
 	});
 
+	TEST.FAIL('delete::/1/update', 'Update... FAIL Wrong Verb', {
+		body: {
+			exploration: {
+				accumulativeDamage: 1,
+				chests: 1,
+				dateStarted: moment()
+			}
+		}
+	});
+
+	TEST.FAIL('put::/2/update', 'Update... FAIL Does not exists!', {
+		body: {
+			exploration: {
+				accumulativeDamage: 1,
+				chests: 1,
+				dateStarted: moment()
+			}
+		}
+	});
+
+	TEST.FAIL('get::/2', 'Get exploration #2');
 	TEST.OK('get::/1', 'Get exploration #1', null, data => {
 		assert.equal(data.id, 1, "exploration id #1");
 	});
 
-	TEST.FAIL('get::/1/complete', 'Complete exploration #1 (FAIL Wrong Verb)');
-	TEST.FAIL('get::/2', 'Get exploration #2');
 
 	TEST.OK('get::/list', 'List All Explorations', null, data => {
 		assert.equal(data.length, 1, "Contains 1 exploration.");
 	});
 
-	TEST.OK('delete::/1/complete', 'Complete/Remove exploration #1', null, data => {
+	TEST.FAIL('get::/1/remove', 'Remove exploration #1 (FAIL Wrong Verb)');
+	TEST.OK('delete::/1/remove', 'Remove exploration #1', null, data => {
 		assert.isTrue(data.isRemoved, 'Exploration #1 is removed');
 		assert.equal(data.numRemoved, 1, 'Removed one exploration.');
 	});

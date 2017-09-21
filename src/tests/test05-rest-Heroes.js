@@ -331,6 +331,15 @@ describe('=REST= Heroes', () => {
 			.catch(err => done(err));
 	});
 
+	it('Reset Explorations (chamberlainpi)', done => {
+		chamberlainpi.sendAuth(`/hero/reset-exploration`, 'put')
+			.then(data => {
+				assert.exists(data);
+				done();
+			})
+			.catch(err => done(err));
+	});
+
 
 	////////////////////////////////////////////////////// DELETE
 	if(chaiG.filterLevel < 5) return;

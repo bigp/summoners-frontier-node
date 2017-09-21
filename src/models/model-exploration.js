@@ -34,47 +34,6 @@ module.exports = function() {
 		Exploration = $$$.models.Exploration;
 	});
 
-	function findValidExploration(user, actZoneID) {
-		return _.promise(() => {
-			const jsonActZones = gameHelpers.getActZones();
-
-			if(!jsonActZones.actZoneIDs.has(actZoneID)) {
-				throw 'Invalid ActZone, cannot create -or- update Exploration: ' + actZoneID;
-			}
-
-			return Exploration.find({userId: user.id, 'game.actZoneID': actZoneID})
-		});
-	}
-
-	function removeExploration(req, actZoneID, user) {
-		const results = {};
-		return _.promise(() => {
-			if(mgHelpers.isWrongVerb(req, 'DELETE')) return;
-			if(isNaN(actZoneID) || actZoneID<=0) throw 'Invalid Exploration ID, cannot remove it.';
-
-			return Exploration.remove({userId: user.id, id: actZoneID});
-		})
-			.then(removed => {
-				_.extend(results, removed.toJSON());
-
-				if(results.n<=0) throw `Could not remove Exploration ID#${actZoneID} - either doesn't exist or belongs to another user.`;
-
-				trace("Reset the heroes affected by this actZoneID");
-				return Hero.updateMany({
-					userId: user.id,
-					'game.exploringActZone': actZoneID
-				}, {
-					'game.exploringActZone': 0
-				});
-			})
-			.then( heroesUpdated => {
-				trace(heroesUpdated);
-				results.heroesUpdated = heroesUpdated;
-
-				return results;
-			})
-	}
-
 	return {
 		plural: 'explorations',
 
@@ -82,41 +41,40 @@ module.exports = function() {
 			//////////////////////////////////////////////////////////////
 
 			':actZoneID'(Model, req, res, next, opts) {
+				const user = req.auth.user;
 				const actZoneID = req.params.actZoneID | 0;
 				if(isNaN(actZoneID) || actZoneID<=0) return next();
 
-				const user = req.auth.user;
+				const jsonActZones = gameHelpers.getActZones();
 
-				findValidExploration(user, actZoneID)
+				return _.promise(() => {
+					if(opts.data.isAutoCreate) throw 'Not using isAutoCreate anymore.';
+
+					if(!jsonActZones.actZoneIDs.has(actZoneID)) {
+						throw 'Invalid ActZone, cannot create -or- update Exploration: ' + actZoneID;
+					}
+
+					if(req.method==='POST') {
+						const explore = req.validActZone = new Model();
+						explore.userId = user.id;
+						explore.game.actZoneID = actZoneID;
+
+						return [explore];
+					}
+
+					return Exploration.find({userId: user.id, 'game.actZoneID': actZoneID});
+				})
 					.then( found => {
-						if(found) {
-							if(found.length>1) {
-								throw 'User has many exploration of the same ActZoneID! ' + actZoneID;
-							}
-
-							if(found.length===1) {
-								req.validActZone = found[0];
-								return next();
-							}
+						if(!found || !found.length) {
+							throw 'User does not have an Exploration on ActZoneID: ' + actZoneID;
 						}
 
-						const isAutoCreate = opts.data.isAutoCreate;
-
-						if(isAutoCreate) {
-							var exploreInst = new Model();
-							exploreInst.userId = user.id;
-							_.extend(exploreInst.game, {actZoneID: actZoneID});
-
-							return exploreInst.save().then( saved => {
-								req.validActZone = saved;
-								next();
-							});
+						if(found.length>1) {
+							throw 'User has more-than-1 exploration of the same ActZoneID! ' + actZoneID;
 						}
 
-						//traceError(`An Exploration of '${actZoneID}' already exists!`);
-						//trace("Left the Exploration as null!".yellow);
-						throw `Cannot find Exploration #${actZoneID}, did you forgot to add "isAutoCreate" to the JSON request body?`;
-						//next();
+						req.validActZone = found[0];
+						return next();
 					})
 					.catch( err => {
 						$$$.send.error(res, (err.message || err))
@@ -137,6 +95,9 @@ module.exports = function() {
 						$$$.send.error(res, (err.message || err));
 					})
 			},
+
+			/////////////////////////////////////////////////////////
+			///////////////////////////////////////////////////////// vvvvvvvvv
 
 			':actZoneID/start'(Model, req, res, next, opts) {
 				const user = req.auth.user;
@@ -173,7 +134,7 @@ module.exports = function() {
 							const heroIDs = heroes.map(h => h.id);
 							const heroInPartyIDs = heroesInParty.map(h => h.id);
 							throw [
-								'Not all Hero IDs provided match those the User has currently available:',
+								'Not all Hero IDs provided match those the User currently has available:',
 								'User Heroes: ' + heroIDs.sortNumeric(),
 								'User Matching: ' + heroInPartyIDs.sortNumeric(),
 								'Party IDs: ' + party.sortNumeric()
@@ -189,8 +150,8 @@ module.exports = function() {
 						return Hero.updateMany(qInParty, {'game.exploringActZone': actZoneID});
 					})
 					.then( heroesUpdated => {
-						results.numFound = heroesUpdated.n;
-						results.numModified = heroesUpdated.nModified;
+						results.numHeroes = heroesUpdated.n;
+						results.numHeroesModified = heroesUpdated.nModified;
 
 						validActZone.game.dateStarted = exploreData.dateStarted;
 
@@ -204,6 +165,9 @@ module.exports = function() {
 					})
 					.catch(err => $$$.send.error(res, (err.message || err)));
 			},
+
+			///////////////////////////////////////////////////////// ^^^^^^^^^^^
+			/////////////////////////////////////////////////////////
 
 			':actZoneID/update'(Model, req, res, next, opts) {
 				const user = req.auth.user;
@@ -228,34 +192,40 @@ module.exports = function() {
 			':actZoneID/remove'(Model, req, res, next, opts) {
 				const user = req.auth.user;
 				const actZoneID = req.params.actZoneID | 0;
+				const results = {isRemoved: true};
 
-				removeExploration(req, actZoneID, user)
-					.then( results => {
-						mgHelpers.sendFilteredResult(res, {
-							isRemoved: true,
-							numRemoved: results.n
+				_.promise(() => {
+					if(mgHelpers.isWrongVerb(req, 'DELETE')) return;
+					if(isNaN(actZoneID) || actZoneID<=0) throw 'Invalid Exploration ID, cannot remove it.';
+
+					return Exploration.remove({userId: user.id, 'game.actZoneID': actZoneID});
+				})
+					.then( removed => {
+						removed = removed.toJSON();
+						if(removed.n<=0) {
+							throw	`Could not remove Exploration ID#${actZoneID} - ` +
+									`either doesn't exist or belongs to another user.`;
+						}
+
+						results.numRemoved = removed.n;
+
+						return Hero.updateMany({
+							userId: user.id,
+
+							// Only update the heroes that were attached to
+							// this Exploration's Party:
+							'game.exploringActZone': actZoneID
+						}, {
+							// Reset heroes to zero (0)
+							'game.exploringActZone': 0
 						});
 					})
-					.catch( err => $$$.send.error(res, (err.message || err)));
-			},
+					.then(removed => {
+						results.numHeroesReset = removed.n;
 
-			':actZoneID/complete'(Model, req, res, next, opts) {
-				const user = req.auth.user;
-				const actZoneID = req.params.actZoneID | 0;
-
-				removeExploration(req, actZoneID, user)
-					.then( results => {
-						trace("On complete, could do something else...");
-						return results;
-					})
-					.then( results => {
-						mgHelpers.sendFilteredResult(res, {
-							isRemoved: true,
-							numRemoved: results.n
-						});
+						mgHelpers.sendFilteredResult(res, results);
 					})
 					.catch( err => $$$.send.error(res, (err.message || err)));
-
 			},
 
 			'list/'(Model, req, res, next, opts) {
@@ -271,6 +241,32 @@ module.exports = function() {
 					})
 					.catch( err => $$$.send.error(res, (err.message || err)));
 
+			},
+
+			'remove-all/'(Model, req, res, next, opts) {
+				const user = req.auth.user;
+				const results = {};
+
+				_.promise(() => {
+					if(mgHelpers.isWrongVerb(req, 'DELETE')) return;
+
+					return Model.remove({userId: user.id});
+				})
+					.then( removed => {
+						results.explorations = removed;
+
+						return Hero.updateMany({
+							userId: user.id,
+						}, {
+							'game.exploringActZone': 0 //Reset heroes to zero (0)
+						});
+					})
+					.then( removed => {
+						results.heroes = removed;
+
+						mgHelpers.sendFilteredResult(res, results);
+					})
+					.catch( err => $$$.send.error(res, (err.message || err)));
 			},
 		},
 
