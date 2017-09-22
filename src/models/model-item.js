@@ -231,8 +231,9 @@ module.exports = function() {
 					if(mgHelpers.isWrongVerb(req, 'PUT')) return;
 
 					if(validItem.game.isIdentified) throw `ERROR ITEM_ALREADY_IDENTIFIED #` + debugID;
-					if(user.game.currency.scrolls<=0) throw `ERROR CURRENCY_NOT_ENOUGH_SCROLLS #` + debugID;
-					user.game.currency.scrolls--;
+					if(user.game.currency.scrollsIdentify<=0) throw `ERROR CURRENCY_NOT_ENOUGH_SCROLLS #` + debugID;
+
+					user.game.currency.scrollsIdentify -= 1;
 					validItem.game.isIdentified = true;
 
 					const doBoth = Promise.all([validItem.save(), user.save()]);
@@ -241,7 +242,7 @@ module.exports = function() {
 					.then( both => {
 						results.item = both[0];
 						results.user = both[1];
-						results.scrolls = user.game.currency.scrolls;
+						//results.scrollsIdentify = user.game.currency.scrollsIdentify;
 						mgHelpers.sendFilteredResult(res, results)
 					})
 					.catch( err => {
