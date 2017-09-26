@@ -161,6 +161,33 @@ _.guid = function guid() {
 	});
 };
 
+_.traverse = function(masterDest, masterSrc, cb) {
+	function recursive(dest, src) {
+		_.each(src, (value, key) => {
+			var destValue = dest[key];
+			if(!destValue) {
+				return cb('Key does not exists on destination object: ' + dest);
+			}
+
+			if(_.isArray(destValue)) {
+				if(!_.isArray(value)) return cb('Incompatible value, should be Array: ' + value);
+				return recursive(destValue, value);
+			} else if(_.isObject(destValue)) {
+				if(!_.isObject(value)) return cb('Incompatible value, should be Object: ' + value);
+				return recursive(destValue, value);
+			}
+
+			if(typeof(destValue)!==typeof(value)) {
+				return cb('Incompatible types for destination & source: ' + destValue + " : " + value);
+			}
+
+			cb(null, {dest: dest, src: src, key: key, type: typeof(destValue)});
+		});
+	}
+
+	recursive(masterDest, masterSrc);
+};
+
 p.camelToTitleCase = function() {
 	var text = this.toString();
 	var result = text.replace( /([A-Z])/g, " $1" );
