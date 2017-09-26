@@ -27,6 +27,39 @@ module.exports = function() {
 		Exploration = $$$.models.Exploration;
 	});
 
+	function updateCurrency(req, res, user, currency, incoming) {
+		var updated = true;
+
+		switch(req.method) {
+			case 'GET':
+				updated = false;
+				return mgHelpers.sendFilteredResult(res, currency);
+			case 'PUT':
+				_.traverse(currency, incoming, (err, match) => {
+					if(err) throw err;
+
+					const key = match.key;
+					match.dest[key] += match.src[key];
+					if(match.dest[key] < 0) {
+						match.dest[key] = 0;
+					}
+				});
+				break;
+			default:
+				return $$$.send.notImplemented(res);
+		}
+
+		if(updated) {
+			user.save()
+				.then(() => {
+					mgHelpers.sendFilteredResult(res, currency);
+				})
+				.catch(err => {throw err;});
+
+
+		} else next();
+	}
+
 	return {
 		plural: 'users',
 		customRoutes: {
@@ -34,18 +67,45 @@ module.exports = function() {
 				_.promise(() => {
 					if(mgHelpers.isWrongVerb(req, 'POST')) return;
 
-					const jsonGlobals = gameHelpers.getJSONGlobals();
+					const g = gameHelpers.getJSONGlobals();
 					const userData = opts.data;
 
 					userData.username = userData.username.toLowerCase();
 					userData._password = (userData._password || $$$.md5(userData.password)).toLowerCase();
 					userData.game = {
 						currency: {
-							gold: jsonGlobals.DEFAULT_GOLD,
-							gems: jsonGlobals.DEFAULT_GEMS,
-							scrollsIdentify: jsonGlobals.DEFAULT_SCROLLS_IDENTIFY,
-							scrollsSummon: jsonGlobals.DEFAULT_SCROLLS_SUMMON,
-							magicOrbs: jsonGlobals.DEFAULT_MAGIC,
+							gold: g.GOLD,
+							gems: g.GEMS,
+							magicOrbs: g.MAGIC,
+
+							scrolls: {
+								identify: g.SCROLLS_IDENTIFY,
+								summonHero: g.SCROLLS_SUMMON_HERO,
+								summonRare: g.SCROLLS_SUMMON_RARE,
+								summonLegendary: g.SCROLLS_SUMMON_LEGENDARY,
+							},
+
+							shards: {
+								items: {
+									common: g.SHARDS_ITEMS_COMMON,
+									magic: g.SHARDS_ITEMS_MAGIC,
+									rare: g.SHARDS_ITEMS_RARE,
+									unique: g.SHARDS_ITEMS_UNIQUE,
+								},
+
+								xp: {
+									common: g.SHARDS_XP_COMMON,
+									magic: g.SHARDS_XP_MAGIC,
+									rare: g.SHARDS_XP_RARE,
+									unique: g.SHARDS_XP_UNIQUE,
+								},
+							},
+
+							essence: {
+								low: g.ESSENCE_LOW,
+								mid: g.ESSENCE_MID,
+								high: g.ESSENCE_HIGH,
+							}
 						}
 					};
 
@@ -191,41 +251,16 @@ module.exports = function() {
 
 			'currency'(Model, req, res, next, opts) {
 				const user = req.auth.user;
-
 				if(!user) throw 'Missing user!';
 
-				const incoming = opts.data;
-				const currency = user.game.currency;
+				updateCurrency(req, res, user, user.game.currency, opts.data);
+			},
 
-				var updated = true;
+			'shards'(Model, req, res, next, opts) {
+				const user = req.auth.user;
+				if(!user) throw 'Missing user!';
 
-				switch(req.method) {
-					case 'GET':
-						updated = false;
-						return mgHelpers.sendFilteredResult(res, currency);
-					case 'PUT':
-						_.keys(incoming).forEach(coinType => {
-							if(_.isNull(currency[coinType])) return;
-							currency[coinType] += incoming[coinType];
-
-							if(currency[coinType]<0) {
-								currency[coinType] = 0;
-							}
-						});
-						break;
-					default:
-						return $$$.send.notImplemented(res);
-				}
-
-				if(updated) {
-					user.save()
-						.then(() => {
-							mgHelpers.sendFilteredResult(res, currency);
-						})
-						.catch(err => {throw err;});
-
-
-				} else next();
+				updateCurrency(req, res, user, user.game.shards, opts.data);
 			},
 
 			'everything$'(Model, req, res, next, opts) {
@@ -262,13 +297,15 @@ module.exports = function() {
 						return Promise.all([
 							Item.remove(q),
 							Hero.remove(q),
-							LootCrate.remove(q)
+							LootCrate.remove(q),
+							Exploration.remove(q)
 						]);
 					})
 					.then( removals => {
 						results.itemsRemoved = removals[0].toJSON().n;
 						results.heroesRemoved = removals[1].toJSON().n;
 						results.lootCratesRemoved = removals[2].toJSON().n;
+						results.explorationsRemoved = removals[3].toJSON().n;
 
 						mgHelpers.sendFilteredResult(res, results);
 					})
@@ -378,6 +415,7 @@ module.exports = function() {
 			/////////////////////////////////// GAME-SPECIFIC:
 			game: {
 				xp: CustomTypes.LargeInt({default: 0}),
+				name: CustomTypes.String128({required:false}),
 
 				actsZones: {
 					completed: CustomTypes.Int(),
@@ -386,18 +424,35 @@ module.exports = function() {
 				currency: {
 					gold: CustomTypes.Int(),
 					gems: CustomTypes.Int(),
-					scrollsIdentify: CustomTypes.Int(),
-					scrollsSummon: CustomTypes.Int(),
 					magicOrbs: CustomTypes.Int(),
-				},
 
-				//Common, Uncommon, Magic, Rare, Unique
-				shards: {
-					common: CustomTypes.LargeInt(),
-					uncommon: CustomTypes.LargeInt(),
-					magic: CustomTypes.LargeInt(),
-					rare: CustomTypes.LargeInt(),
-					unique: CustomTypes.LargeInt(),
+					scrolls: {
+						identify: CustomTypes.Int(),
+						summonHero: CustomTypes.Int(),
+						summonRare: CustomTypes.Int(),
+						summonLegendary: CustomTypes.Int(),
+					},
+
+					shards: {
+						items: {
+							common: CustomTypes.LargeInt(),
+							magic: CustomTypes.LargeInt(),
+							rare: CustomTypes.LargeInt(),
+							unique: CustomTypes.LargeInt(),
+						},
+						xp: {
+							common: CustomTypes.LargeInt(),
+							magic: CustomTypes.LargeInt(),
+							rare: CustomTypes.LargeInt(),
+							unique: CustomTypes.LargeInt(),
+						}
+					},
+
+					essence: {
+						low: CustomTypes.LargeInt(),
+						mid: CustomTypes.LargeInt(),
+						high: CustomTypes.LargeInt(),
+					},
 				},
 
 				shopInfo: {

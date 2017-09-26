@@ -88,15 +88,15 @@ describe('=REST= User', () => {
 
 		chamberlainpi.sendAuth('/user/currency', 'put', {
 			body: {
-				gold:1, gems:1, scrollsIdentify: 1, scrollsSummon: 1, magicOrbs: 1
+				gold:1, gems:1, magicOrbs: 1, scrolls: {identify: 1, summonHero: 1},
 			}
 		})
 			.then(data => {
 				assert.equal(data.gold, currencyBefore.gold+1, "gold + 1");
 				assert.equal(data.gems, currencyBefore.gems+1, "gems + 1");
-				assert.equal(data.scrollsIdentify, currencyBefore.scrollsIdentify+1, "scrolls + 1");
-				assert.equal(data.scrollsSummon, currencyBefore.scrollsSummon+1, "scrolls + 1");
 				assert.equal(data.magicOrbs, currencyBefore.magicOrbs+1, "magicOrbs + 1");
+				assert.equal(data.scrolls.identify, currencyBefore.scrolls.identify+1, "scrolls + 1");
+				assert.equal(data.scrolls.summonHero, currencyBefore.scrolls.summonHero+1, "scrolls + 1");
 				done();
 			})
 			.catch(err => {
@@ -110,15 +110,15 @@ describe('=REST= User', () => {
 
 		chamberlainpi.sendAuth('/user/currency', 'put', {
 			body: {
-				gold:-1, gems:-1, scrollsIdentify: -1, scrollsSummon: -1, magicOrbs: -1
+				gold:-1, gems:-1, magicOrbs: -1, scrolls: {identify: -1, summonHero: -1},
 			}
 		})
 			.then(data => {
 				assert.equal(data.gold, currencyBefore.gold, "gold - 1");
 				assert.equal(data.gems, currencyBefore.gems, "gems - 1");
-				assert.equal(data.scrollsIdentify, currencyBefore.scrollsIdentify, "scrolls - 1");
-				assert.equal(data.scrollsSummon, currencyBefore.scrollsSummon, "scrolls - 1");
 				assert.equal(data.magicOrbs, currencyBefore.magicOrbs, "magicOrbs - 1");
+				assert.equal(data.scrolls.identify, currencyBefore.scrolls.identify, "scrolls - 1");
+				assert.equal(data.scrolls.summonHero, currencyBefore.scrolls.summonHero, "scrolls - 1");
 				done();
 			})
 			.catch(err => {
