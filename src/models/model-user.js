@@ -256,13 +256,6 @@ module.exports = function() {
 				updateCurrency(req, res, user, user.game.currency, opts.data);
 			},
 
-			// 'shards'(Model, req, res, next, opts) {
-			// 	const user = req.auth.user;
-			// 	if(!user) throw 'Missing user!';
-			//
-			// 	updateCurrency(req, res, user, user.game.shards, opts.data);
-			// },
-
 			'everything$'(Model, req, res, next, opts) {
 				const user = req.auth.user;
 				const q = {userId: user.id};
