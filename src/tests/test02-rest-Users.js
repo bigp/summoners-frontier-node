@@ -140,6 +140,18 @@ describe('=REST= User', () => {
 			.catch(err => done(err));
 	});
 
+	it('Show Currency', done => {
+		const chamberlainpi = testUsers.chamberlainpi;
+
+		chamberlainpi.sendAuth('/user/currency', 'get')
+			.then(data => {
+				assert.exists(data);
+				trace(data);
+				done();
+			})
+			.catch(err => done(err));
+	});
+
 	it('Logout (chamberlainpi)', done => {
 		const chamberlainpi = testUsers.chamberlainpi;
 
