@@ -76,7 +76,7 @@ module.exports = function() {
 						currency: {
 							gold: g.GOLD,
 							gems: g.GEMS,
-							magicOrbs: g.MAGIC,
+							magicOrbs: g.MAGIC_ORBS,
 
 							scrollIdentify: g.SCROLLS_IDENTIFY,
 							scrollSummonHero: g.SCROLLS_SUMMON_HERO,
