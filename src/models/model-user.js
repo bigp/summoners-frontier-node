@@ -78,34 +78,24 @@ module.exports = function() {
 							gems: g.GEMS,
 							magicOrbs: g.MAGIC,
 
-							scrolls: {
-								identify: g.SCROLLS_IDENTIFY,
-								summonHero: g.SCROLLS_SUMMON_HERO,
-								summonRare: g.SCROLLS_SUMMON_RARE,
-								summonLegendary: g.SCROLLS_SUMMON_LEGENDARY,
-							},
+							scrollIdentify: g.SCROLLS_IDENTIFY,
+							scrollSummonHero: g.SCROLLS_SUMMON_HERO,
+							scrollSummonRare: g.SCROLLS_SUMMON_RARE,
+							scrollSummonLegendary: g.SCROLLS_SUMMON_LEGENDARY,
 
-							shards: {
-								items: {
-									common: g.SHARDS_ITEMS_COMMON,
-									magic: g.SHARDS_ITEMS_MAGIC,
-									rare: g.SHARDS_ITEMS_RARE,
-									unique: g.SHARDS_ITEMS_UNIQUE,
-								},
+							shardsItemsCommon: g.SHARDS_ITEMS_COMMON,
+							shardsItemsMagic: g.SHARDS_ITEMS_MAGIC,
+							shardsItemsRare: g.SHARDS_ITEMS_RARE,
+							shardsItemsUnique: g.SHARDS_ITEMS_UNIQUE,
 
-								xp: {
-									common: g.SHARDS_XP_COMMON,
-									magic: g.SHARDS_XP_MAGIC,
-									rare: g.SHARDS_XP_RARE,
-									unique: g.SHARDS_XP_UNIQUE,
-								},
-							},
+							shardsXPCommon: g.SHARDS_XP_COMMON,
+							shardsXPMagic: g.SHARDS_XP_MAGIC,
+							shardsXPRare: g.SHARDS_XP_RARE,
+							shardsXPUnique: g.SHARDS_XP_UNIQUE,
 
-							essence: {
-								low: g.ESSENCE_LOW,
-								mid: g.ESSENCE_MID,
-								high: g.ESSENCE_HIGH,
-							}
+							essenceLow: g.ESSENCE_LOW,
+							essenceMid: g.ESSENCE_MID,
+							essenceHigh: g.ESSENCE_HIGH,
 						}
 					};
 
@@ -419,33 +409,24 @@ module.exports = function() {
 					gems: CustomTypes.Int(),
 					magicOrbs: CustomTypes.Int(),
 
-					scrolls: {
-						identify: CustomTypes.Int(),
-						summonHero: CustomTypes.Int(),
-						summonRare: CustomTypes.Int(),
-						summonLegendary: CustomTypes.Int(),
-					},
+					scrollIdentify: CustomTypes.Int(),
+					scrollSummonHero: CustomTypes.Int(),
+					scrollSummonRare: CustomTypes.Int(),
+					scrollSummonLegendary: CustomTypes.Int(),
 
-					shards: {
-						items: {
-							common: CustomTypes.LargeInt(),
-							magic: CustomTypes.LargeInt(),
-							rare: CustomTypes.LargeInt(),
-							unique: CustomTypes.LargeInt(),
-						},
-						xp: {
-							common: CustomTypes.LargeInt(),
-							magic: CustomTypes.LargeInt(),
-							rare: CustomTypes.LargeInt(),
-							unique: CustomTypes.LargeInt(),
-						}
-					},
+					shardsItemsCommon: CustomTypes.LargeInt(),
+					shardsItemsMagic: CustomTypes.LargeInt(),
+					shardsItemsRare: CustomTypes.LargeInt(),
+					shardsItemsUnique: CustomTypes.LargeInt(),
 
-					essence: {
-						low: CustomTypes.LargeInt(),
-						mid: CustomTypes.LargeInt(),
-						high: CustomTypes.LargeInt(),
-					},
+					shardsXPCommon: CustomTypes.LargeInt(),
+					shardsXPMagic: CustomTypes.LargeInt(),
+					shardsXPRare: CustomTypes.LargeInt(),
+					shardsXPUnique: CustomTypes.LargeInt(),
+
+					essenceLow: CustomTypes.LargeInt(),
+					essenceMid: CustomTypes.LargeInt(),
+					essenceHigh: CustomTypes.LargeInt(),
 				},
 
 				shopInfo: {
