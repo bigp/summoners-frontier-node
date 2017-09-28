@@ -23,8 +23,6 @@ module.exports = function() {
 	});
 
 	function addItems(req, res, next, opts) {
-		$$$.test.addItemsDebug = [0];
-
 		return mgHelpers.prepareAddRequest(Item, req, res, next, opts)
 			.then( user => {
 				if(opts==null) {
@@ -53,14 +51,10 @@ module.exports = function() {
 					return { userId: user.id, game: item };
 				});
 
-				$$$.test.addItemsDebug.push(5);
-
 				if(invalidIdentities.length) {
 					throw "Some of the supplied item identities don't exists in game's JSON: " +
 					invalidIdentities.map(n => n.identity).join(', ');
 				}
-
-				$$$.test.addItemsDebug.push(6);
 
 				function promiseAddItems(oldest) {
 					return Item.create(items)
@@ -68,8 +62,6 @@ module.exports = function() {
 							return mgHelpers.makeNewestAndOldest(newest, oldest);
 						});
 				}
-
-				$$$.test.addItemsDebug.push(7);
 
 				//This 'showAll' option allows to include a 'itemsOld' entry in the results:
 				if(_.isTruthy(opts.data.showAll)) {
@@ -165,16 +157,15 @@ module.exports = function() {
 			},
 
 			'add'(Model, req, res, next, opts) {
-				$$$.test = {gotHere: true};
+				$$$.errorData = {gotHere: true};
 				addItems(req, res, next, opts)
 					.then(results => {
-						$$$.test.gotHereToo = true;
+						$$$.errorData.gotHereToo = true;
 						mgHelpers.sendFilteredResult(res, results);
 					})
 					.catch(err => {
-						$$$.test.gotErrorThough = true;
-
-						$$$.send.error(res, "Could not add items! " + (err.message || err) + JSON.stringify($$$.test), err);
+						const str = JSON.stringify($$$.errorData);
+						$$$.send.error(res, "Could not add items! " + (err.message || err) + str, err);
 					});
 			},
 
