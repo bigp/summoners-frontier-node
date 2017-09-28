@@ -23,19 +23,24 @@ module.exports = function() {
 	});
 
 	function addItems(req, res, next, opts) {
+		$$$.test.addItemsDebug = [0];
 		return mgHelpers.prepareAddRequest(Item, req, res, next, opts)
 			.then( user => {
+				$$$.test.addItemsDebug.push(1);
 				if(opts==null) {
 					throw 'Cannot add items, "opts" (options) object is null';
 				}
 
+				$$$.test.addItemsDebug.push(2);
 				if(opts.data==null) {
 					throw 'Cannot add items, "opts.data" object is null';
 				}
 
-
+				$$$.test.addItemsDebug.push(3);
 				const jsonItems = gameHelpers.getItems();
 				const validIdentities = jsonItems.all.identities;
+
+				$$$.test.addItemsDebug.push(4);
 
 				var invalidIdentities = [];
 				const items = opts.data.list.map(item => {
@@ -46,10 +51,14 @@ module.exports = function() {
 					return { userId: user.id, game: item };
 				});
 
+				$$$.test.addItemsDebug.push(5);
+
 				if(invalidIdentities.length) {
 					throw "Some of the supplied item identities don't exists in game's JSON: " +
 					invalidIdentities.map(n => n.identity).join(', ');
 				}
+
+				$$$.test.addItemsDebug.push(6);
 
 				function promiseAddItems(oldest) {
 					return Item.create(items)
@@ -57,6 +66,8 @@ module.exports = function() {
 							return mgHelpers.makeNewestAndOldest(newest, oldest);
 						});
 				}
+
+				$$$.test.addItemsDebug.push(7);
 
 				//This 'showAll' option allows to include a 'itemsOld' entry in the results:
 				if(_.isTruthy(opts.data.showAll)) {
@@ -152,16 +163,16 @@ module.exports = function() {
 			},
 
 			'add'(Model, req, res, next, opts) {
-				var test = {gotHere: true};
+				$$$.test = {gotHere: true};
 				addItems(req, res, next, opts)
 					.then(results => {
-						test.gotHereToo = true
+						$$$.test.gotHereToo = true;
 						mgHelpers.sendFilteredResult(res, results);
 					})
 					.catch(err => {
-						test.gotErrorThough = true;
-						
-						$$$.send.error(res, "Could not add items! " + (err.message || err) + JSON.stringify(test), err);
+						$$$.test.gotErrorThough = true;
+
+						$$$.send.error(res, "Could not add items! " + (err.message || err) + JSON.stringify($$$.test), err);
 					});
 			},
 
