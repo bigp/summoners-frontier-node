@@ -33,6 +33,7 @@ class JSONLoader extends Events {
 		return new Promise((resolve, reject) => {
 			var temp = JSON.stringify(json);
 			this.data = JSON.parse(temp, this.fixParsingIssues);
+			this.dateLoaded = new Date();
 
 			if(this.options.isParseGlobals) {
 				this.parseGlobals(json);

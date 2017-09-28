@@ -77,10 +77,10 @@ function setTopLevelRoutes() {
 
 		$$$.app.use('/', $$$.express.static($$$.paths.__public));
 		$$$.app.use('/dist', $$$.express.static($$$.paths.__vueDist));
-		$$$.app.use('/json-update', (req, res, next) => {
+		$$$.app.use('/webhooks', (req, res, next) => {
 			$$$.jsonLoader.loadJSON()
-				.then(ok => {
-					$$$.send.result(res, {received:true});
+				.then(jsonLoader => {
+					res.json({received:true, dateLoaded: jsonLoader.dateLoaded});
 				})
 				.catch(err => {
 					$$$.send.error(res, 'Could not load JSON from webhook: ' + err);

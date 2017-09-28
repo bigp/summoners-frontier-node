@@ -262,6 +262,7 @@ module.exports = function() {
 					results.heroes = belongings[1];
 					results.lootCrates = belongings[2];
 					results.explorations = belongings[3];
+					results.jsonLoader = {dateLoaded: $$$.jsonLoader.dateLoaded};
 
 					mgHelpers.sendFilteredResult(res, results);
 				})
