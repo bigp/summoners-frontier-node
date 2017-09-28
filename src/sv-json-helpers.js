@@ -7,6 +7,8 @@ const jsonSheets = jsonLoader.data.sheets;
 
 module.exports = {
 	getItems() {
+		if(!$$$.errorData) $$$.errorData = {};
+		
 		$$$.errorData.validTableNames = _.keys(jsonSheets);
 
 		const weapons = jsonSheets['item-weapons'].data;
