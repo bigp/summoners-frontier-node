@@ -24,7 +24,7 @@ module.exports = function() {
 
 	function addItems(req, res, next, opts) {
 		$$$.test.addItemsDebug = [0];
-		
+
 		return mgHelpers.prepareAddRequest(Item, req, res, next, opts)
 			.then( user => {
 				if(opts==null) {
