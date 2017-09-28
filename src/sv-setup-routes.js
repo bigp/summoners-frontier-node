@@ -77,6 +77,15 @@ function setTopLevelRoutes() {
 
 		$$$.app.use('/', $$$.express.static($$$.paths.__public));
 		$$$.app.use('/dist', $$$.express.static($$$.paths.__vueDist));
+		$$$.app.use('/json-update', (req, res, next) => {
+			$$$.jsonLoader.loadJSON()
+				.then(ok => {
+					$$$.send.result(res, {received:true});
+				})
+				.catch(err => {
+					$$$.send.error(res, 'Could not load JSON from webhook: ' + err);
+				});
+		});
 
 		$$$.server.listen($$$.env.ini.PORT, function (err) {
 			if (err) return reject(err);

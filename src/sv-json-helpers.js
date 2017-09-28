@@ -46,7 +46,7 @@ module.exports = {
 	getJSONGlobals(preset) {
 		if(!preset) preset = 'preset-1';
 
-		return $$$.jsonLoader.globals[preset];
+		return jsonLoader.globals[preset];
 	},
 
 	getShopItems() {
