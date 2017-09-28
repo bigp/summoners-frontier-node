@@ -8,10 +8,10 @@ const jsonSheets = jsonLoader.data.sheets;
 module.exports = {
 	getItems() {
 		$$$.test.validTableNames = _.keys(jsonSheets);
-		
+
 		const weapons = jsonSheets['item-weapons'].data;
 		const armor = jsonSheets['item-armors'].data;
-		const relic = jsonSheets['item-relics'].data;
+		const relic = jsonSheets['item-artifacts'].data;
 		const allItems = [].concat(weapons, armor, relic);
 		const allIdentities = allItems.map(item => item.identity);
 		const allNames = allItems.map(item => item.name);
