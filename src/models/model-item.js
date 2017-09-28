@@ -24,23 +24,25 @@ module.exports = function() {
 
 	function addItems(req, res, next, opts) {
 		$$$.test.addItemsDebug = [0];
+		
 		return mgHelpers.prepareAddRequest(Item, req, res, next, opts)
 			.then( user => {
-				$$$.test.addItemsDebug.push(1);
 				if(opts==null) {
 					throw 'Cannot add items, "opts" (options) object is null';
 				}
 
-				$$$.test.addItemsDebug.push(2);
 				if(opts.data==null) {
 					throw 'Cannot add items, "opts.data" object is null';
 				}
 
-				$$$.test.addItemsDebug.push(3);
-				const jsonItems = gameHelpers.getItems();
-				const validIdentities = jsonItems.all.identities;
+				var jsonItems, validIdentities;
 
-				$$$.test.addItemsDebug.push(4);
+				try {
+					jsonItems = gameHelpers.getItems();
+					validIdentities = jsonItems.all.identities;
+				} catch(err) {
+					throw 'Issue reading the JSON "sf-dev" items, was a table renamed? ' + err.message;
+				}
 
 				var invalidIdentities = [];
 				const items = opts.data.list.map(item => {
