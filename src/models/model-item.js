@@ -152,12 +152,16 @@ module.exports = function() {
 			},
 
 			'add'(Model, req, res, next, opts) {
+				var test = {gotHere: true};
 				addItems(req, res, next, opts)
 					.then(results => {
+						test.gotHereToo = true
 						mgHelpers.sendFilteredResult(res, results);
 					})
 					.catch(err => {
-						$$$.send.error(res, "Could not add items! " + (err.message || err), err);
+						test.gotErrorThough = true;
+						
+						$$$.send.error(res, "Could not add items! " + (err.message || err) + JSON.stringify(test), err);
 					});
 			},
 
