@@ -25,6 +25,15 @@ module.exports = function() {
 	function addItems(req, res, next, opts) {
 		return mgHelpers.prepareAddRequest(Item, req, res, next, opts)
 			.then( user => {
+				if(opts==null) {
+					throw 'Cannot add items, "opts" (options) object is null';
+				}
+
+				if(opts.data==null) {
+					throw 'Cannot add items, "opts.data" object is null';
+				}
+
+
 				const jsonItems = gameHelpers.getItems();
 				const validIdentities = jsonItems.all.identities;
 

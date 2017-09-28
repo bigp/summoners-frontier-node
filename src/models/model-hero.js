@@ -39,7 +39,7 @@ module.exports = function() {
 					var gameData = heroData.game = {};
 					gameData.identity = heroJSON.identity;
 					gameData.randomSeed = (Math.random() * 100) | 0;
-					gameData.skills = [0,0,0].map(s => ({ level: s }));
+					gameData.skills = [1,1,1].map(s => ({ level: s }));
 					return heroData;
 				}
 			},
