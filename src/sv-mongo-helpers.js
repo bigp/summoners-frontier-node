@@ -185,7 +185,7 @@ const mgHelpers = {
 		});
 	},
 
-	findAllByCurrentUser(Model, req, res, next, opts) {
+	getAllByCurrentUser(Model, req, res, next, opts) {
 		return new Promise((resolve, reject) => {
 			if (mgHelpers.isWrongVerb(req, 'GET')) return;
 

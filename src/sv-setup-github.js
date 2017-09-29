@@ -13,7 +13,7 @@ module.exports = function() {
 		gitInfo.message = git.message();
 
 		$$$.gitInfo = gitInfo;
-		trace(gitInfo);
+		trace('GITHUB Info: ' + JSON.stringify(gitInfo));
 		resolve(gitInfo);
 	});
 };

@@ -45,7 +45,7 @@ module.exports = function() {
 			},
 
 			'list$/'(Model, req, res, next, opts) {
-				mgHelpers.findAllByCurrentUser(Model, req, res, next, opts)
+				mgHelpers.getAllByCurrentUser(Model, req, res, next, opts)
 					.then(items => {
 						mgHelpers.sendFilteredResult(res, items);
 					})

@@ -154,7 +154,11 @@ describe('=REST= Heroes', () => {
 	});
 
 	it('Unequip item 0', done => {
-		chamberlainpi.sendAuth(`/item/${item0.id}/unequip`, 'put')
+		chamberlainpi.sendAuth(`/item/${item0.id}/unequip`, 'put', {
+			body: {
+				cost: {gold:1}
+			}
+		})
 			.then(data => {
 				assert.exists(data);
 				done();

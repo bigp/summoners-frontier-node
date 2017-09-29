@@ -138,7 +138,7 @@ module.exports = function() {
 			},
 
 			'list$'(Model, req, res, next, opts) {
-				mgHelpers.findAllByCurrentUser(Model, req, res, next, opts)
+				mgHelpers.getAllByCurrentUser(Model, req, res, next, opts)
 					.then(items => {
 						mgHelpers.sendFilteredResult(res, items);
 					})
@@ -150,7 +150,7 @@ module.exports = function() {
 			'equipped-off$'(Model, req, res, next, opts) {
 				opts.query = {'game.heroEquipped': 0};
 
-				mgHelpers.findAllByCurrentUser(Model, req, res, next, opts)
+				mgHelpers.getAllByCurrentUser(Model, req, res, next, opts)
 					.then(items => {
 						mgHelpers.sendFilteredResult(res, items);
 					})
@@ -167,7 +167,7 @@ module.exports = function() {
 
 				opts.query = {'game.heroEquipped': heroID};
 
-				mgHelpers.findAllByCurrentUser(Model, req, res, next, opts)
+				mgHelpers.getAllByCurrentUser(Model, req, res, next, opts)
 					.then(items => {
 						mgHelpers.sendFilteredResult(res, items);
 					})
@@ -208,14 +208,21 @@ module.exports = function() {
 			':itemID/unequip'(Model, req, res, next, opts) {
 				const user = req.auth.user;
 				const validItem = req.validItem;
+				const cost = opts.data.cost;
 
 				_.promise(() => {
 					if(mgHelpers.isWrongVerb(req, 'PUT')) return;
 
-					validItem.game.heroEquipped = 0;
+					if(!cost || _.keys(cost).length===0) {
+						throw 'Must provide a cost (in POST data) to unequip items!';
+					}
 
-					return validItem.save();
+					return user.updateCurrency(req, res, next, cost, true);
 				})
+					.then( paid => {
+						validItem.game.heroEquipped = 0;
+						return validItem.save();
+					})
 					.then( saved => {
 						mgHelpers.sendFilteredResult(res, saved);
 					})

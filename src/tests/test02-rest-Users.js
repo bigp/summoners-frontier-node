@@ -146,7 +146,7 @@ describe('=REST= User', () => {
 		chamberlainpi.sendAuth('/user/currency', 'get')
 			.then(data => {
 				assert.exists(data);
-				trace(data);
+				chaiG.showTraces && trace(data);
 				done();
 			})
 			.catch(err => done(err));

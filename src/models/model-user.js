@@ -346,11 +346,12 @@ module.exports = function() {
 					$$$.encodeToken(PRIVATE.AUTH_CODE);
 			},
 
-			updateCurrency(req, res, next, incoming) {
+			updateCurrency(req, res, next, incoming, isReturned) {
 				const currency = this.game.currency;
 
 				switch(req.method) {
 					case 'GET':
+						if(isReturned) return currency;
 						return mgHelpers.sendFilteredResult(res, currency);
 					case 'PUT':
 						_.traverse(currency, incoming, (err, match) => {
@@ -369,6 +370,7 @@ module.exports = function() {
 
 				this.save()
 					.then(() => {
+						if(isReturned) return currency;
 						mgHelpers.sendFilteredResult(res, currency);
 					})
 					.catch(err => {throw err;});
