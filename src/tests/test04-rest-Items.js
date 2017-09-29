@@ -69,7 +69,7 @@ describe('=REST= Items', () => {
 
 	TEST.FAIL('post::/list', 'Get all items (FAIL wrong HTTP VERB)');
 
-	TEST.OK('post::/add', 'Add custom item (VALID for chamberlainpi)', {
+	TEST.OK('post::/add', 'Add custom item (chamberlainpi)', {
 		body: {
 			list: [
 				{identity: 'item_sword', randomSeeds: randomItemSeeds(1,1,1,1)},
@@ -81,6 +81,17 @@ describe('=REST= Items', () => {
 		assert.exists(datas);
 		assert.exists(datas.newest);
 		assert.notExists(datas.oldest);
+	});
+
+	TEST.FAIL('post::/add', 'Add custom item WITH HERO-ID (FAIL, HERO does not exists!)', {
+		body: {
+			list: [
+				{identity: 'item_sword', randomSeeds: randomItemSeeds(1,1,1,1)},
+				{identity: 'item_scythe', randomSeeds: randomItemSeeds(2,2,2,2)},
+				{identity: 'item_sword', randomSeeds: randomItemSeeds(3,3,3,3)}
+			],
+			heroID: 1,
+		}
 	});
 
 	TEST.OK('get::/list', 'Get all items (and STORE it)', null, datas => {

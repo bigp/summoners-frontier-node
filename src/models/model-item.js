@@ -12,27 +12,42 @@ const ObjectId = Types.ObjectId;
 const CONFIG = $$$.env.ini;
 
 module.exports = function() {
-	var User, Shop, Item;
+	var User, Shop, Item, Hero;
 
 	process.nextTick( () => {
 		User = $$$.models.User;
 		Shop = $$$.models.Shop;
 		Item = $$$.models.Item;
+		Hero = $$$.models.Hero;
 
 		Item.addItems = addItems;
 	});
 
 	function addItems(req, res, next, opts) {
+		var heroID = 0;
 		return mgHelpers.prepareAddRequest(Item, req, res, next, opts)
 			.then( user => {
-				if(opts==null) {
-					throw 'Cannot add items, "opts" (options) object is null';
-				}
+				if (opts == null) throw 'Cannot add items, "opts" (options) object is null';
+				if (opts.data == null) throw 'Cannot add items, "opts.data" object is null';
 
-				if(opts.data==null) {
-					throw 'Cannot add items, "opts.data" object is null';
-				}
+				heroID = opts.data.heroID;
+				if(isNaN(heroID) || heroID<1) return user;
 
+				return new Promise((resolve, reject) => {
+					Hero.find({userId: user.id, id: heroID})
+						.then(found => {
+							if(!found || !found.length) {
+								return reject(`Could not find hero #${heroID} for equipping added item.`);
+							} else if(found.length!==1) {
+								return reject(`Found more than one hero match (#${heroID} exists ${found.length} times) for equipping newly added item.`);
+							}
+
+							resolve(user);
+						})
+						.catch(err => reject(err));
+				});
+			})
+			.then(user => {
 				var jsonItems, validIdentities;
 
 				try {
@@ -50,6 +65,11 @@ module.exports = function() {
 
 					return { userId: user.id, game: item };
 				});
+
+				if(heroID>0) {
+					trace("Equipping items to hero: " + items.length + " items to " + heroID);
+					items.forEach(item => item.game.heroEquipped = heroID);
+				}
 
 				if(invalidIdentities.length) {
 					throw "Some of the supplied item identities don't exists in game's JSON: " +
@@ -160,11 +180,10 @@ module.exports = function() {
 				$$$.errorData = {gotHere: true};
 				addItems(req, res, next, opts)
 					.then(results => {
-						$$$.errorData.gotHereToo = true;
 						mgHelpers.sendFilteredResult(res, results);
 					})
 					.catch(err => {
-						const str = JSON.stringify($$$.errorData);
+						const str = !$$$.errorData ? '' : JSON.stringify($$$.errorData);
 						$$$.send.error(res, "Could not add items! " + (err.message || err) + str, err);
 					});
 			},

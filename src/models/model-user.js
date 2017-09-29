@@ -11,7 +11,7 @@ const CONFIG = $$$.env.ini;
 const PRIVATE = CONFIG.PRIVATE;
 const Schema  = mongoose.Schema;
 const CustomTypes  = mongoose.CustomTypes;
-const seedRandom = require('seedrandom');
+//const seedRandom = require('seedrandom');
 
 module.exports = function() {
 	var User, Item, Hero, Shop, LootCrate, Exploration;
@@ -25,40 +25,9 @@ module.exports = function() {
 		Item = $$$.models.Item;
 		LootCrate = $$$.models.Lootcrate;
 		Exploration = $$$.models.Exploration;
+
+		//User.updateCurrency = updateCurrency;
 	});
-
-	function updateCurrency(req, res, user, currency, incoming) {
-		var updated = true;
-
-		switch(req.method) {
-			case 'GET':
-				updated = false;
-				return mgHelpers.sendFilteredResult(res, currency);
-			case 'PUT':
-				_.traverse(currency, incoming, (err, match) => {
-					if(err) throw err;
-
-					const key = match.key;
-					match.dest[key] += match.src[key];
-					if(match.dest[key] < 0) {
-						match.dest[key] = 0;
-					}
-				});
-				break;
-			default:
-				return $$$.send.notImplemented(res);
-		}
-
-		if(updated) {
-			user.save()
-				.then(() => {
-					mgHelpers.sendFilteredResult(res, currency);
-				})
-				.catch(err => {throw err;});
-
-
-		} else next();
-	}
 
 	return {
 		plural: 'users',
@@ -243,7 +212,8 @@ module.exports = function() {
 				const user = req.auth.user;
 				if(!user) throw 'Missing user!';
 
-				updateCurrency(req, res, user, user.game.currency, opts.data);
+				//user, user.game.currency
+				user.updateCurrency(req, res, next, opts.data);
 			},
 
 			'everything$'(Model, req, res, next, opts) {
@@ -375,6 +345,34 @@ module.exports = function() {
 					$$$.encodeToken(PRIVATE.AUTH_CODE, this.username, this.login.token) :
 					$$$.encodeToken(PRIVATE.AUTH_CODE);
 			},
+
+			updateCurrency(req, res, next, incoming) {
+				const currency = this.game.currency;
+
+				switch(req.method) {
+					case 'GET':
+						return mgHelpers.sendFilteredResult(res, currency);
+					case 'PUT':
+						_.traverse(currency, incoming, (err, match) => {
+							if(err) throw err;
+
+							const key = match.key;
+							match.dest[key] += match.src[key];
+							if(match.dest[key] < 0) {
+								match.dest[key] = 0;
+							}
+						});
+						break;
+					default:
+						return $$$.send.notImplemented(res);
+				}
+
+				this.save()
+					.then(() => {
+						mgHelpers.sendFilteredResult(res, currency);
+					})
+					.catch(err => {throw err;});
+			}
 		},
 
 		///////////////////////////////////////////////////////////
