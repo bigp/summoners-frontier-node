@@ -7,7 +7,8 @@
   "author": "Pierre Chamberlain <bigp@pierrechamberlain.ca>",
   "license": "MIT",
   "scripts": {
-    "start": "nodemon sf-dev.js"
+    "dev": "nodemon sf-dev.js"
+	"start": "node sf-dev.js"
   },
   "dependencies": {
     "async": "^2.5.0",
