@@ -10,16 +10,22 @@ const Types  = Schema.Types;
 const CustomTypes  = mongoose.CustomTypes;
 const ObjectId = Types.ObjectId;
 const CONFIG = $$$.env.ini;
+const moment = require('moment');
+const momentRound = require('moment-round');
+const dateUtils = require('../sv-date-utils');
+
+const SHOP = CONFIG.SHOP;
+const INTERVALS = new dateUtils.IntervalChecker(SHOP.FEATURED_INTERVALS, SHOP.FEATURED_START_TIME);
 
 module.exports = function() {
-	const GAME_RULES = CONFIG.GAME_RULES;
-	const moment = require('moment');
-	const isRoundedHours = _.isTruthy(GAME_RULES.SHOP_REFRESHED_ROUNDED_HOURS);
-	const shopExpiresSplit = GAME_RULES.SHOP_EXPIRE_TIME.split(" ");
+	const isRoundedHours = _.isTruthy(SHOP.REFRESHED_ROUNDED_HOURS);
+	const shopExpiresSplit = SHOP.EXPIRE_TIME.split(" ");
 	const shopExpires = {
 		time: shopExpiresSplit[0] | 0,
 		unit: shopExpiresSplit[1]
 	};
+
+	var featuredItem = INTERVALS.getValue();
 
 	var User, Shop, Item;
 
@@ -28,6 +34,22 @@ module.exports = function() {
 		Shop = $$$.models.Shop;
 		Item = $$$.models.Item;
 	});
+
+	setInterval(() => {
+		featuredItem = INTERVALS.getValue();
+		trace(featuredItem);
+	}, 1000);
+
+	function setFeaturedItemDates() {
+		const dateStart = moment(START_TIME);
+		const now = moment();
+		const diffUnits = now.diff(dateStart, INTERVAL_UNIT);
+		const intervals = (diffUnits / INTERVAL_AMOUNT) | 0;
+		dateStart.add(intervals * INTERVAL_AMOUNT, INTERVAL_UNIT);
+
+		trace(dateStart);
+		process.exit();
+	}
 
 	function createExpiryAndSecondsLeft(source) {
 		if(!source) return null;
@@ -147,6 +169,25 @@ module.exports = function() {
 						mgHelpers.sendFilteredResult(res, results);
 					})
 					.catch(err => $$$.send.error(res, err.message || err))
+			},
+
+			'buy/featured'(Model, req, res, next, opts) {
+				const user = req.auth.user;
+				const shopInfo = user.game.shopInfo;
+				const currency = user.game.currency;
+				const itemData = opts.data.item;
+				const results = { isPurchased: true };
+				const dateLast = shopInfo.dateLastPurchasedFeaturedItem;
+				const now = moment();
+
+				_.promise(() => {
+					if(mgHelpers.isWrongVerb(res, 'POST')) return;
+					if(!itemData) throw 'Missing "item" in POST data.';
+					if(dateLast && dateLast.getTime() < now.getTime()) {
+
+					}
+					shopInfo.dateLastPurchasedFeaturedItem = now;
+				})
 			},
 
 			'buy/item'(Model, req, res, next, opts) {

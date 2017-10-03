@@ -768,6 +768,10 @@ mocha@^3.5.0:
     mkdirp "0.5.1"
     supports-color "3.1.2"
 
+moment-round@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/moment-round/-/moment-round-1.0.1.tgz#5baf2b752e85d0f6a227c0a16f6fbe107c2a2d39"
+
 moment@^2.18.1:
   version "2.18.1"
   resolved "https://registry.yarnpkg.com/moment/-/moment-2.18.1.tgz#c36193dd3ce1c2eed2adb7c802dbbc77a81b1c0f"
