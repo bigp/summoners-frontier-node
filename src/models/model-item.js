@@ -27,10 +27,8 @@ module.exports = function() {
 		var heroID = 0;
 		return mgHelpers.prepareAddRequest(Item, req, res, next, opts)
 			.then( user => {
-				if (opts == null) throw 'Cannot add items, "opts" (options) object is null';
-				if (opts.data == null) throw 'Cannot add items, "opts.data" object is null';
-
 				heroID = opts.data.heroID;
+
 				if(isNaN(heroID) || heroID<1) return user;
 
 				return new Promise((resolve, reject) => {

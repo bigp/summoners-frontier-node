@@ -11,7 +11,7 @@ const PRIVATE = $$$.env.ini.PRIVATE;
 const sendAPI = $$$.send.api;
 
 describe('=REST= Shop', () => {
-	if(chaiG.filterLevel < 5) return;
+	if(chaiG.filterLevel < 2) return;
 
 	var chamberlainpi, peter, shopInfo;
 	const randomItemSeeds = chaiG.randomItemSeeds;
@@ -260,4 +260,49 @@ describe('=REST= Shop', () => {
 			})
 			.catch(err => done(err));
 	});
+
+	it('Is Featured Item Purchased?', done => {
+		chamberlainpi.sendAuth('/shop/featured-item', 'get')
+			.then(data => {
+				trace(data);
+				assert.exists(data);
+				// assert.exists(datas.refreshKey, 'Has a refreshKey');
+				// assert.isTrue(datas.refreshKey.seed>-1, 'Has a seed');
+				// assert.isTrue(datas.refreshKey.secondsLeft>=0, 'Has secondsLeft');
+				// assert.isArray(datas.refreshKey.purchased, 'Has purchased[] array.');
+				// assert.isTrue(datas.refreshKey.purchased.length===1, 'Has 1 purchase.');
+				// assert.isTrue(datas.refreshKey.purchased[0]===0, 'Purchase[0] === 0.');
+				//
+				// shopInfo = datas;
+
+				// setTimeout(() => {
+				// 	done();
+				// }, delay);
+
+				done();
+			})
+			.catch(err => done(err));
+	});
+
+	function buyFeaturedItem() {
+		it('Buy Featured Item', done => {
+			chamberlainpi.sendAuth('/shop/featured-item/buy', 'post', {
+				body: {
+					cost: {gold:1},
+					list: [
+						{ identity: 'item_sword', randomSeeds: randomItemSeeds(11,11,11,11) }
+					]
+				}
+			})
+				.then(data => {
+					trace(data);
+					assert.exists(data);
+					done();
+				})
+				.catch(err => done(err));
+		})
+	}
+
+	buyFeaturedItem();
+	//buyFeaturedItem();
 });

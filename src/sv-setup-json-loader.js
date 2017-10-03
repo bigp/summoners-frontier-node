@@ -22,7 +22,10 @@ class JSONLoader extends Events {
 		if(!url) url = this.options.url;
 
 		return $$$.request.get(url, {json: true})
-			.then(json => this.onDataLoaded(json))
+			.then(json => {
+				$$$.emit('json-reloaded');
+				return this.onDataLoaded(json)
+			})
 			.catch(err => {
 				traceError("JSONLoader error!");
 				trace(err);

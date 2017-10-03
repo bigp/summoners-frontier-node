@@ -431,7 +431,7 @@ module.exports = function() {
 				},
 
 				shopInfo: {
-					dateLastPurchasedFeaturedItem: CustomTypes.DateRequired({required: false}),
+					dateLastPurchasedFeaturedItem: CustomTypes.DateRequired({required: false, default: new Date(0)}),
 					refreshKey: {
 						seed: CustomTypes.LargeInt({min: -1, default: -1}),
 						_dateGenerated: CustomTypes.DateRequired({required: false, default: new Date(0)}),

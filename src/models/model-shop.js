@@ -15,7 +15,6 @@ const momentRound = require('moment-round');
 const dateUtils = require('../sv-date-utils');
 
 const SHOP = CONFIG.SHOP;
-const INTERVALS = new dateUtils.IntervalChecker(SHOP.FEATURED_INTERVALS, SHOP.FEATURED_START_TIME);
 
 module.exports = function() {
 	const isRoundedHours = _.isTruthy(SHOP.REFRESHED_ROUNDED_HOURS);
@@ -25,7 +24,57 @@ module.exports = function() {
 		unit: shopExpiresSplit[1]
 	};
 
-	var featuredItem = INTERVALS.getValue();
+	const jsonGlobals = $$$.jsonLoader.globals['preset-1'];
+	const featuredItem = {config: null, interval: null, lastCheck: null, seed: 0};
+
+	$$$.on('json-reloaded', setFeaturedItemIntervals);
+
+	function setFeaturedItemIntervals() {
+		const interval = decodeURIComponent(jsonGlobals.FEATURED_ITEM_INTERVAL);
+		const startTime = decodeURIComponent(jsonGlobals.FEATURED_ITEM_START_TIME);
+		const now = moment();
+
+		var cfg = featuredItem.config = {
+			_interval: interval,
+			_startDate: moment(startTime).set({
+				seconds: now.seconds(),
+				milliseconds: now.milliseconds()
+			})
+		};
+
+		featuredItem.interval = new dateUtils.IntervalChecker(cfg._interval, cfg._startDate);
+
+		trace(featuredItem);
+	}
+
+	setFeaturedItemIntervals();
+
+	function checkUpdateFeaturedItem() {
+		const now = moment().subtract(1, 'second');
+		const diff = !featuredItem.lastCheck ? 0 : now.diff(featuredItem.lastCheck.dateNext);
+		if(diff<0) return;
+
+		featuredItem.lastCheck = featuredItem.interval.getValue();
+		featuredItem.seed = (Math.random() * 2000000000) | 0;
+	}
+
+	setInterval(checkUpdateFeaturedItem, 1000);
+
+	checkUpdateFeaturedItem();
+
+	function createFeatureResponse(dateLast) {
+		dateLast = moment(dateLast);
+		const dateCurrent = featuredItem.lastCheck.dateCurrent;
+		const dateNext = featuredItem.lastCheck.dateNext;
+		const diff = dateLast.diff(dateCurrent);
+
+		return {
+			seed: featuredItem.seed,
+			isItemPurchased: diff > 0,
+			dateCurrent: dateCurrent,
+			dateNext: dateNext
+		}
+	}
 
 	var User, Shop, Item;
 
@@ -34,22 +83,6 @@ module.exports = function() {
 		Shop = $$$.models.Shop;
 		Item = $$$.models.Item;
 	});
-
-	setInterval(() => {
-		featuredItem = INTERVALS.getValue();
-		trace(featuredItem);
-	}, 1000);
-
-	function setFeaturedItemDates() {
-		const dateStart = moment(START_TIME);
-		const now = moment();
-		const diffUnits = now.diff(dateStart, INTERVAL_UNIT);
-		const intervals = (diffUnits / INTERVAL_AMOUNT) | 0;
-		dateStart.add(intervals * INTERVAL_AMOUNT, INTERVAL_UNIT);
-
-		trace(dateStart);
-		process.exit();
-	}
 
 	function createExpiryAndSecondsLeft(source) {
 		if(!source) return null;
@@ -76,9 +109,9 @@ module.exports = function() {
 		return user.save();
 	}
 
-	function isCostMissing(cost, currency, hasSufficient) {
-		const ERROR_COST = 'Missing "cost" field on POST data (specify gold / gems / magic / etc.).';
+	const ERROR_COST = 'Missing "cost" field on POST data (specify gold / gems / magic / etc.).';
 
+	function isCostMissing(cost, currency, hasSufficient) {
 		if(!cost) throw ERROR_COST;
 		if(!currency) throw "Missing argument 'userCurrency' in isCostMissing(...)";
 
@@ -101,7 +134,7 @@ module.exports = function() {
 			hasAnyData = true;
 		});
 
-		if(!hasAnyData) throw ERR_COST;
+		if(!hasAnyData) throw ERROR_COST;
 
 		return false;
 	}
@@ -171,23 +204,59 @@ module.exports = function() {
 					.catch(err => $$$.send.error(res, err.message || err))
 			},
 
-			'buy/featured'(Model, req, res, next, opts) {
+			'featured-item$/'(Model, req, res, next, opts) {
+				const user = req.auth.user;
+				const shopInfo = user.game.shopInfo;
+
+				_.promise(() => {
+					if(mgHelpers.isWrongVerb(req, 'GET')) return;
+
+					mgHelpers.sendFilteredResult(res, createFeatureResponse(shopInfo.dateLastPurchasedFeaturedItem));
+				})
+					.catch(err => {
+						$$$.send.error(res, err.message || err);
+					})
+			},
+
+			'featured-item/buy'(Model, req, res, next, opts) {
 				const user = req.auth.user;
 				const shopInfo = user.game.shopInfo;
 				const currency = user.game.currency;
-				const itemData = opts.data.item;
 				const results = { isPurchased: true };
-				const dateLast = shopInfo.dateLastPurchasedFeaturedItem;
-				const now = moment();
+
+				var itemCost, featureResponse;
 
 				_.promise(() => {
-					if(mgHelpers.isWrongVerb(res, 'POST')) return;
-					if(!itemData) throw 'Missing "item" in POST data.';
-					if(dateLast && dateLast.getTime() < now.getTime()) {
+					if(mgHelpers.isWrongVerb(req, 'POST')) return;
 
-					}
-					shopInfo.dateLastPurchasedFeaturedItem = now;
+					featureResponse = createFeatureResponse(shopInfo.dateLastPurchasedFeaturedItem);
+					if(featureResponse.isItemPurchased) throw 'Item is already purchased!';
+
+					itemCost = opts.data.cost;
+					if(!itemCost) throw ERROR_COST;
+
+					if(isCostMissing(itemCost, currency, true)) return;
+
+					return Item.addItems(req, res, next, opts);
 				})
+					.then( itemResults => {
+						modifyCost(itemCost, currency, -1);
+
+						results.item = itemResults.newest[0];
+						results.currency = currency;
+
+						shopInfo.dateLastPurchasedFeaturedItem = moment();
+
+						return user.save();
+					})
+					.then( saved => {
+						featureResponse = createFeatureResponse(shopInfo.dateLastPurchasedFeaturedItem);
+
+						mgHelpers.sendFilteredResult(res, _.extend(results, featureResponse));
+					})
+					.catch(err => {
+						$$$.send.error(res, err.message || err);
+					})
 			},
 
 			'buy/item'(Model, req, res, next, opts) {
@@ -206,9 +275,8 @@ module.exports = function() {
 					if(isNaN(itemData.seed)) throw 'Missing "item.seed" in POST data.';
 					if(itemData.seed!==refreshKey.seed) throw 'Incorrect "item.seed" used, does not match current refresh seed.';
 
-					if(!opts.data.cost) throw ERR_COST;
-
 					itemCost = opts.data.cost;
+					if(!itemCost) throw ERROR_COST;
 
 					if(isCostMissing(itemCost, currency, true)) return;
 
