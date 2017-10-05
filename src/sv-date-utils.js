@@ -15,27 +15,25 @@ class IntervalChecker {
 
 		if(dateStart) {
 			this.dateStart = _.isString(dateStart) ? moment(dateStart) : dateStart;
+			trace("Starting IntervalChecker from date: " + dateStart);
 		} else {
 			this.dateStart = moment(0);
 		}
+
 	}
 
 	getValue() {
-		const s = this.dateStart;
+		const start = this.dateStart;
 		const i = this.interval;
 		const now = moment();
-		const diff = now.diff(s, i.unit);
+		const diff = now.diff(start, i.unit);
 		const diffSteps = (diff / i.amount);
-		const diffCeil = Math.ceil(diffSteps);
 		const diffFloor = Math.floor(diffSteps);
-		const dateCurrent = s.clone().add(diffFloor * i.amount, i.unit);
-		const dateNext = s.clone().add(diffCeil * i.amount, i.unit);
+		const diffCeil = diffFloor + 1;
+		const dateCurrent = start.clone().add(diffFloor * i.amount, i.unit);
+		const dateNext = start.clone().add(diffCeil * i.amount, i.unit);
 
-		return {
-			steps: diffSteps,
-			dateCurrent: dateCurrent,
-			dateNext: dateNext
-		};
+		return { steps: diffSteps, dateCurrent: dateCurrent, dateNext: dateNext };
 	}
 }
 

@@ -36,22 +36,21 @@ module.exports = function() {
 
 		var cfg = featuredItem.config = {
 			_interval: interval,
-			_startDate: moment(startTime).set({
-				seconds: now.seconds(),
-				milliseconds: now.milliseconds()
-			})
+			_startDate: moment(startTime)
 		};
 
 		featuredItem.interval = new dateUtils.IntervalChecker(cfg._interval, cfg._startDate);
-
-		trace(featuredItem);
 	}
 
 	setFeaturedItemIntervals();
 
 	function checkUpdateFeaturedItem() {
 		const now = moment().subtract(1, 'second');
-		const diff = !featuredItem.lastCheck ? 0 : now.diff(featuredItem.lastCheck.dateNext);
+		const intv = featuredItem.lastCheck;
+		const diff = !intv ? 0 : now.diff(intv.dateNext);
+
+		//intv && trace(intv.dateCurrent.toISOString() + " -- " + intv.dateNext.toISOString());
+
 		if(diff<0) return;
 
 		featuredItem.lastCheck = featuredItem.interval.getValue();
