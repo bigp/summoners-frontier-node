@@ -320,7 +320,7 @@ module.exports = function() {
 					.catch(err => $$$.send.error(res, err.message || err));
 			},
 
-			'sell/item'(Model, req, res, next, opts) {
+			'sell/item$/'(Model, req, res, next, opts) {
 				const user = req.auth.user;
 				const currency = user.game.currency;
 				const cost = opts.data.cost;
@@ -354,7 +354,7 @@ module.exports = function() {
 			},
 
 			//SELL MULTIPLE ITEMS!!!
-			'sell/items'(Model, req, res, next, opts) {
+			'sell/items$/'(Model, req, res, next, opts) {
 				const user = req.auth.user;
 				const currency = user.game.currency;
 				const cost = opts.data.cost;
