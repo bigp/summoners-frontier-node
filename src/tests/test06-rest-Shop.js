@@ -223,6 +223,15 @@ describe('=REST= Shop', () => {
 		}
 	});
 
+	failTest('/sell/item', '(chamberlainpi FAIL item not found)', () => {
+		return {
+			body: {
+				item: {id: 9999},
+				cost: {gold: 1}
+			}
+		}
+	});
+
 	it('/sell/item ... (chamberlainpi OK to sell)', done => {
 		chamberlainpi.sendAuth('/shop/sell/item', 'delete', {
 			body: {
@@ -240,6 +249,24 @@ describe('=REST= Shop', () => {
 			})
 			.catch(err => done(err));
 	});
+
+	// it('/sell/item ... (chamberlainpi OK to sell)', done => {
+	// 	chamberlainpi.sendAuth('/shop/sell/item', 'delete', {
+	// 		body: {
+	// 			item: newItem,
+	// 			cost: {gold: 1},
+	// 		}
+	// 	})
+	// 		.then(data => {
+	// 			assert.exists(data);
+	// 			assert.exists(data.currency);
+	// 			assert.isTrue(data.currency.gold === (chamberlainpi.game.currency.gold + 1), 'Should have some extra gold');
+	// 			assert.isTrue(data.isSold, 'isSold == true?');
+	// 			assert.isTrue(data.numItemsSold===1, 'numItemsSold == 1?');
+	// 			done();
+	// 		})
+	// 		.catch(err => done(err));
+	// });
 
 	it('Get key AND show bought items (chamberlainpi)', done => {
 		chamberlainpi.sendAuth('/shop/key', 'get')

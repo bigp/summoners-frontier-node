@@ -351,6 +351,40 @@ module.exports = function() {
 						mgHelpers.sendFilteredResult(res, results);
 					})
 					.catch(err => $$$.send.error(res, err.message || err));
+			},
+
+			//SELL MULTIPLE ITEMS!!!
+			'sell/items'(Model, req, res, next, opts) {
+				const user = req.auth.user;
+				const currency = user.game.currency;
+				const cost = opts.data.cost;
+				const items = opts.data.items;
+				const results = {isSold: true};
+
+				_.promise(() => {
+					if(mgHelpers.isWrongVerb(req, 'DELETE')) return;
+
+					if(!items || !items.length) throw 'Missing "items" field in POST data!';
+					if(!items[0].id) throw 'Missing "items[0].id" field in POST data!';
+
+					if(isCostMissing(cost, currency, false)) return;
+
+					modifyCost(cost, currency, 1);
+
+					return Promise.all([
+						Item.remove({userId: user.id, id: item.id}),
+						user.save()
+					]);
+				})
+					.then( both => {
+						const removalStatus = both[0].toJSON();
+
+						//const userSaved = both[1];
+						results.numItemsSold = removalStatus.n;
+						results.currency = currency;
+						mgHelpers.sendFilteredResult(res, results);
+					})
+					.catch(err => $$$.send.error(res, err.message || err));
 			}
 		},
 
