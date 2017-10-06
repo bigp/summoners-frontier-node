@@ -371,8 +371,10 @@ module.exports = function() {
 
 					modifyCost(cost, currency, 1);
 
+					var allIDs = items.map(item => item.id);
+
 					return Promise.all([
-						Item.remove({userId: user.id, id: item.id}),
+						Item.remove({userId: user.id, id: {$in: allIDs}}),
 						user.save()
 					]);
 				})
