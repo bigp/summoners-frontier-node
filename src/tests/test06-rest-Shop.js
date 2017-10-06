@@ -273,7 +273,6 @@ describe('=REST= Shop', () => {
 	it('Is Featured Item Purchased?', done => {
 		chamberlainpi.sendAuth('/shop/featured-item', 'get')
 			.then(data => {
-				trace(data);
 				assert.exists(data);
 				// assert.exists(datas.refreshKey, 'Has a refreshKey');
 				// assert.isTrue(datas.refreshKey.seed>-1, 'Has a seed');
@@ -304,7 +303,6 @@ describe('=REST= Shop', () => {
 				}
 			})
 				.then(data => {
-					trace(data);
 					assert.exists(data);
 					done();
 				})

@@ -365,13 +365,17 @@ module.exports = function() {
 					if(mgHelpers.isWrongVerb(req, 'DELETE')) return;
 
 					if(!items || !items.length) throw 'Missing "items" field in POST data!';
+					if(!items[0]) throw 'Empty/null item found on "items[0]"!';
 					if(!items[0].id) throw 'Missing "items[0].id" field in POST data!';
 
 					if(isCostMissing(cost, currency, false)) return;
 
 					modifyCost(cost, currency, 1);
 
-					var allIDs = items.map(item => item.id);
+					var allIDs = items.map((item, i) => {
+						if(!item) throw 'One of the supplied items is null! ' + i;
+						return item.id;
+					});
 
 					return Promise.all([
 						Item.remove({userId: user.id, id: {$in: allIDs}}),
