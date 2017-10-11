@@ -14,17 +14,18 @@ const moment = require('moment');
 const momentRound = require('moment-round');
 const dateUtils = require('../sv-date-utils');
 
-const SHOP = CONFIG.SHOP;
+
 
 module.exports = function() {
-	const isRoundedHours = _.isTruthy(SHOP.REFRESHED_ROUNDED_HOURS);
+	const jsonGlobals = $$$.jsonLoader.globals['preset-1'];
+
+	const isRoundedHours = _.isTruthy(jsonGlobals.SHOP_REFRESH_ROUNDED);
 	const shopExpiresSplit = SHOP.EXPIRE_TIME.split(" ");
 	const shopExpires = {
 		time: shopExpiresSplit[0] | 0,
 		unit: shopExpiresSplit[1]
 	};
 
-	const jsonGlobals = $$$.jsonLoader.globals['preset-1'];
 	const featuredItem = {config: null, interval: null, lastCheck: null, seed: 0};
 
 	$$$.on('json-reloaded', setFeaturedItemIntervals);

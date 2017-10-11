@@ -219,7 +219,7 @@ _.loop = function(cb) {
 };
 
 _.isTruthy = function(bool) {
-	return bool===true || bool===1 || "true,1,on,yes".has(bool);
+	return bool===true || bool===1 || (typeof(bool)=='string' && "true,1,on,yes".has(bool.toLowerCase()));
 };
 
 _.isNullOrEmpty = function(prop) {
