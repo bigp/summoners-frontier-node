@@ -20,11 +20,13 @@ module.exports = function() {
 	const jsonGlobals = $$$.jsonLoader.globals['preset-1'];
 
 	const isRoundedHours = _.isTruthy(jsonGlobals.SHOP_REFRESH_ROUNDED);
-	const shopExpiresSplit = SHOP.EXPIRE_TIME.split(" ");
+	const shopExpiresSplit = decodeURIComponent(jsonGlobals.SHOP_REFRESH_KEY_EXPIRES).split(" ");
 	const shopExpires = {
 		time: shopExpiresSplit[0] | 0,
 		unit: shopExpiresSplit[1]
 	};
+
+	trace(shopExpires);
 
 	const featuredItem = {config: null, interval: null, lastCheck: null, seed: 0};
 

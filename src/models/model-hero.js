@@ -226,6 +226,26 @@ module.exports = function() {
 					});
 			},
 
+			':heroID/rename'(Model, req, res, next, opts) {
+				const user = req.auth.user;
+				const validHero = req.validHero;
+				const customName = opts.data.customName;
+
+				_.promise(() => {
+					if (mgHelpers.isWrongVerb(req, 'PUT')) return;
+
+					validHero.game.customName = customName;
+
+					return validHero.save();
+				})
+					.then( saved => {
+						mgHelpers.sendFilteredResult(res, saved);
+					})
+					.catch(err => {
+						$$$.send.error(res, err.message || err);
+					});
+			},
+
 			':heroID/remove'(Model, req, res, next, opts) {
 				const user = req.auth.user;
 				const validHero = req.validHero;
@@ -310,6 +330,7 @@ module.exports = function() {
 
 			/////////////////////////////////// GAME-SPECIFIC:
 			game: {
+				customName: CustomTypes.StringCustom(24),
 				xp: CustomTypes.LargeInt({required: true, default: 0}),
 				identity: CustomTypes.String128({required:true}),
 				exploringActZone: CustomTypes.Int({required:true, default: 0}),
