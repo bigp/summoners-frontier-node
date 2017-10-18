@@ -105,6 +105,7 @@ module.exports = function() {
 		//const seed = refreshKey.seed;
 		refreshKey.seed = (Math.random() * 2000000) | 0;
 		refreshKey._dateGenerated = isRoundedHours ? now.startOf('hour') : now;
+		refreshKey.purchased = []; //Reset the purchases-indices
 
 		req.shopSession.refreshKey = createExpiryAndSecondsLeft(refreshKey);
 
