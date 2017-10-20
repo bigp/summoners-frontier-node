@@ -68,6 +68,9 @@ describe('=REST= Explorations', () => {
 		assert.equal(data.numHeroes, 3, '# of heroes found.');
 		assert.equal(data.numHeroesModified, 3, '# of heroes modified.');
 		assert.equal(heroes.length, 3, 'heroes[] matches length.');
+		assert.equal(explore.game.party[0], 1, 'Party Member: (1, group leader).');
+		assert.equal(explore.game.party[1], 2, 'Party Member: (2).');
+		assert.equal(explore.game.party[2], 3, 'Party Member: (3).');
 	});
 
 	TEST.OK('put::/1/update', 'Update...', {

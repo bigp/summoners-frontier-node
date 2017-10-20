@@ -154,6 +154,7 @@ module.exports = function() {
 						results.numHeroesModified = heroesUpdated.nModified;
 
 						validActZone.game.dateStarted = exploreData.dateStarted;
+						validActZone.game.party = party;
 
 						return validActZone.save();
 					})
@@ -281,6 +282,7 @@ module.exports = function() {
 			/////////////////////////////////// GAME-SPECIFIC:
 			game: {
 				dateStarted: CustomTypes.DateRequired(),
+				party: [CustomTypes.LargeInt({default: -1})],
 				accumulativeDamage: CustomTypes.LargeInt({required: true, default: 0}),
 				chests: CustomTypes.Int({required: true, default: 0}),
 				actZoneID: CustomTypes.Int({required:true, min: -1, default: -1}),
