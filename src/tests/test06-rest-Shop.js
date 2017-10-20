@@ -9,307 +9,208 @@ const testUsers = chaiG.testUsers;
 const User = $$$.models.User;
 const PRIVATE = $$$.env.ini.PRIVATE;
 const sendAPI = $$$.send.api;
+const TEST = chaiG.makeFailAndOK('shop');
 
 describe('=REST= Shop', () => {
 	if(chaiG.filterLevel < 2) return;
 
-	var chamberlainpi, peter, shopInfo;
-	const randomItemSeeds = chaiG.randomItemSeeds;
-	var delay = 1000;
+	var chamberlainpi, shopInfo, itemIndex0, newItem, intentionalDelay = 1000;
+	var itemRandomSword = [{identity: 'item_sword', randomSeeds: chaiG.randomItemSeeds(4,4,4,4)}];
 
-	it('INIT', done => {
-		chamberlainpi = testUsers.chamberlainpi;
-		peter = testUsers.peter;
-		done();
+	TEST.SET_USER(() => chamberlainpi = testUsers.chamberlainpi);
+
+	TEST.FAIL('delete::/key', '1.1 Get key (FAIL with Wrong Verb)');
+
+	TEST.OK('get::/key', '2 Get key (chamberlainpi)', (data, done) => {
+		if(!data) throw new Error("'data' SHOULD NOT BE NULL!");
+
+		shopInfo = data;
+
+		setTimeout(() => {
+			done();
+		}, intentionalDelay);
 	});
 
-	it('1 Get key without authorization (FAIL)', done => {
-		sendAPI('/shop/key', 'get')
-			.then(data => {
-				done('Should not exists!');
-			})
-			.catch(err => {
-				assert.exists(err);
-				done();
-			});
-	});
+	TEST.OK('get::/key', '3 Get key (chamberlainpi)', (data, done) => {
+		var prevShopInfo = shopInfo;
+		var prevKey = prevShopInfo.refreshKey;
 
-	it('1.1 Get key (FAIL with Wrong Verb)', done => {
-		chamberlainpi.sendAuth('/shop/key', 'delete')
-			.then(data => {
-				done('Should not exists!');
-			})
-			.catch(err => {
-				assert.exists(err);
-				done();
-			});
-	});
+		shopInfo = data;
+		itemIndex0 = {index: 0, seed: shopInfo.refreshKey.seed};
 
-	it('2 Get key (chamberlainpi)', done => {
-		chamberlainpi.sendAuth('/shop/key', 'get')
-			.then(datas => {
-				assert.exists(datas);
-				//assert.exists(datas.global);
+		var key = data.refreshKey;
+		assert.exists(key);
+		assert.exists(key.dateExpires);
+		assert.isTrue(key.seed > 0, 'Is seed > 0');
+		assert.isTrue(key.secondsLeft>0, 'Is seconds left > 0');
+		assert.equal(key.purchased.length, 0, 'Is purchased.length == 0');
+		assert.equal(key.seed, prevKey.seed, 'Is current seed == previous seed');
 
-				shopInfo = datas;
-
-				setTimeout(() => {
-					done();
-				}, delay);
-			})
-			.catch(err => done(err));
-	});
-
-	it('3 Get key (chamberlainpi)', done => {
-		chamberlainpi.sendAuth('/shop/key', 'get')
-			.then(datas => {
-				assert.exists(datas);
-
-				shopInfo = datas;
-
-				setTimeout(() => {
-					done();
-				}, delay);
-			})
-			.catch(err => done(err));
-	});
-
-	it('4 Refresh key (chamberlainpi FAIL with Wrong Verb)', done => {
-		chamberlainpi.sendAuth('/shop/key/refresh', 'get')
-			.then(data => {
-				done('Should not exists!');
-			})
-			.catch(err => {
-				assert.exists(err);
-				done();
-			});
-	});
-
-	it('4 Refresh key (chamberlainpi FAIL missing POST data)', done => {
-		chamberlainpi.sendAuth('/shop/key/refresh', 'put')
-			.then(data => {
-				done('Should not exists!');
-			})
-			.catch(err => {
-				assert.exists(err);
-				done();
-			});
-	});
-
-	it('5 Refresh the key (chamberlainpi)', done => {
-		chamberlainpi.sendAuth('/shop/key/refresh', 'put', {
-			body: {
-				cost: {gold:1}
-			}
-		})
-			.then(data => {
-				shopInfo = data;
-				done();
-			})
-			.catch(err => done(err));
+		setTimeout(() => {
+			done();
+		}, intentionalDelay);
 	});
 	
-	/////////////////////////////////////////////////////////////////
-	
-	function failTest(url, header, body) {
-		it(`/shop${url} ... ${header}`, done => {
-			if(_.isFunction(body)) body = body();
-			chamberlainpi.sendAuth('/shop' + url, 'post', body)
-				.then(data => {
-					done('Should not exists!');
-				})
-				.catch(err => {
-					assert.exists(err);
-					done();
-				});
-		});
-	}
+	///////////////////////////////////////////////////////////////// BUY-ITEM (1)
 
-	failTest('/buy/item', '(chamberlainpi FAIL missing item)');
-	failTest('/buy/item', '(chamberlainpi FAIL item empty)', {
-		body: {
-			item: {}
-		}
+	TEST.FAIL('post::/buy/item', '(chamberlainpi FAIL missing item)');
+	TEST.FAIL('post::/buy/item', '(chamberlainpi FAIL item empty)', () => {
+		return { body: { item: {} } };
 	});
 
-	failTest('/buy/item', '(chamberlainpi FAIL missing seed)', {
-		body: {
-			item: {index: 0}
-		}
+	TEST.FAIL('post::/buy/item', '(chamberlainpi FAIL missing seed)', () => {
+		return { body: { item: {index: 0} } };
 	});
 
-	failTest('/buy/item', '(chamberlainpi FAIL missing valid seed)', {
-		body: {
-			item: {index: 0, seed: -1}
-		}
+	TEST.FAIL('post::/buy/item', '(chamberlainpi FAIL invalid seed)', () => {
+		return { body: { item: {index: 0, seed: -1} } };
 	});
 
-	failTest('/buy/item', '(chamberlainpi FAIL missing cost)', () => {
+	TEST.FAIL('post::/buy/item', '(chamberlainpi FAIL missing cost)', () => {
+		return { body: { item: itemIndex0 } }
+	});
+
+	TEST.FAIL('post::/buy/item', '(chamberlainpi FAIL missing cost fields)', () => {
+		return { body: { item: itemIndex0, cost: {} } }
+	});
+
+	TEST.FAIL('post::/buy/item', '(chamberlainpi FAIL invalid cost value [negative])', () => {
+		return { body: { item: itemIndex0, cost: {gold: -1} } };
+	});
+
+	TEST.FAIL('post::/buy/item', '(chamberlainpi FAIL missing item list)', () => {
+		return { body: { item: itemIndex0, cost: {gold: 1} } };
+	});
+
+	TEST.OK('post::/buy/item', 'Buy an Item (chamberlainpi)', () => {
 		return {
 			body: {
-				item: {index: 0, seed: shopInfo.refreshKey.seed}
-			}
-		}
-	});
-
-	failTest('/buy/item', '(chamberlainpi FAIL missing cost fields)', () => {
-		return {
-			body: {
-				item: {index: 0, seed: shopInfo.refreshKey.seed},
-				cost: {}
-			}
-		}
-	});
-
-	failTest('/buy/item', '(chamberlainpi FAIL invalid cost value [negative])', () => {
-		return {
-			body: {
-				item: {index: 0, seed: shopInfo.refreshKey.seed},
-				cost: {gold: -1}
-			}
-		}
-	});
-
-	failTest('/buy/item', '(chamberlainpi FAIL missing item list)', () => {
-		return {
-			body: {
-				item: {index: 0, seed: shopInfo.refreshKey.seed},
-				cost: {gold: 1}
-			}
-		}
-	});
-
-	var newItem;
-	it('/buy/item ... (chamberlainpi OK)', done => {
-		chamberlainpi.sendAuth('/shop/buy/item', 'post', {
-			body: {
-				item: {index: 0, seed: shopInfo.refreshKey.seed},
+				item: itemIndex0,
 				cost: {gold: 1},
-				list: [{identity: 'item_sword', randomSeeds: randomItemSeeds(4,4,4,4)}],
+				list: itemRandomSword
 			}
-		})
-			.then(data => {
-				assert.exists(data);
-				newItem = data.item;
-				assert.exists(newItem);
-				chamberlainpi.game.currency = data.currency;
-				done(); //'Should not exists!'
-			})
-			.catch(err => done(err));
+		};
+	}, (data) => {
+		//trace(_.jsonPretty(data));
+		//trace(data.shop);
+
+		assert.exists(data.item);
+		assert.exists(data.shop);
+		assert.exists(data.currency);
+		newItem = data.item;
+		chamberlainpi.game.currency = data.currency;
 	});
 
-	failTest('/buy/item', '(chamberlainpi FAIL item already exists valid cost)', () => {
+	TEST.OK('get::/key', 'Get key AND show bought items (chamberlainpi)', (data, done) => {
+		var key = data.refreshKey;
+		assert.exists(key, 'Has a refreshKey');
+		assert.isTrue(key.seed>-1, 'Has a seed');
+		assert.isTrue(key.secondsLeft>=0, 'Has secondsLeft');
+		assert.isArray(key.purchased, 'Has purchased[] array.');
+		assert.isTrue(key.purchased.length===1, 'Has 1 purchase.');
+		assert.isTrue(key.purchased[0]===0, 'Purchase[0] === 0.');
+
+		shopInfo = data;
+
+		setTimeout(() => {
+			done();
+		}, intentionalDelay);
+	});
+
+	///////////////////////////////////////////////////////////////// BUY-ITEM (2)
+
+	TEST.FAIL('post::/buy/item', 'Buy Item (chamberlainpi FAIL item already exists w/ valid cost)', () => {
 		return {
 			body: {
-				item: {index: 0, seed: shopInfo.refreshKey.seed},
-				cost: {gold: 1}
+				item: itemIndex0,
+				cost: {gold: 1},
+				list: itemRandomSword
 			}
 		}
 	});
 
-	failTest('/sell/item', '(chamberlainpi FAIL missing item)', () => {
-		return {
-			body: {
-				cost: {gold: 1}
-			}
-		}
+	///////////////////////////////////////////////////////////////// Refresh Key:
+
+	const bodyRefreshKey = { body: { cost: {gold:1} } };
+
+	TEST.FAIL('get::/key/refresh', 'Refresh key (chamberlainpi FAIL with Wrong Verb)');
+	TEST.FAIL('put::/key/refresh', 'Refresh key (chamberlainpi FAIL missing POST data)');
+	TEST.OK('put::/key/refresh', 'Refresh key (chamberlainpi)', bodyRefreshKey, data => {
+		var key = data.refreshKey;
+
+		shopInfo = data;
+
+		assert.isTrue(data.isRefreshed, 'Is true? [data.isRefreshed]');
+		assert.exists(data.currency, 'Exists? [data.currency]');
+
+		assert.exists(key, 'Exists? [data.refreshKey]');
+		assert.exists(key.purchased, 'Exists? [data.refreshKey.purchased]');
+		assert.isArray(key.purchased, 'Is Array? [data.refreshKey.purchased]');
+		assert.equal(key.purchased.length, 0, 'Is purchased empty array');
+
+		chamberlainpi.game.currency = data.currency;
 	});
 
-	failTest('/sell/item', '(chamberlainpi FAIL missing cost)', () => {
-		return {
-			body: {
-				item: newItem
-			}
-		}
-	});
+	///////////////////////////////////////////////////////////////// Sell Items
 
-	failTest('/sell/item', '(chamberlainpi FAIL item not found)', () => {
+	TEST.OK('delete::/sell/items', 'Sell an Item (chamberlainpi)', () => {
 		return {
-			body: {
-				item: {id: 9999},
-				cost: {gold: 1}
-			}
-		}
-	});
-
-	it('/sell/items ... (chamberlainpi OK to sell)', done => {
-		chamberlainpi.sendAuth('/shop/sell/items', 'delete', {
 			body: {
 				items: [newItem],
 				cost: {gold: 1},
 			}
-		})
-			.then(data => {
-				assert.exists(data);
-				assert.exists(data.currency);
-				assert.isTrue(data.currency.gold === (chamberlainpi.game.currency.gold + 1), 'Should have some extra gold');
-				assert.isTrue(data.isSold, 'isSold == true?');
-				assert.isTrue(data.numItemsSold===1, 'numItemsSold == 1?');
-				done();
-			})
-			.catch(err => done(err));
+		}
+	}, data => {
+		assert.exists(data.currency);
+		assert.isTrue(data.isSold, 'isSold == true?');
+		assert.equal(data.currency.gold, chamberlainpi.game.currency.gold + 1, 'Should have some extra gold');
+		assert.equal(data.numItemsSold, 1, 'numItemsSold == 1?');
+
+		chamberlainpi.game.currency = data.currency;
 	});
 
-	it('Get key AND show bought items (chamberlainpi)', done => {
-		chamberlainpi.sendAuth('/shop/key', 'get')
-			.then(datas => {
-				assert.exists(datas);
-				assert.exists(datas.refreshKey, 'Has a refreshKey');
-				assert.isTrue(datas.refreshKey.seed>-1, 'Has a seed');
-				assert.isTrue(datas.refreshKey.secondsLeft>=0, 'Has secondsLeft');
-				assert.isArray(datas.refreshKey.purchased, 'Has purchased[] array.');
-				assert.isTrue(datas.refreshKey.purchased.length===1, 'Has 1 purchase.');
-				assert.isTrue(datas.refreshKey.purchased[0]===0, 'Purchase[0] === 0.');
+	///////////////////////////////////////////////////////////////// Get / Buy Featured Item:
 
-				shopInfo = datas;
-
-				setTimeout(() => {
-					done();
-				}, delay);
-			})
-			.catch(err => done(err));
-	});
-
-	it('Is Featured Item Purchased?', done => {
-		chamberlainpi.sendAuth('/shop/featured-item', 'get')
-			.then(data => {
-				assert.exists(data);
-				// assert.exists(datas.refreshKey, 'Has a refreshKey');
-				// assert.isTrue(datas.refreshKey.seed>-1, 'Has a seed');
-				// assert.isTrue(datas.refreshKey.secondsLeft>=0, 'Has secondsLeft');
-				// assert.isArray(datas.refreshKey.purchased, 'Has purchased[] array.');
-				// assert.isTrue(datas.refreshKey.purchased.length===1, 'Has 1 purchase.');
-				// assert.isTrue(datas.refreshKey.purchased[0]===0, 'Purchase[0] === 0.');
-				//
-				// shopInfo = datas;
-
-				// setTimeout(() => {
-				// 	done();
-				// }, delay);
-
-				done();
-			})
-			.catch(err => done(err));
-	});
-
-	function buyFeaturedItem() {
-		it('Buy Featured Item', done => {
-			chamberlainpi.sendAuth('/shop/featured-item/buy', 'post', {
-				body: {
-					cost: {gold:1},
-					list: [
-						{ identity: 'item_sword', randomSeeds: randomItemSeeds(11,11,11,11) }
-					]
-				}
-			})
-				.then(data => {
-					assert.exists(data);
-					done();
-				})
-				.catch(err => done(err));
-		})
+	function getFeaturedItem(title, isPurchased) {
+		TEST.OK('get::/featured-item', title, data => {
+			assert.isTrue(data.seed > 0, 'Is seed > 0');
+			assert.isTrue(data.isItemPurchased===isPurchased, 'isItemPurchased == ' + isPurchased);
+			assert.exists(data.dateCurrent, 'dateCurrent exists');
+			assert.exists(data.dateNext, 'dateNext exists');
+		});
 	}
 
-	buyFeaturedItem();
+
+	function buyFeaturedItem(isOK) {
+		const body = {
+			body: {
+				cost: {gold:1},
+				list: [{ identity: 'item_sword', randomSeeds: chaiG.randomItemSeeds(11,11,11,11) }]
+			}
+		};
+
+		if(isOK) {
+			TEST.OK('post::/featured-item/buy', 'Buy Featured Item', body, data => {
+				assert.isTrue(data.isItemPurchased, 'isItemPurchased == true');
+				assert.exists(data.item, 'item exists');
+				assert.exists(data.item.game, 'item.game exists');
+				assert.exists(data.currency, 'currency exists');
+				assert.exists(data.dateCurrent, 'dateCurrent exists');
+				assert.exists(data.dateNext, 'dateNext exists');
+				assert.isTrue(data.seed > 0, 'seed > 0');
+				assert.equal(data.currency.gold, chamberlainpi.game.currency.gold - 1, 'Should have gold - 1');
+			});
+		} else {
+			TEST.FAIL('post::/featured-item/buy', 'Buy Featured Item (FAIL)', body);
+		}
+	}
+
+	getFeaturedItem("Get FEATURED-ITEM (BEFORE)", false);
+
+	buyFeaturedItem(true);
+	buyFeaturedItem(false);
+
+	getFeaturedItem("Get FEATURED-ITEM (AFTER)", true);
+
 	//buyFeaturedItem();
 });

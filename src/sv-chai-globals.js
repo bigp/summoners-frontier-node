@@ -49,16 +49,16 @@ const chaiG = module.exports = {
 	},
 
 	makeFailAndOK(prefix) {
-		var testMethods = {
+		var TEST_METHODS = {
 			testUser: null,
 
 			SET_USER: (method) => {
 				it('/.../ SETTING USER...', () => {
-					testMethods.testUser = method();
+					TEST_METHODS.testUser = method();
 				});
 			},
 
-			OK(url, header, body, onData) {
+			RESOLVE_URL(url, body) {
 				var method = "get";
 
 				if(url.has('::')) {
@@ -67,41 +67,58 @@ const chaiG = module.exports = {
 					url = urlSplit[1];
 				}
 
-				it(`/${prefix}${url} ... ${header}`, done => {
-					if(_.isFunction(body)) body = body();
-					testMethods.testUser.sendAuth('/' + prefix + url, method, body)
+				if(!_.isFunction(body)) {
+					var str = body;
+					body = () => str;
+				}
+
+				return {url: `/${prefix}${url}`, padded: _.padEnd(`${method}::/${prefix}${url}`, 30) + "> ", method: method, getBody: body};
+			},
+
+			OK(url, title, body, onData) {
+				if(!onData) {
+					onData = body;
+					body = null;
+				}
+				const resolved = TEST_METHODS.RESOLVE_URL(url, body);
+
+				it(resolved.padded + title, done => {
+					TEST_METHODS.testUser.sendAuth(resolved.url, resolved.method, resolved.getBody())
 						.then(data => {
 							assert.exists(data);
+
+							if(onData.length===2) {
+								onData(data, done);
+								return;
+							}
+
 							onData(data);
 							done();
 						})
-						.catch(err => done(err));
+						.catch(err => {
+							trace((`TEST.OK in '${prefix}' got an error:\n` + (err.message || err)).red);
+							//trace(err.stack);
+							done(err)
+						});
 				});
 			},
 
-			FAIL(url, header, body) {
-				var method = "get";
-				if(url.has('::')) {
-					var urlSplit = url.split('::');
-					method = urlSplit[0];
-					url = urlSplit[1];
-				}
+			FAIL(url, title, body, giveReason) {
+				const resolved = TEST_METHODS.RESOLVE_URL(url, body);
 
-				it(('* '.red) + `/${prefix}${url} ... ${header}`, done => {
-					if(_.isFunction(body)) body = body();
-					testMethods.testUser.sendAuth('/' + prefix + url, method, body)
-						.then(data => {
-							done('Should not exists!');
-						})
+				it(resolved.padded + ('* '.red) + title, done => {
+					TEST_METHODS.testUser.sendAuth(resolved.url, resolved.method, resolved.getBody())
+						.then(data => done('Should not exists!'))
 						.catch(err => {
-							//trace('    ' + (err.message).yellow);
 							assert.exists(err);
 							done();
+							if(giveReason) trace((err.message || err).toString().yellow);
+
 						});
 				});
 			}
 		};
 
-		return testMethods;
+		return TEST_METHODS;
 	}
 };

@@ -128,8 +128,8 @@ const mgHelpers = {
 	isWrongVerb(req, shouldBeVerb) {
 		if(req.method===shouldBeVerb) return false;
 
-		//$$$.send.error // new Error(
-		throw `Can only use ${req.url} with '${shouldBeVerb}' HTTP Verb, you used '${req.method}'.`;
+		const partURL = req.fullURL.split('/api')[1];
+		throw `'${partURL}' Can only be used with HTTP Verb '${shouldBeVerb}', not '${req.method}'`;
 
 		return true;
 	},

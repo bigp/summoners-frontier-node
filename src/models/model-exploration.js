@@ -77,7 +77,7 @@ module.exports = function() {
 						return next();
 					})
 					.catch( err => {
-						$$$.send.error(res, (err.message || err))
+						$$$.send.error(res, err)
 					});
 			},
 
@@ -92,7 +92,7 @@ module.exports = function() {
 					mgHelpers.sendFilteredResult(res, validActZone);
 				})
 					.catch( err => {
-						$$$.send.error(res, (err.message || err));
+						$$$.send.error(res, err);
 					})
 			},
 
@@ -163,7 +163,7 @@ module.exports = function() {
 						//trace("Alright, add / update the exploration now");
 						mgHelpers.sendFilteredResult(res, results);
 					})
-					.catch(err => $$$.send.error(res, (err.message || err)));
+					.catch(err => $$$.send.error(res, err));
 			},
 
 			///////////////////////////////////////////////////////// ^^^^^^^^^^^
@@ -186,7 +186,7 @@ module.exports = function() {
 					.then( saved => {
 						mgHelpers.sendFilteredResult(res, saved);
 					})
-					.catch( err => $$$.send.error(res, (err.message || err)));
+					.catch( err => $$$.send.error(res, err));
 			},
 
 			':actZoneID/remove'(Model, req, res, next, opts) {
@@ -225,7 +225,7 @@ module.exports = function() {
 
 						mgHelpers.sendFilteredResult(res, results);
 					})
-					.catch( err => $$$.send.error(res, (err.message || err)));
+					.catch( err => $$$.send.error(res, err));
 			},
 
 			'list/'(Model, req, res, next, opts) {
@@ -239,7 +239,7 @@ module.exports = function() {
 					.then( results => {
 						mgHelpers.sendFilteredResult(res, results);
 					})
-					.catch( err => $$$.send.error(res, (err.message || err)));
+					.catch( err => $$$.send.error(res, err));
 
 			},
 
@@ -266,7 +266,7 @@ module.exports = function() {
 
 						mgHelpers.sendFilteredResult(res, results);
 					})
-					.catch( err => $$$.send.error(res, (err.message || err)));
+					.catch( err => $$$.send.error(res, err));
 			},
 		},
 

@@ -6,31 +6,45 @@ const gameHelpers = require('../sv-json-helpers');
 const mgHelpers = require('../sv-mongo-helpers');
 const mongoose = mgHelpers.mongoose;
 const Schema  = mongoose.Schema;
-const Types  = Schema.Types;
 const CustomTypes  = mongoose.CustomTypes;
-const ObjectId = Types.ObjectId;
-const CONFIG = $$$.env.ini;
 const moment = require('moment');
-const momentRound = require('moment-round');
 const dateUtils = require('../sv-date-utils');
 
 
 
 module.exports = function() {
-	const jsonGlobals = $$$.jsonLoader.globals['preset-1'];
+	var User, Shop, Item, jsonGlobals;
 
-	const isRoundedHours = _.isTruthy(jsonGlobals.SHOP_REFRESH_ROUNDED);
-	const shopExpiresSplit = decodeURIComponent(jsonGlobals.SHOP_REFRESH_KEY_EXPIRES).split(" ");
-	const shopExpires = {
-		time: shopExpiresSplit[0] | 0,
-		unit: shopExpiresSplit[1]
-	};
+	process.nextTick( () => {
+		User = $$$.models.User;
+		Shop = $$$.models.Shop;
+		Item = $$$.models.Item;
+	});
 
-	trace(shopExpires);
-
+	const shopConfig = {isRoundedHours: false, expires: null};
 	const featuredItem = {config: null, interval: null, lastCheck: null, seed: 0};
 
-	$$$.on('json-reloaded', setFeaturedItemIntervals);
+	function onJSONReloaded() {
+		jsonGlobals = $$$.jsonLoader.globals['preset-1'];
+		shopConfig.isRoundedHours = _.isTruthy(jsonGlobals.SHOP_REFRESH_ROUNDED);
+
+		const expireSplit = decodeURIComponent(jsonGlobals.SHOP_REFRESH_KEY_EXPIRES).split(" ");
+		shopConfig.expires = {
+			time: expireSplit[0] | 0,
+			unit: expireSplit[1]
+		};
+
+		trace(shopConfig);
+
+		setFeaturedItemIntervals();
+	}
+
+
+	$$$.on('json-reloaded', onJSONReloaded);
+	onJSONReloaded();
+
+	setInterval(checkUpdateFeaturedItem, 1000);
+
 
 	function setFeaturedItemIntervals() {
 		const interval = decodeURIComponent(jsonGlobals.FEATURED_ITEM_INTERVAL);
@@ -45,14 +59,10 @@ module.exports = function() {
 		featuredItem.interval = new dateUtils.IntervalChecker(cfg._interval, cfg._startDate);
 	}
 
-	setFeaturedItemIntervals();
-
 	function checkUpdateFeaturedItem() {
 		const now = moment().subtract(1, 'second');
-		const intv = featuredItem.lastCheck;
-		const diff = !intv ? 0 : now.diff(intv.dateNext);
-
-		//intv && trace(intv.dateCurrent.toISOString() + " -- " + intv.dateNext.toISOString());
+		const lastCheck = featuredItem.lastCheck;
+		const diff = !lastCheck ? 0 : now.diff(lastCheck.dateNext);
 
 		if(diff<0) return;
 
@@ -60,12 +70,9 @@ module.exports = function() {
 		featuredItem.seed = (Math.random() * 2000000000) | 0;
 	}
 
-	setInterval(checkUpdateFeaturedItem, 1000);
-
-	checkUpdateFeaturedItem();
-
 	function createFeatureResponse(dateLast) {
 		dateLast = moment(dateLast);
+
 		const dateCurrent = featuredItem.lastCheck.dateCurrent;
 		const dateNext = featuredItem.lastCheck.dateNext;
 		const diff = dateLast.diff(dateCurrent);
@@ -78,39 +85,34 @@ module.exports = function() {
 		}
 	}
 
-	var User, Shop, Item;
-
-	process.nextTick( () => {
-		User = $$$.models.User;
-		Shop = $$$.models.Shop;
-		Item = $$$.models.Item;
-	});
-
 	function createExpiryAndSecondsLeft(source) {
 		if(!source) return null;
 		const results = source.toJSON ? source.toJSON() : _.clone(source);
 		const date = moment(source._dateGenerated);
-		const expires = date.clone().add(shopExpires.time, shopExpires.unit);
+		const expires = date.clone().add(shopConfig.expires.time, shopConfig.expires.unit);
 
 		results.dateExpires = expires.toDate();
 		results.secondsLeft = expires.diff(moment(), "seconds");
 		return results;
 	}
 
-	function refreshUserKey(req) {
+	function saveRefreshedKey(req) {
 		const user = req.auth.user;
-		const refreshKey = user.game.shopInfo.refreshKey;
+		const refreshKey = user.game.shopInfo.refreshKey; //.toJSON();
 		const now = moment();
 
-		//const seed = refreshKey.seed;
+
 		refreshKey.seed = (Math.random() * 2000000) | 0;
-		refreshKey._dateGenerated = isRoundedHours ? now.startOf('hour') : now;
+		refreshKey._dateGenerated = shopConfig.isRoundedHours ? now.startOf('hour') : now;
 		refreshKey.purchased = []; //Reset the purchases-indices
 
 		req.shopSession.refreshKey = createExpiryAndSecondsLeft(refreshKey);
 
 		return user.save();
 	}
+
+
+	checkUpdateFeaturedItem();
 
 	const ERROR_COST = 'Missing "cost" field on POST data (specify gold / gems / magic / etc.).';
 
@@ -122,8 +124,12 @@ module.exports = function() {
 		var hasAnyData = false;
 		_.keys(cost).forEach( coinType => {
 			const value = cost[coinType];
-			if(isNaN(value) || value <= 0) {
+			if(isNaN(value)) {
 				throw 'Invalid currency value for type: ' + coinType;
+			}
+
+			if(value <= 0) {
+				throw 'Cost values must be greater than zero (0): ' + coinType;
 			}
 
 			if(isNaN(currency[coinType])) {
@@ -157,30 +163,34 @@ module.exports = function() {
 			'*'(Model, req, res, next, opts) {
 				const user = req.auth.user;
 				const shopInfo = user.game.shopInfo;
-				var refreshKey = createExpiryAndSecondsLeft(shopInfo.refreshKey);
+				const refreshKey = createExpiryAndSecondsLeft(shopInfo.refreshKey);
 				req.shopSession = { refreshKey: refreshKey };
 
 				Model.find({userId: user.id, 'game.item.seed': refreshKey.seed })
 					.then( purchases => {
-						var purchaseIndices = purchases.map( i => i.game.item.index );
-
-						refreshKey.purchased = purchaseIndices;
+						refreshKey.purchased = purchases.length==0 ? [] : purchases.map( i => i.game.item.index );
 
 						if(refreshKey.secondsLeft < 0) {
-							return refreshUserKey(req).then(() => next());
+							req.shopSession.isRefreshing = true;
+							return saveRefreshedKey(req);
 						}
 
-						next();
-					});
+						return user;
+					})
+					.then(() => next());
 			},
 
-			'key$/'(Model, req, res, next, opts) {
+			'key$'(Model, req, res, next, opts) {
 				_.promise(() => {
 					if(mgHelpers.isWrongVerb(req, 'GET')) return;
 
+					if(req.shopSession.isRefreshing) {
+						trace("Seconds left < 0, resetting to " + req.shopSession.refreshKey.secondsLeft);
+					}
+
 					mgHelpers.sendFilteredResult(res, req.shopSession);
 				})
-					.catch(err => $$$.send.error(res, err.message))
+					.catch(err => $$$.send.error(res, err))
 			},
 
 			'key/refresh'(Model, req, res, next, opts) {
@@ -194,7 +204,7 @@ module.exports = function() {
 
 					modifyCost(cost, currency, -1);
 
-					return refreshUserKey(req);
+					return saveRefreshedKey(req);
 				})
 					.then(savedUser => {
 						var results = _.extend({
@@ -204,7 +214,7 @@ module.exports = function() {
 
 						mgHelpers.sendFilteredResult(res, results);
 					})
-					.catch(err => $$$.send.error(res, err.message || err))
+					.catch(err => $$$.send.error(res, err))
 			},
 
 			'featured-item$/'(Model, req, res, next, opts) {
@@ -217,7 +227,7 @@ module.exports = function() {
 					mgHelpers.sendFilteredResult(res, createFeatureResponse(shopInfo.dateLastPurchasedFeaturedItem));
 				})
 					.catch(err => {
-						$$$.send.error(res, err.message || err);
+						$$$.send.error(res, err);
 					})
 			},
 
@@ -225,7 +235,7 @@ module.exports = function() {
 				const user = req.auth.user;
 				const shopInfo = user.game.shopInfo;
 				const currency = user.game.currency;
-				const results = { isPurchased: true };
+				const results = { isItemPurchased: true };
 
 				var itemCost, featureResponse;
 
@@ -258,7 +268,7 @@ module.exports = function() {
 						mgHelpers.sendFilteredResult(res, _.extend(results, featureResponse));
 					})
 					.catch(err => {
-						$$$.send.error(res, err.message || err);
+						$$$.send.error(res, err);
 					})
 			},
 
@@ -267,7 +277,7 @@ module.exports = function() {
 				const currency = user.game.currency;
 				const itemData = opts.data.item;
 				const refreshKey = req.shopSession.refreshKey;
-				const results = { isPurchased: true };
+				const results = { isItemPurchased: true };
 
 				var itemCost;
 
@@ -276,7 +286,11 @@ module.exports = function() {
 					if(!itemData) throw 'Missing "item" in POST data.';
 					if(isNaN(itemData.index)) throw 'Missing "item.index" in POST data.';
 					if(isNaN(itemData.seed)) throw 'Missing "item.seed" in POST data.';
-					if(itemData.seed!==refreshKey.seed) throw 'Incorrect "item.seed" used, does not match current refresh seed.';
+					if(itemData.seed!==refreshKey.seed) {
+						//trace(req.shopSession.refreshKey.seed);
+						//trace('req.shopSession.refreshKey: '.red + itemData.seed + " is not equal (!=) " + refreshKey.seed );
+						throw 'Incorrect "item.seed" used, does not match current refresh seed.';
+					}
 
 					itemCost = opts.data.cost;
 					if(!itemCost) throw ERROR_COST;
@@ -291,7 +305,7 @@ module.exports = function() {
 				})
 					.then( existingItems => {
 						if(existingItems && existingItems.length>0) {
-							throw 'You already purchased this item: ' + _.jsonPretty(existingItems[0]);
+							throw `You already purchased this item: {index: ${itemData.index}, seed: ${itemData.seed}}`;
 						}
 
 						//Add the items to the list:
@@ -321,7 +335,7 @@ module.exports = function() {
 
 						mgHelpers.sendFilteredResult(res, results);
 					})
-					.catch(err => $$$.send.error(res, err.message || err));
+					.catch(err => $$$.send.error(res, err));
 			},
 
 			'sell/item$/'(Model, req, res, next, opts) {
@@ -354,7 +368,7 @@ module.exports = function() {
 						results.currency = currency;
 						mgHelpers.sendFilteredResult(res, results);
 					})
-					.catch(err => $$$.send.error(res, err.message || err));
+					.catch(err => $$$.send.error(res, err));
 			},
 
 			//SELL MULTIPLE ITEMS!!!
@@ -394,7 +408,7 @@ module.exports = function() {
 						results.currency = currency;
 						mgHelpers.sendFilteredResult(res, results);
 					})
-					.catch(err => $$$.send.error(res, err.message || err));
+					.catch(err => $$$.send.error(res, err));
 			}
 		},
 

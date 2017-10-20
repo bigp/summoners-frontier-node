@@ -76,7 +76,7 @@ module.exports = function() {
 						mgHelpers.sendFilteredResult(res, saved);
 					})
 					.catch(err => {
-						$$$.send.error(res, err.message || err);
+						$$$.send.error(res, err);
 					});
 			},
 
@@ -237,7 +237,7 @@ module.exports = function() {
 					mgHelpers.sendFilteredResult(res, results);
 				})
 					.catch(err => {
-						$$$.send.error(res, err.message || err);
+						$$$.send.error(res, err);
 					})
 			},
 
@@ -282,7 +282,7 @@ module.exports = function() {
 						mgHelpers.sendFilteredResult(res, saved);
 					})
 					.catch( err => {
-						$$$.send.error(res, err.message || err);
+						$$$.send.error(res, err);
 					})
 			}
 		},
@@ -433,6 +433,7 @@ module.exports = function() {
 				shopInfo: {
 					dateLastPurchasedFeaturedItem: CustomTypes.DateRequired({required: false, default: new Date(0)}),
 					refreshKey: {
+						purchased: [CustomTypes.Int()],
 						seed: CustomTypes.LargeInt({min: -1, default: -1}),
 						_dateGenerated: CustomTypes.DateRequired({required: false, default: new Date(0)}),
 					}

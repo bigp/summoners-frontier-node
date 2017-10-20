@@ -15,7 +15,7 @@ class IntervalChecker {
 
 		if(dateStart) {
 			this.dateStart = _.isString(dateStart) ? moment(dateStart) : dateStart;
-			trace("Starting IntervalChecker from date: " + dateStart);
+			trace("Starting IntervalChecker from date: " + this.dateStart.toISOString());
 		} else {
 			this.dateStart = moment(0);
 		}

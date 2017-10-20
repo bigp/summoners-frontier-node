@@ -67,7 +67,7 @@ module.exports = function() {
 						mgHelpers.sendFilteredResult(res, heroes);
 					})
 					.catch( err => {
-						$$$.send.error(res, "Could not list available heroes!", err.message || err);
+						$$$.send.error(res, "Could not list available heroes!", err);
 					})
 			},
 
@@ -156,7 +156,7 @@ module.exports = function() {
 						mgHelpers.sendFilteredResult(res, saved);
 					})
 					.catch( err => {
-						$$$.send.error(res, err.message || err);
+						$$$.send.error(res, err);
 					})
 			},
 
@@ -177,7 +177,7 @@ module.exports = function() {
 						mgHelpers.sendFilteredResult(res, saved);
 					})
 					.catch(err => {
-						$$$.send.error(res, err.message || err);
+						$$$.send.error(res, err);
 					});
 			},
 
@@ -201,7 +201,7 @@ module.exports = function() {
 						mgHelpers.sendFilteredResult(res, saved);
 					})
 					.catch(err => {
-						$$$.send.error(res, err.message || err);
+						$$$.send.error(res, err);
 					});
 			},
 
@@ -222,7 +222,7 @@ module.exports = function() {
 						mgHelpers.sendFilteredResult(res, saved);
 					})
 					.catch(err => {
-						$$$.send.error(res, err.message || err);
+						$$$.send.error(res, err);
 					});
 			},
 
@@ -242,7 +242,7 @@ module.exports = function() {
 						mgHelpers.sendFilteredResult(res, saved);
 					})
 					.catch(err => {
-						$$$.send.error(res, err.message || err);
+						$$$.send.error(res, err);
 					});
 			},
 
@@ -312,7 +312,7 @@ module.exports = function() {
 					.then( updated => {
 						mgHelpers.sendFilteredResult(res, updated);
 					})
-					.catch( err => $$$.send.error(res, (err.message || err)));
+					.catch( err => $$$.send.error(res, err));
 			}
 		},
 

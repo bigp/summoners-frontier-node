@@ -128,23 +128,24 @@ _.extend($$$, {
 	},
 
 	send: {
-		error(res, errMessage, data) {
+		error(res, err, data) {
 			const isResOK = res.constructor.name==='ServerResponse';
 			if(!isResOK) {
 				var stack = new Error().stack;
-				trace(errMessage);
+				trace(err);
 				throw new Error("\nYou may have mixed the 'res' arguments in the send.error call...\n".red + stack);
 			}
 
-			const err = {
+			const errResponse = {
 				url: res.req.fullURL,
+				method: res.req.method,
 				headers: $$$.send.makeResponseHeader(res),
 				data: data,
-				error: errMessage,
+				error: err ? (err.message || err) : '*null-error*',
 			};
 
 			//$$$.morganLogger.error(JSON.stringify( err ));
-			res.status(500).send(err);
+			res.status(500).send(errResponse);
 			return false;
 		},
 

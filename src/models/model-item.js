@@ -45,7 +45,7 @@ module.exports = function() {
 						.catch(err => reject(err));
 				});
 			})
-			.then(user => {
+			.then( user => {
 				var jsonItems, validIdentities;
 
 				try {
@@ -141,7 +141,7 @@ module.exports = function() {
 						mgHelpers.sendFilteredResult(res, items);
 					})
 					.catch(err => {
-						$$$.send.error(res, "Could not get list of items for user ID: " + req.auth.user.id, err);
+						$$$.send.error(res, err, "Could not get list of items for user ID: " + req.auth.user.id);
 					})
 			},
 
@@ -153,14 +153,14 @@ module.exports = function() {
 						mgHelpers.sendFilteredResult(res, items);
 					})
 					.catch(err => {
-						$$$.send.error(res, "Could not get list of items for user ID: " + req.auth.user.id, err.message);
+						$$$.send.error(res, err, "Could not get list of items for user ID: " + req.auth.user.id);
 					})
 			},
 
 			'equipped-on/:heroID?'(Model, req, res, next, opts) {
 				const heroID = req.params.heroID;
 				if(isNaN(heroID) || heroID < 1) {
-					return $$$.send.error(res, "Must provide a Hero ID greater-than ZERO (0). Want unequipped items? Use /item/equipped-off instead.");
+					return $$$.send.error(res, new Error("Hero Error"), "Must provide a Hero ID greater-than ZERO (0). Want unequipped items? Use /item/equipped-off instead.");
 				}
 
 				opts.query = {'game.heroEquipped': heroID};
@@ -170,7 +170,7 @@ module.exports = function() {
 						mgHelpers.sendFilteredResult(res, items);
 					})
 					.catch(err => {
-						$$$.send.error(res, "Could not get list of items for user ID: " + req.auth.user.id, err.message);
+						$$$.send.error(res, err, "Could not get list of items for user ID: " + req.auth.user.id);
 					})
 			},
 
@@ -182,7 +182,7 @@ module.exports = function() {
 					})
 					.catch(err => {
 						const str = !$$$.errorData ? '' : JSON.stringify($$$.errorData);
-						$$$.send.error(res, "Could not add items! " + (err.message || err) + str, err);
+						$$$.send.error(res, err, "Could not add items! " + str);
 					});
 			},
 
@@ -225,7 +225,7 @@ module.exports = function() {
 						mgHelpers.sendFilteredResult(res, saved);
 					})
 					.catch( err => {
-						$$$.send.error(res, err.message || err);
+						$$$.send.error(res, err);
 					})
 			},
 

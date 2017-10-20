@@ -57,7 +57,7 @@ module.exports = function() {
 					.then( saved => {
 						mgHelpers.sendFilteredResult(res, saved);
 					})
-					.catch( err => $$$.send.error(res, (err.message || err)));
+					.catch( err => $$$.send.error(res, err));
 			},
 
 			'list/'(Model, req, res, next, opts) {
@@ -71,7 +71,7 @@ module.exports = function() {
 					.then( results => {
 						mgHelpers.sendFilteredResult(res, results);
 					})
-					.catch( err => $$$.send.error(res, (err.message || err)));
+					.catch( err => $$$.send.error(res, err));
 
 			},
 
@@ -94,7 +94,7 @@ module.exports = function() {
 							numRemoved: results.n
 						});
 					})
-					.catch( err => $$$.send.error(res, (err.message || err)));
+					.catch( err => $$$.send.error(res, err));
 			}
 		},
 

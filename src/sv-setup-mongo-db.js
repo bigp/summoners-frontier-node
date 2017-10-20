@@ -3,8 +3,6 @@
  */
 const mgHelpers = require('./sv-mongo-helpers');
 const mongoose = require('mongoose');
-const sendError = $$$.send.error;
-const sendResult = $$$.send.result;
 const sendNotImplemented = $$$.send.notImplemented;
 const sendEmpty = $$$.send.empty;
 const MONGO_ENV = $$$.env.ini.MONGO.ENV;
@@ -84,23 +82,23 @@ function forEachModel(schemaFile, name) {
 	});
 
 	api.use(adminRoutes + "$", (req, res, next) => {
-		if(!req.auth.isAdmin) return sendError(res, "Only admin can call this.");
+		if(!req.auth.isAdmin) return $$$.send.error(res, "Only admin can call this.");
 
 		Model.find({})
 			.then(list => {
 				mgHelpers.sendFilteredResult(res, list);
 			})
 			.catch(err => {
-				sendError(res, err.message || err);
+				$$$.send.error(res, err.message || err);
 			});
 	});
 
 	api.use(adminRoutes + '/count', (req, res, next) => {
-		if(!req.auth.isAdmin) return sendError(res, "Can't count here.");
+		if(!req.auth.isAdmin) return $$$.send.error(res, "Can't count here.");
 
 		Model.count((err, count) => {
-			if(err) return sendError(res, `Could not count model '${Model._nameTitled}':\n`+err.message);
-			sendResult(res, {count: count});
+			if(err) return $$$.send.error(res, `Could not count model '${Model._nameTitled}':\n`+err.message);
+			$$$.send.result(res, {count: count});
 		})
 	});
 }
