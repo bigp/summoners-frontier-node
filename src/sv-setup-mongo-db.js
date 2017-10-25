@@ -9,7 +9,7 @@ const MONGO_ENV = $$$.env.ini.MONGO.ENV;
 const NODE_ENV = $$$.env().toUpperCase();
 const CONFIG = $$$.env.ini.PRIVATE[MONGO_ENV || 'MONGO_' + NODE_ENV];
 
-module.exports = mongoSetup;
+module.exports = _.extend(mongoSetup, {createMongoModels});
 
 function mongoSetup() {
 	return new Promise((resolve, reject) => {
@@ -33,10 +33,6 @@ function mongoSetup() {
 		mgHelpers.plugins.autoIncrement.initialize(conn);
 	});
 }
-
-_.extend(mongoSetup, {
-	createMongoModels
-});
 
 function createMongoModels() {
 	return new Promise((resolve, reject) => {

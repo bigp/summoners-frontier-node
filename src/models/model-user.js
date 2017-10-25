@@ -17,6 +17,7 @@ module.exports = function() {
 	var User, Item, Hero, Shop, LootCrate, Exploration;
 
 	process.nextTick(() => {
+		trace("In model-user.js:".magenta);
 		traceProps($$$.models);
 
 		User = $$$.models.User;
@@ -25,8 +26,6 @@ module.exports = function() {
 		Item = $$$.models.Item;
 		LootCrate = $$$.models.Lootcrate;
 		Exploration = $$$.models.Exploration;
-
-		//User.updateCurrency = updateCurrency;
 	});
 
 	return {

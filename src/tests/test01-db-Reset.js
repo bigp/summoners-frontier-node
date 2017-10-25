@@ -28,7 +28,10 @@ describe('=MONGO= Users', () => {
 
 		db.listCollections().toArray()
 			.then(list => {
-				chaiG.collectionNames = list.map(db => db.name).filter(listName => listName!=='identitycounters');
+				chaiG.collectionNames = list
+					.map(db => db.name)
+					.filter(listName => listName!=='identitycounters');
+
 				trace("Mongo Collections: ".yellow + chaiG.collectionNames.join(', '));
 
 				setTimeout(done, 250);
