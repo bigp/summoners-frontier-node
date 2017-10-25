@@ -65,7 +65,7 @@ describe('=REST= Heroes', () => {
 				list: [
 					{identity: 'hero_marauder', randomSeeds: {variance: 1}},
 					{identity: 'hero_guardian', randomSeeds: {variance: 2}},
-					{identity: 'hero_battlemage', randomSeeds: {variance: 3}},
+					{identity: 'hero_raremage', randomSeeds: {variance: 3}},
 				]
 			}
 		})
