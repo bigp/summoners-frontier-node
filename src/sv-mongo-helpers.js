@@ -16,6 +16,7 @@ mongoose.Promise = global.Promise;
 mongoose.CustomTypes = {
 	Int: (opt) => _.extend({type: NumberInt, default:0, min: 0, max: 10000}, opt),
 	Number: (opt) => _.extend({type: Number, default:0, min: 0, max: 10000}, opt),
+	Bool: (trueOrFalse, opt) => _.extend({type: Boolean, default: trueOrFalse===true}, opt),
 	LargeInt: (opt) => _.extend({type: NumberInt, default:0, min: 0, max: 2000000000}, opt),
 	StringCustom: (maxlength, opt) => _.extend({type: String, trim: true, maxlength: [maxlength, ERROR_MAXLENGTH]}, opt),
 	String16: (opt) => _.extend({type: String, trim: true, maxlength: [16, ERROR_MAXLENGTH]}, opt),
@@ -57,7 +58,7 @@ const mgHelpers = {
 
 		Model._def = schemaDef;
 		Model._name = name;
-		Model._nameTitled = changeCase.title(name);
+		Model._nameTitled = changeCase.pascalCase(name);
 		Model._plural = schemaDef.plural || (name + "s");
 		Model.__route = '/' + name;
 		Model.__routes = '/' + Model._plural;
