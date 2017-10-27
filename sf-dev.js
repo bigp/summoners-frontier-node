@@ -1,65 +1,24 @@
-require('./src/sv-globals');
+const cluster = require('cluster');
+var args = [].slice.call(process.argv, 2);
 
-const setupRoutes = require('./src/sv-setup-routes');
-const setupMongo = require('./src/sv-setup-mongo-db');
-const setupNodeMailer = require('./src/sv-setup-nodemailer');
-const setupGithub = require('./src/sv-setup-github');
-const JSONLoader = require('./src/sv-setup-json-loader');
-const jsonConfig = { url: $$$.env.ini.JSON_URL, app: $$$.app, isParseGlobals: true };
+if(args[0]==='cluster' && cluster.isMaster) {
+	var persistent;
 
-$$$.jsonLoader = new JSONLoader();
+	function loopCluster() {
+		if(!persistent) {
+			console.log(`Master (${process.pid}) started the child process...`);
+			persistent = cluster.fork();
+		}
 
-//Run these first promises in parallel, and then...
-Promise.all([setupRoutes(), setupMongo(), setupNodeMailer(), setupGithub(), $$$.jsonLoader.config(jsonConfig)])
-	//.then(() => trace($$$.jsonLoader.globals))
-	.then(setupMongo.createMongoModels) //Creates the models (see model-XXX.js under /src/models/)
-	.then(setupRoutes.setTopLevelRoutes) //Creates the top-level / ending routes if nothing else routes them.
-	.then(() => {
-		// Finally once every promises passes, output some confirmation messages to the console
-		trace([
-				`Started SF-DEV on port ${$$$.env.ini.PORT} in environment`.cyan,
-				`[${$$$.env().toUpperCase()}]`.magenta
-			].join(' ')
-		);
-
-		//trace($$$.jsonLoader.globals);
-
-		//Oh, before we go, check if we should be running the Test Suites (CHAI)...
-		if(!$$$.env.isTesting) return;
-
-		//If our TEST flag is enabled, then continue with the CHAI test suite:
-		require('./src/sv-setup-chai-tests')();
-	})
-	.catch( err => {
-		//If any errors occur in the previous steps... show the error in the console!!!
-		traceError("========= OH NO! ==========");
-		traceError(err);
-	});
-
-
-if(_.isTruthy($$$.env.ini.TEST)) {
-	$$$.sockets = [];
-	$$$.server.on('connection', socket => {
-		$$$.sockets.push(socket);
-
-		socket.on('close', () => {
-			$$$.sockets.remove(socket);
-		})
-	});
-
-	function onProgramExit() {
-		const mongoose = require('mongoose');
-
-		trace("mongoose.disconnect / connection.close()...");
-		mongoose.disconnect();
-		mongoose.connection.close();
-
-		$$$.server.close();
-		$$$.sockets.forEach(socket => socket.destroy());
+		setTimeout(loopCluster, 250);
 	}
 
-	process.on('exit', onProgramExit);
-	process.on('SIGINT', onProgramExit);
-}
+	loopCluster();
 
-//process.on('uncaughtException', onProgramExit);
+	cluster.on('exit', (worker, code, signal) => {
+		console.log(`Worker ${worker.process.pid} died.`);
+		persistent = null;
+	});
+} else {
+	require('./main');
+}

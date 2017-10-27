@@ -213,8 +213,8 @@ module.exports = function() {
 				_.promise(() => {
 					if (mgHelpers.isWrongVerb(req, 'PUT')) return;
 
-					const levels = skillLevels.map(s => ({level: s}));
-					_.extend(validHero.game.skills, levels);
+					//const levels = skillLevels.map(s => ({level: s}));
+					_.extend(validHero.game.skills, skillLevels);
 
 					return validHero.save();
 				})
@@ -340,6 +340,7 @@ module.exports = function() {
 				},
 				skills: [
 					new Schema({
+						identity: CustomTypes.String32(),
 						level: CustomTypes.Int({required: true, default: 0})
 					}, {_id: false})
 				]

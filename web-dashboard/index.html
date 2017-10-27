@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Testing</title>
+  <meta name="viewport" content="width=600, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+
+  <link rel="icon" href="data:;base64,=">
+  <link rel="stylesheet" href="public/css/reset.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.2.3/jquery-confirm.min.css">
+  <link rel="stylesheet" href="https://afeld.github.io/emoji-css/emoji.css">
+  <link rel="stylesheet" hot-reload=1 href="public/css/main.css">
+  <link rel="stylesheet" hot-reload=1 href="media/css/sf-dev.css">
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.2/lodash.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/eventemitter3/2.0.3/index.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.4.7/bluebird.core.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.4.7/bluebird.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.6.0/clipboard.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.2.3/jquery-confirm.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.19.0/TweenMax.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/EaselJS/0.8.0/easeljs.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.1/socket.io.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.0.2/howler.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.2/vue.js"></script>
+  <script src="public/js/jquery-cookie.js"></script>
+  <script src="public/js/sortable.js"></script>
+  <script src="public/js/vue-draggable.js"></script>
+  <script src="public/js/extensions.js"></script>
+
+  <script> var $$$ = new EventEmitter(); </script>
+</head>
+<body>
+
+<!------------------------------------------------>
+
+<div id="app">
+    <menubar>
+      <h1>SF-DEV</h1>
+    </menubar>
+
+  <section class="section msg-center">
+    <vbox>
+      <hbox class="top-area top-buttons">
+        <h1>Message Center</h1>
+        <btn icon="clock-o">Add Scheduled Message</btn>
+        <btn icon="envelope-o">Send Direct Message</btn>
+      </hbox>
+
+      <hbox class="bottom-area">
+        <vbox class="cron-jobs">
+          <btn>Job 1</btn>
+          <btn>Job 2</btn>
+        </vbox>
+
+        <!-------------------------------- BASIC-DETAILS, etc. -->
+
+        <vbox class="basic-details">
+          <h2>Basic Details</h2>
+
+          <hbox>
+            <i>Name:</i>
+            <input id="jobCronName">
+
+            <btn class="" icon="toggle-on">Active</btn>
+          </hbox>
+
+          <hbox>
+            <i>ID:</i>
+            <i class="no-edit">1234-abcd-5678-efgh</i>
+          </hbox>
+
+          <hbox>
+            <i># Published:</i>
+            <i class="no-edit">3 times, Last Published on ###</i>
+          </hbox>
+
+          <hbox>
+            <i>Schedule:</i>
+            <i class="no-edit">Every Monday 8:00AM</i>
+            <btn class="" icon="calendar">Edit</btn>
+          </hbox>
+
+          <hbox>
+            <i>Title:</i>
+            <input id="jobTitle">
+          </hbox>
+
+          <hbox>
+            <i>Message:</i>
+            <textarea id="jobMessage"></textarea>
+          </hbox>
+
+          <hbox>
+            <i>Image / Icon:</i>
+            <img class="preview-icon" src="media/images/sword.png" width="100px" />
+            <vbox>
+              <btn icon="cloud-upload">Upload</btn>
+              <btn icon="file-image-o" class="gallery">Gallery</btn>
+            </vbox>
+          </hbox>
+
+          <hbox>
+            <i>Type:</i>
+
+            <v-select class="jobType" v-model:value="currentJob.jobType" :options="['Generic Message', 'LootCrate Reward', 'Currency Reward']">
+
+            </v-select>
+
+          </hbox>
+
+          <hr />
+
+          <vbox>
+            <h2>{{currentJob.jobType}}</h2>
+
+            <hbox>
+              <i>Item(s):</i>
+              <textarea id="jobItems"></textarea>
+            </hbox>
+          </vbox>
+
+        </vbox>
+      </hbox>
+    </vbox>
+  </section>
+</div>
+
+<!------------------------------------------------>
+
+<script src="dist/bundle.js"></script>
+
+</body>
+</html>

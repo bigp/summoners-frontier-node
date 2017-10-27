@@ -378,6 +378,15 @@ GLOBALS.traceObj = function(o) {
 	return output;
 };
 
+GLOBALS.trace.makeLogger = function(prefix, css) {
+	if(!css) css = "background: #888; color: #fff; padding: 0px 3px;";
+	if(css.startsWith('#')) css = "color: " + css;
+
+	return function(obj) {
+		trace('%c' + prefix +":", css, obj);
+	};
+};
+
 if(isNode()) {
 	GLOBALS.traceClear = function() { process.stdout.write('\033c'); };
 	GLOBALS.traceError = function(err) { trace(err.toString().red); };

@@ -53,6 +53,7 @@ module.exports = function() {
 			game: {
 				msgTemplateID: CustomTypes.LargeInt(),
 				sentFrom: CustomTypes.LargeInt(),
+				//dateExpires: CustomTypes.DateRequired(),
 
 				//To indicate whether or not the user opened the message.
 				isRead: CustomTypes.Bool(false),

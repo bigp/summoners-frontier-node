@@ -78,6 +78,7 @@ const $$$ = global.$$$ = new events();
 const _slice = [].slice;
 
 _.extend($$$, {
+	isDev: _.isTruthy(env.ini.IS_DEV),
 	paths: paths,
 	env: env,
 	app: app,
@@ -117,7 +118,7 @@ _.extend($$$, {
 
 	make: {
 		routeFromModule(routePath, name) {
-			const routeModule = require(routePath);
+			const routeModule = _.isFunction(routePath) ? routePath : require(routePath);
 			const route = $$$.express.Router();
 			route._name = name;
 

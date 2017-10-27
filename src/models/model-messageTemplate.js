@@ -73,6 +73,7 @@ module.exports = function() {
 
 			/////////////////////////////////// GAME-SPECIFIC:
 			game: {
+				title: CustomTypes.StringCustom(128, {required:true}),
 				message: CustomTypes.StringCustom(1024, {required:true}),
 				destinations: [CustomTypes.LargeInt()],
 				dateExpires: CustomTypes.DateRequired(),
@@ -82,7 +83,7 @@ module.exports = function() {
 				isPublished: CustomTypes.Bool(false),
 
 				//To mark system-wide / dev messages (as opposed to other users)
-				isSystem: CustomTypes.Bool(false),
+				isForEveryone: CustomTypes.Bool(false),
 
 				/**
 				 * Specify what type of item / prize can be claimed.
@@ -92,7 +93,7 @@ module.exports = function() {
 				 * left blank.
 				 */
 
-				claim: {
+				reward: {
 					item: CustomTypes.StringCustom(1024), // Potentially long JSON data.
 					costType: CustomTypes.String64(64), //Gold, Gems, Shards, etc.
 					costAmount: CustomTypes.Int(), //Number

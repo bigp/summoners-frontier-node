@@ -2,11 +2,12 @@
  * Created by Chamberlain on 8/10/2017.
  */
 const path = require('path');
-const __fullSplit = __dirname.__.split('/');
+const __root = __dirname.__;
+const __fullSplit = __root.split('/');
 const paths = {};
 
 module.exports = function(env) {
-	trace("Root directory: ".yellow + __dirname.__);
+	trace("Root directory: ".yellow + __root);
 
 	paths.__filename = __fullSplit.last();
 	paths.__dir = __fullSplit.slice(0, __fullSplit.length-1).join('/');

@@ -111,6 +111,7 @@ module.exports = function() {
 				lootTableIdentity: CustomTypes.String32({required:true}),
 				lootCrateType: CustomTypes.String16({required:true}),
 				zoneIdentity: CustomTypes.String32({required:true}),
+				//qualityType: CustomTypes.String16({required:true}),
 				magicFind: CustomTypes.Int({required: true}),
 				name: CustomTypes.String32({required: true}),
 			}
