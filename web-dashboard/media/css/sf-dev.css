@@ -333,6 +333,13 @@ hr {
   color: #fff;
   background: linear-gradient(#ddffc1, #7cff55, #449e1d);
 }
+.btn.bg-red {
+  background: linear-gradient(#ddb0a9, #d74c4d, #84080d);
+}
+.btn.bg-red:hover {
+  color: #fff;
+  background: linear-gradient(#ffd3cb, #ff5b5c, #9e0a10);
+}
 #app {
   position: relative;
   background: linear-gradient(#ffffff, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.02));
