@@ -80,6 +80,12 @@ hr {
   position: relative;
   display: table;
   border-collapse: separate;
+
+  .inline-block {
+    > .vbox-child, > .hbox-child {
+      display: inline-block;
+    }
+  }
 }
 
 .vbox {
@@ -137,4 +143,9 @@ hr {
     border-radius: 5px;
     width: 200px;
   }
+}
+
+textarea.wide {
+  width: 400px;
+  height: 100px;
 }

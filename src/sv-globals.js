@@ -16,6 +16,7 @@ const events = require('events');
 const REGEX_ISO_MILLIS = /[0-9\.]Z$/;
 const env = require('./sv-env')('./.private/env.ini');
 const paths = require('./sv-paths')(env);
+const mkdirp = require('mkdirp');
 
 function createHttpOrHttps(app) {
 	const HTTPS_CONFIG = env.ini.HTTPS;
@@ -215,8 +216,45 @@ _.extend($$$, {
 	},
 
 	files: {
+		ensureDirExists(file) {
+			return new Promise((resolve, reject) => {
+				var path = file.__.remove(/\/[^\/]*\.[a-z0-9]*$/i);
+
+				mkdirp(path, err => {
+					if(err) return reject(err);
+					resolve();
+				});
+			})
+		},
+
 		read(file, cb) {
 			fs.readFile(file, {encoding:'utf8'}, cb);
+		},
+
+		readJSON(file) {
+			return new Promise((resolve, reject) => {
+				fs.readFile(file, {encoding:'utf8'}, (err, content) => {
+					if(err) return reject(err);
+
+					try {
+						var data = JSON.parse(content);
+
+						resolve(data);
+					} catch(jsonErr) {
+						reject(jsonErr);
+					}
+				});
+			});
+		},
+
+		writeJSON(file, json) {
+			return new Promise((resolve, reject) => {
+				fs.writeFile(file, JSON.stringify(json), {encoding:'utf8'}, (err) => {
+					if(err) return reject(err);
+
+					resolve();
+				});
+			});
 		},
 
 		readDir(dir, cb) {

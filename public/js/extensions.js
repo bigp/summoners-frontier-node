@@ -319,7 +319,54 @@ _.promise = function prom(cbErrorOrPromise) {
 		var result = cbErrorOrPromise();
 		resolve(result);
 	})
-}
+};
+
+_.loadJSON = function loadJSON(url) {
+	return new Promise((resolve, reject) => {
+		$.get({
+			url: url,
+			success(data) {
+				resolve(data);
+			},
+			error(err) {
+				trace(err);
+				_.alert(
+					'JSON Load Error!',
+					`Could not load the JSON data at URL:<br/>${url}<br/><b>Reason (responseText):</b><br/>"${err.responseText}"`
+				);
+
+				reject(err);
+			}
+		});
+	});
+};
+
+_.writeJSON = function loadJSON(url, data) {
+	return new Promise((resolve, reject) => {
+		$.post({
+			url: url,
+			data: JSON.stringify(data),
+			contentType: "application/json; charset=utf-8",
+			dataType   : "json",
+			success(data) {
+				resolve(data);
+			},
+			error(err) {
+				trace(err);
+				_.alert(
+					'JSON Write Error!',
+					`Could not write the JSON data at URL:<br/>${url}<br/><b>Reason (responseText):</b><br/>"${err.responseText}"`
+				);
+
+				reject(err);
+			}
+		});
+	});
+};
+
+_.alert = function(title, message) {
+	$.alert({title: title, content: message});
+};
 
 function AsyncEach(objList, funcList, cb) {
 	this.objList = objList;

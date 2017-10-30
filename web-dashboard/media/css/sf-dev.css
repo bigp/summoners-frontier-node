@@ -360,6 +360,12 @@ hr {
   display: table;
   border-collapse: separate;
 }
+.vbox .inline-block > .vbox-child,
+.hbox .inline-block > .vbox-child,
+.vbox .inline-block > .hbox-child,
+.hbox .inline-block > .hbox-child {
+  display: inline-block;
+}
 .vbox {
   height: 100%;
 }
@@ -419,4 +425,8 @@ hr {
   background: #fff;
   border-radius: 5px;
   width: 200px;
+}
+textarea.wide {
+  width: 400px;
+  height: 100px;
 }

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Testing</title>
+  <title>SF-DEV Web Dashboard</title>
   <meta name="viewport" content="width=600, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
 
   <link rel="icon" href="data:;base64,=">
@@ -44,85 +44,104 @@
 
   <section class="section msg-center">
     <vbox>
-      <hbox class="top-area top-buttons">
+      <hbox class="top-area top-buttons inline-block">
         <h1>Message Center</h1>
-        <btn icon="clock-o">Add Scheduled Message</btn>
-        <btn icon="envelope-o">Send Direct Message</btn>
+        <btn icon="clock-o" @click="onJobAdd">Add Scheduled Job</btn>
+        <btn icon="envelope-o" @click="onSendDM">Send Direct Message</btn>
       </hbox>
 
       <hbox class="bottom-area">
         <vbox class="cron-jobs">
-          <btn>Job 1</btn>
-          <btn>Job 2</btn>
+            <div v-if="!cronJobs.length">
+                <i>No Jobs to list.</i>
+            </div>
+            <div v-else>
+                <btn v-for="(job, j) in cronJobs" :key="job.id" @click="onJobSelected(job)">
+                    {{job.name}}
+                </btn>
+            </div>
         </vbox>
 
         <!-------------------------------- BASIC-DETAILS, etc. -->
 
         <vbox class="basic-details">
-          <h2>Basic Details</h2>
 
-          <hbox>
-            <i>Name:</i>
-            <input id="jobCronName">
+            <div v-if="currentJob">
+                <hbox class="inline-block">
+                    <i></i>
+                    <btn icon="toggle-on" @click="onToggleActive()">Active</btn>
+                    <btn icon="floppy-o" @click="onSave()">Save</btn>
+                    <btn icon="trash-o" @click="onDelete()" class="bg-red">Delete</btn>
+                </hbox>
 
-            <btn class="" icon="toggle-on">Active</btn>
-            <btn class="bg-red" icon="trash-o">Remove</btn>
-          </hbox>
+                <hr /> <!------------ ----------->
 
-          <hbox>
-            <i>ID:</i>
-            <i class="no-edit">1234-abcd-5678-efgh</i>
-          </hbox>
+                <h2>Basic Details</h2>
 
-          <hbox>
-            <i># Published:</i>
-            <i class="no-edit">3 times, Last Published on ###</i>
-          </hbox>
+                <hbox>
+                  <i>Name:</i>
+                  <input id="jobCronName" v-model="currentJob.name">
+                </hbox>
 
-          <hbox>
-            <i>Schedule:</i>
-            <i class="no-edit">Every Monday 8:00AM</i>
-            <btn class="" icon="calendar">Edit</btn>
-          </hbox>
+                <hbox>
+                  <i>ID:</i>
+                  <i class="no-edit">{{currentJob.id}}</i>
+                </hbox>
 
-          <hbox>
-            <i>Title:</i>
-            <input id="jobTitle">
-          </hbox>
+                <hbox>
+                  <i># Published:</i>
+                  <i class="no-edit">
+                      {{currentJob.published.numTotal}} times,
+                      {{currentJob.published.dateLast ? 'Last Published on ' + currentJob.published.dateLast : 'Never published yet.'}}
+                  </i>
+                </hbox>
 
-          <hbox>
-            <i>Message:</i>
-            <textarea id="jobMessage"></textarea>
-          </hbox>
+                <hbox>
+                    <i>Schedule:</i>
+                    <btn class="" icon="calendar">Edit</btn>
+                    <i class="no-edit">Every Monday 8:00AM</i>
+                </hbox>
 
-          <hbox>
-            <i>Image / Icon:</i>
-            <img class="preview-icon" src="media/images/sword.png" width="100px" />
-            <vbox>
-              <btn icon="cloud-upload">Upload</btn>
-              <btn icon="file-image-o" class="gallery">Gallery</btn>
-            </vbox>
-          </hbox>
+                <hbox>
+                  <i>Title:</i>
+                  <input id="jobTitle" v-model="currentJob.title">
+                </hbox>
 
-          <hbox>
-            <i>Type:</i>
+                <hbox>
+                  <i>Message:</i>
+                  <textarea id="jobMessage" class="wide" v-model="currentJob.message"></textarea>
+                </hbox>
 
-            <v-select class="jobType" v-model:value="currentJob.jobType" :options="['Generic Message', 'LootCrate Reward', 'Currency Reward']">
+                <hbox>
+                  <i>Image / Icon:</i>
+                  <img class="preview-icon" src="media/images/sword.png" width="100px" />
+                  <vbox>
+                    <btn icon="cloud-upload">Upload</btn>
+                    <btn icon="file-image-o" class="gallery">Gallery</btn>
+                  </vbox>
+                </hbox>
 
-            </v-select>
+                <hbox>
+                  <i>Type:</i>
+                  <v-select class="jobType" v-model:value="currentJob.type" :options="['Generic Message', 'LootCrate Reward', 'Currency Reward']">
+                  </v-select>
+                </hbox>
 
-          </hbox>
+                <hr /> <!------------ ----------->
 
-          <hr />
+                <vbox>
+                  <h2>{{currentJob.type}}</h2>
 
-          <vbox>
-            <h2>{{currentJob.jobType}}</h2>
+                  <hbox>
+                    <i>Item(s):</i>
+                    <textarea id="jobItems"></textarea>
+                  </hbox>
+                </vbox>
+            </div>
 
-            <hbox>
-              <i>Item(s):</i>
-              <textarea id="jobItems"></textarea>
-            </hbox>
-          </vbox>
+          <div v-else>
+            Select an existing Job (left-pane), or Add a new Scheduled Job.
+          </div>
 
         </vbox>
       </hbox>

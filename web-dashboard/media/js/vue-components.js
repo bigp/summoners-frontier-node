@@ -9,8 +9,10 @@ function wrapInDivs(comp, className) {
 export default {
 	'btn': {
 		props: ['icon'],
-
-		template: `<i :class="'fa fa-'+icon"></i> <slot></slot>`
+		template: `<div v-on:click.capture.stop.prevent="click"><i :class="'fa fa-'+icon"></i> <slot></slot></div>`,
+		methods: {
+			click: function (e) { this.$emit('click', e); }
+		},
 	},
 
 	'menubar': {
