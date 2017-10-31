@@ -57,43 +57,56 @@ _.extend(CronJobsManager, {
 	},
 
 	startJob(jobNew) {
-		trace("Starting job: ".yellow + jobNew.id);
+		//trace("Starting job: ".yellow + jobNew.id);
 		JOBS.push(jobNew);
 
+		if(isNaN(jobNew.published.numTotal)) {
+			jobNew.published.numTotal = 0;
+		}
+
+		CronJobsManager.emit('job-start', jobNew);
 		CronJobsManager.updateJob(jobNew);
 	},
 
 	updateJob(job, jobNew) {
-		trace("Updating job: ".green + job.id);
+		//trace("Updating job: ".green + job.id);
 
 		if(jobNew) _.merge(job, jobNew);
 
 		CronJobsManager.stopJob(job);
 
 		if(!job.isActive) {
-			return trace("Job is NOT active.".bgRed);
+			CronJobsManager.emit('job-inactive', jobNew);
+			return trace(`Job #${job.id} is OFF`.bgRed);
 		}
+
+		CronJobsManager.emit('job-active', jobNew);
+		trace(`Job #${job.id} is ON`.bgGreen);
 
 		const cronSchedule = later.parse.text(job.schedule);
 		if(cronSchedule.error>-1) {
 			return traceError('Could not start the new job with the schedule expression: ' + job.schedule);
 		}
 
-		job._count = 0;
-		job._cron = later.setInterval(() => CronJobsManager.onJobExecute(job), cronSchedule);
+		job._cron = later.setInterval(() => CronJobsManager.onJobPublished(job), cronSchedule);
 
 		if(job.isExecuteOnStart) {
-			CronJobsManager.onJobExecute(job);
+			CronJobsManager.onJobPublished(job);
 		}
 	},
 
-	onJobExecute(job) {
+	onJobPublished(job) {
 		const typeMethod = CronJobsManager.resolveJobType(job);
 		if(!typeMethod) return;
 
-		//////////////////////////////////////
+		typeMethod(job);
 
-		if(job.limit>-1 && (++job._count)>=job.limit) {
+		const pub = job.published;
+		pub.numTotal++;
+		pub.dateLast = new Date();
+		CronJobsManager.emit('job-published', job);
+
+		if(pub.limit>-1 && pub.numTotal>=pub.limit) {
 			CronJobsManager.stopJob(job);
 		}
 	},
@@ -112,15 +125,15 @@ _.extend(CronJobsManager, {
 
 	JOB_TYPES: {
 		GENERIC_MESSAGE(job) {
-
+			trace("Generic...");
 		},
 
 		LOOTCRATE_REWARD(job) {
-
+			trace("LootCrate...");
 		},
 
 		CURRENCY_REWARD(job) {
-
+			trace("Currency...");
 		}
 	}
 });

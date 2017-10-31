@@ -55,9 +55,13 @@ function init() {
 		},
 
 		methods: {
+			getJobClasses(job) {
+				return ['job', 'job-' + job.id, this.currentJob===job ? 'selected' : ''];
+			},
+
 			getToggleIcon(prop, job) {
 				if(!job) job = this.currentJob;
-				return job[prop] ? 'battery-full is-on' : 'battery-empty is-off';
+				return job[prop] ? 'circle is-on' : 'circle-o is-off';
 			},
 
 			onToggle(prop, job) {

@@ -247,9 +247,10 @@ _.extend($$$, {
 			});
 		},
 
-		writeJSON(file, json) {
+		writeJSON(file, json, isPretty) {
 			return new Promise((resolve, reject) => {
-				fs.writeFile(file, JSON.stringify(json), {encoding:'utf8'}, (err) => {
+				const jsonStr = isPretty ? JSON.stringify(json, null, '  ') : JSON.stringify(json);
+				fs.writeFile(file, jsonStr, {encoding:'utf8'}, (err) => {
 					if(err) return reject(err);
 
 					resolve();

@@ -59,7 +59,7 @@
                 <i>No Jobs to list.</i>
             </div>
             <div v-else>
-                <btn v-for="(job, j) in cronJobs" :key="job.id" @click="onJobSelected(job)">
+                <btn v-for="(job, j) in cronJobs" :key="job.id" @click="onJobSelected(job)" :class="getJobClasses(job)">
                     <i class="job-name">{{job.name}}</i>
                     <i :class="'job-active fa fa-' + getToggleIcon('isActive', job)" @click="onToggle('isActive', job)"></i>
                 </btn>
@@ -74,7 +74,7 @@
                 <hbox class="inline-block">
                     <h2>Basic Details</h2>
                     <btn class="big-button" icon="floppy-o" @click="onSave()">Save</btn>
-                    <btn class="big-button" icon="trash-o" @click="onDelete()" class="bg-red">Delete</btn>
+                    <btn class="big-button bg-red" icon="trash-o" @click="onDelete()" class="bg-red">Delete</btn>
                     <btn class="big-button" :class="getToggleIcon('isActive')" @click="onToggle('isActive')">Active: {{currentJob.isActive ? 'ON' : 'OFF'}}</btn>
                 </hbox>
 
@@ -91,6 +91,10 @@
                 <hbox class="inline-block">
                   <i># Published:</i>
                   <i class="no-edit">
+                      <i id="publish-led">
+                          <i class="fa fa-circle-o"></i>
+                          <i class="fa fa-circle"></i>
+                      </i>
                       {{currentJob.published.numTotal}} times,
                       {{currentJob.published.dateLast ? 'Last Published on ' + currentJob.published.dateLast : 'Never published yet.'}}
                   </i>
@@ -99,7 +103,7 @@
                 <hbox class="inline-block">
                     <i>Schedule:</i>
                     <input id="jobSchedule" v-model="currentJob.schedule">
-                    <btn icon="calendar">Edit</btn>
+                    <btn icon="calendar" class="no-edit">Edit</btn>
                 </hbox>
 
                 <hbox>
@@ -115,8 +119,8 @@
                 <hbox class="image-setup inline-block">
                   <i>Image / Icon:</i>
                   <vbox>
-                    <btn icon="cloud-upload" class="big-button">Upload</btn>
-                    <btn icon="file-image-o" class="big-button gallery">Gallery</btn>
+                    <btn icon="cloud-upload" class="big-button no-edit">Upload</btn>
+                    <btn icon="file-image-o" class="big-button no-edit gallery">Gallery</btn>
                   </vbox>
                   <img class="preview-icon" src="media/images/sword.png" width="100px" />
 

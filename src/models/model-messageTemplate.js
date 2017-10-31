@@ -32,6 +32,10 @@ module.exports = function() {
 				$$$.send.notImplemented(res);
 			},
 
+			'open'(Model, req, res, next, opts) {
+				$$$.send.notImplemented(res);
+			},
+
 			'send'(Model, req, res, next, opts) {
 				$$$.send.notImplemented(res);
 			},
@@ -76,6 +80,7 @@ module.exports = function() {
 				title: CustomTypes.StringCustom(128, {required:true}),
 				message: CustomTypes.StringCustom(1024, {required:true}),
 				destinations: [CustomTypes.LargeInt()],
+				destinationGroups: [CustomTypes.LargeInt()],
 				dateExpires: CustomTypes.DateRequired(),
 				dateToPublish: CustomTypes.DateRequired(),
 
