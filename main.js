@@ -3,7 +3,7 @@ require('./src/sv-globals');
 const setupRoutes = require('./src/sv-setup-routes');
 const setupMongo = require('./src/sv-setup-mongo-db');
 const setupSocketIO = require('./src/sv-setup-socketio');
-const setupWebDashboard = require('./src/sv-setup-web-dashboard');
+const setupWebDashboard = require('./src/web-dashboard/sv-setup-web-dashboard');
 const setupWatcher = require('./src/sv-watcher');
 const setupNodeMailer = require('./src/sv-setup-nodemailer');
 const setupGithub = require('./src/sv-setup-github');

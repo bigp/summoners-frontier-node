@@ -80,10 +80,10 @@ h5 {
   text-shadow: rgba(255, 255, 255, 0.8) 1px 1px 1px;
 }
 .hidden {
-  display: none;
+  display: none !important;
 }
 .init-hidden {
-  display: none;
+  display: none !important;
 }
 .digits-1 {
   width: 1em !important;
@@ -197,7 +197,7 @@ h5 {
   z-index: 9999;
   position: absolute;
   display: block;
-  display: none;
+  display: none !important;
 }
 .menu i div i {
   display: block;

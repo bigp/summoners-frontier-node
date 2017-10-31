@@ -3,13 +3,19 @@
  */
 
 function wrapInDivs(comp, className) {
-	$(comp.$el.children).wrap(`<div class="${className}"></div>`);
+	_.forEach(comp.$el.children, (child, i) => {
+		$(child).wrap(`<div class="${className} index-${i}"></div>`);
+	});
 }
 
 export default {
 	'btn': {
 		props: ['icon'],
-		template: `<div v-on:click.capture.stop.prevent="click"><i :class="'fa fa-'+icon"></i> <slot></slot></div>`,
+		noDiv: true, //capture.stop.prevent
+		template: `<div :class="'btn' + (icon ? ' ' + icon : '')" v-on:click="click">
+					<i :class="'fa fa-'+icon" v-if="icon"></i> 
+					<slot></slot>
+					</div>`,
 		methods: {
 			click: function (e) { this.$emit('click', e); }
 		},

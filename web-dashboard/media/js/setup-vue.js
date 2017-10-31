@@ -6,7 +6,11 @@ import MyComponents from './vue-components.js';
 function registerComponents(comps) {
 	_.keys(comps).forEach(compName => {
 		var comp = MyComponents[compName];
-		comp.template = `<div class="${compName}">${comp.template}</div>`;
+
+		if(!comp.noDiv) {
+			comp.template = `<div class="${compName}">${comp.template}</div>`;
+		}
+
 
 		var MyComp = Vue.extend(comp);
 
@@ -18,81 +22,123 @@ registerComponents(MyComponents);
 
 Vue.component('v-select', vSelect);
 
-var __CRON_JOBS;
+var __CRON_JOBS, __SPINNER;
 
-$$$.vue = new Vue({
-	el: '#app',
-	props: ['currentJob'],
-	data: {
-		cronJobs: []
-	},
+function loadCronJobs() {
+	__SPINNER.startBusy(0.5, 0.5, () => {
+		_.loadJSON('./json/cron-jobs')
+			.then(data => {
+				__SPINNER.stopBusy();
 
-	methods: {
-		onJobSelected(job) {
-			this.currentJob = job;
+				if(!data || !data.cronJobs) {
+					return _.alert('JSON data is invalid!', 'Missing CRON Jobs!');
+				}
+
+				__CRON_JOBS = $$$.vue.cronJobs = data.cronJobs;
+
+				if(__CRON_JOBS && __CRON_JOBS.length>0) {
+					$$$.vue.currentJob = __CRON_JOBS[0];
+				}
+			})
+			.catch(err => {
+				__SPINNER.stopBusy();
+			})
+	});
+}
+
+function init() {
+	$$$.vue = new Vue({
+		el: '#app',
+		props: ['currentJob'],
+		data: {
+			cronJobs: []
 		},
 
-		onJobAdd() {
-			var job = {
-				id: _.guid(),
-				name: 'Job #' + __CRON_JOBS.length,
-				published: {
-					numTotal: 0,
-					dateLast: null,
-				},
-				schedule: 'Every day 8:00AM',
-				title: 'YOUR_TITLE_HERE',
-				message: 'YOUR_MESSAGE_HERE',
-				image: 'sword-ref',
-				type: 'Generic Message'
-			};
+		methods: {
+			getToggleIcon(prop, job) {
+				if(!job) job = this.currentJob;
+				return job[prop] ? 'battery-full is-on' : 'battery-empty is-off';
+			},
 
-			__CRON_JOBS.push( job );
-			this.currentJob = job;
+			onToggle(prop, job) {
+				trace("Toggling...");
+				if(!job) job = this.currentJob;
+				job[prop] = !job[prop];
+				this.onSave(job);
+			},
 
-			this.onSave();
-		},
+			onJobSelected(job) {
+				this.currentJob = job;
+			},
 
-		onSave() {
-			_.writeJSON('./json/cron-jobs', __CRON_JOBS)
-				.then(data => {
-					if(!data || !data.ok) {
-						return;
-					}
+			onJobAdd() {
+				var numJobs = __CRON_JOBS.length;
+				var job = {
+					id: _.guid(),
+					name: 'Job #' + numJobs,
+					isActive: false,
+					dateChanged: new Date(),
+					dateActiveSince: new Date(),
+					published: {
+						numTotal: 0,
+						dateLast: null,
+					},
+					schedule: 'Every 2 seconds',
+					title: 'YOUR_TITLE_HERE ' + numJobs,
+					message: 'YOUR_MESSAGE_HERE ' + numJobs,
+					image: 'sword-ref',
+					type: 'Generic Message'
+				};
 
-					_.alert('Saved OK!', 'The CRON-JOBS JSON was successfully saved.');
-				});
-		},
+				__CRON_JOBS.push( job );
+				this.currentJob = job;
 
-		onDelete() {
-			var id = this.currentJob.id;
-			var found = __CRON_JOBS.find(job => job.id===id);
-			__CRON_JOBS.remove(found);
+				this.onSave();
+			},
 
-			this.onSave();
+			onSave(job) {
+				if(!job) job = this.currentJob;
 
-			if(__CRON_JOBS.length>0) {
-				this.currentJob = __CRON_JOBS[0];
-			} else {
-				this.currentJob = null;
-			}
-		},
+				if(job) {
+					job.dateChanged = new Date();
+				}
 
-		onSendDM() {
+				__SPINNER.startBusy(0.5, 0.250, () => {
+					_.writeJSON('./json/cron-jobs', __CRON_JOBS)
+						.then(data => {
+							__SPINNER.stopBusy();
+						})
+						.catch(err => {
+							__SPINNER.stopBusy();
+						});
+				})
+			},
 
-		},
-	}
-});
+			onDelete() {
+				var id = this.currentJob.id;
+				var found = __CRON_JOBS.find(job => job.id===id);
+				__CRON_JOBS.remove(found);
 
-_.loadJSON('./json/cron-jobs')
-	.then(data => {
-		if(!data || !data.cronJobs) {
-			return _.alert('JSON data is invalid!', 'Missing CRON Jobs!');
-		}
+				this.onSave();
 
-		__CRON_JOBS = $$$.vue.cronJobs = data.cronJobs;
+				if(__CRON_JOBS.length>0) {
+					this.currentJob = __CRON_JOBS[0];
+				} else {
+					this.currentJob = null;
+				}
+			},
 
-		if(__CRON_JOBS && __CRON_JOBS.length>0) {
-			$$$.vue.currentJob = __CRON_JOBS[0];
+			onSendDM() {
+
+			},
 		}
 	});
+
+	$('.init-hidden').removeClass('init-hidden');
+
+	__SPINNER = new Spinner();
+
+	loadCronJobs();
+}
+
+init();

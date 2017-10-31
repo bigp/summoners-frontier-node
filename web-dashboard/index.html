@@ -29,6 +29,7 @@
   <script src="public/js/jquery-cookie.js"></script>
   <script src="public/js/sortable.js"></script>
   <script src="public/js/vue-draggable.js"></script>
+  <script src="public/js/spinner.js"></script>
   <script src="public/js/extensions.js"></script>
 
   <script> var $$$ = new EventEmitter(); </script>
@@ -39,25 +40,28 @@
 
 <div id="app">
     <menubar>
-      <h1>SF-DEV</h1>
+        <h1>SF-DEV</h1>
     </menubar>
 
   <section class="section msg-center">
     <vbox>
       <hbox class="top-area top-buttons inline-block">
-        <h1>Message Center</h1>
-        <btn icon="clock-o" @click="onJobAdd">Add Scheduled Job</btn>
-        <btn icon="envelope-o" @click="onSendDM">Send Direct Message</btn>
+          <h1>Message Center</h1>
+          <btn class="big-button" icon="clock-o" @click="onJobAdd">Add Scheduled Job</btn>
+          <btn class="big-button" icon="envelope-o no-edit" @click="onSendDM">Send Direct Message</btn>
+          <i id="spinner" class="fa fa-3x fa-circle-o-notch"></i>
       </hbox>
 
-      <hbox class="bottom-area">
+      <hbox class="bottom-area init-hidden">
         <vbox class="cron-jobs">
+            <h2>Scheduled Jobs List</h2>
             <div v-if="!cronJobs.length">
                 <i>No Jobs to list.</i>
             </div>
             <div v-else>
                 <btn v-for="(job, j) in cronJobs" :key="job.id" @click="onJobSelected(job)">
-                    {{job.name}}
+                    <i class="job-name">{{job.name}}</i>
+                    <i :class="'job-active fa fa-' + getToggleIcon('isActive', job)" @click="onToggle('isActive', job)"></i>
                 </btn>
             </div>
         </vbox>
@@ -68,19 +72,15 @@
 
             <div v-if="currentJob">
                 <hbox class="inline-block">
-                    <i></i>
-                    <btn icon="toggle-on" @click="onToggleActive()">Active</btn>
-                    <btn icon="floppy-o" @click="onSave()">Save</btn>
-                    <btn icon="trash-o" @click="onDelete()" class="bg-red">Delete</btn>
+                    <h2>Basic Details</h2>
+                    <btn class="big-button" icon="floppy-o" @click="onSave()">Save</btn>
+                    <btn class="big-button" icon="trash-o" @click="onDelete()" class="bg-red">Delete</btn>
+                    <btn class="big-button" :class="getToggleIcon('isActive')" @click="onToggle('isActive')">Active: {{currentJob.isActive ? 'ON' : 'OFF'}}</btn>
                 </hbox>
 
-                <hr /> <!------------ ----------->
-
-                <h2>Basic Details</h2>
-
-                <hbox>
-                  <i>Name:</i>
-                  <input id="jobCronName" v-model="currentJob.name">
+                <hbox class="inline-block">
+                    <i>Name:</i>
+                    <input id="jobCronName" v-model="currentJob.name">
                 </hbox>
 
                 <hbox>
@@ -88,7 +88,7 @@
                   <i class="no-edit">{{currentJob.id}}</i>
                 </hbox>
 
-                <hbox>
+                <hbox class="inline-block">
                   <i># Published:</i>
                   <i class="no-edit">
                       {{currentJob.published.numTotal}} times,
@@ -96,10 +96,10 @@
                   </i>
                 </hbox>
 
-                <hbox>
+                <hbox class="inline-block">
                     <i>Schedule:</i>
-                    <btn class="" icon="calendar">Edit</btn>
-                    <i class="no-edit">Every Monday 8:00AM</i>
+                    <input id="jobSchedule" v-model="currentJob.schedule">
+                    <btn icon="calendar">Edit</btn>
                 </hbox>
 
                 <hbox>
@@ -112,13 +112,14 @@
                   <textarea id="jobMessage" class="wide" v-model="currentJob.message"></textarea>
                 </hbox>
 
-                <hbox>
+                <hbox class="image-setup inline-block">
                   <i>Image / Icon:</i>
-                  <img class="preview-icon" src="media/images/sword.png" width="100px" />
                   <vbox>
-                    <btn icon="cloud-upload">Upload</btn>
-                    <btn icon="file-image-o" class="gallery">Gallery</btn>
+                    <btn icon="cloud-upload" class="big-button">Upload</btn>
+                    <btn icon="file-image-o" class="big-button gallery">Gallery</btn>
                   </vbox>
+                  <img class="preview-icon" src="media/images/sword.png" width="100px" />
+
                 </hbox>
 
                 <hbox>

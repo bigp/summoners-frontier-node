@@ -29,7 +29,7 @@ html, body, #app {
 }
 
 hr {
-  border: dotted 1px #ccc;
+  border: dotted 1px #848484;
 }
 
 //////////////////////////////////////////////////////////
@@ -46,7 +46,7 @@ hr {
 
   .gradientButton(#b8dda1, #67d747, #398418);
 
-  &.bg-red {
+  &.bg-red, &.is-off {
     .gradientButton(#ddb0a9, #d74c4d, #84080d);
   }
 }
@@ -113,8 +113,38 @@ hr {
 }
 
 .cron-jobs {
-  width: 180px;
+  width: 230px;
+  border: solid 2px #20878d;
+  border-radius: 5px;
+  padding: 10px;
+  min-height: 80vh;
+  vertical-align: top;
+  display: inline-block;
+
+  .child {
+    display: inline-block;
+    width: 100%;
+  }
+
   .btn {
+
+    .job-name {
+      display: inline-block;
+      width: 100%;
+      text-align: left;
+    }
+
+    .job-active {
+      margin-left: -40px;
+      text-align: right;
+      &:hover {
+        .shadow-lite()
+      }
+    }
+
+    .is-on { color: #64ff5f; }
+    .is-off { color: #900; }
+
     width: 100%;
     .gradientButton(#a8b6dd, #569fd7, #134184);
   }
@@ -148,4 +178,13 @@ hr {
 textarea.wide {
   width: 400px;
   height: 100px;
+}
+
+.toggle-off {
+  .gradientButton(#ddb0a9, #d74c4d, #84080d);
+}
+
+.big-button {
+  min-width: 120px;
+  padding: 10px;
 }

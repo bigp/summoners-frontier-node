@@ -80,10 +80,10 @@ h5 {
   text-shadow: rgba(255, 255, 255, 0.8) 1px 1px 1px;
 }
 .hidden {
-  display: none;
+  display: none !important;
 }
 .init-hidden {
-  display: none;
+  display: none !important;
 }
 .digits-1 {
   width: 1em !important;
@@ -197,7 +197,7 @@ h5 {
   z-index: 9999;
   position: absolute;
   display: block;
-  display: none;
+  display: none !important;
 }
 .menu i div i {
   display: block;
@@ -317,7 +317,7 @@ body,
   height: 100%;
 }
 hr {
-  border: dotted 1px #ccc;
+  border: dotted 1px #848484;
 }
 .btn {
   border-radius: 6px;
@@ -333,10 +333,12 @@ hr {
   color: #fff;
   background: linear-gradient(#ddffc1, #7cff55, #449e1d);
 }
-.btn.bg-red {
+.btn.bg-red,
+.btn.is-off {
   background: linear-gradient(#ddb0a9, #d74c4d, #84080d);
 }
-.btn.bg-red:hover {
+.btn.bg-red:hover,
+.btn.is-off:hover {
   color: #fff;
   background: linear-gradient(#ffd3cb, #ff5b5c, #9e0a10);
 }
@@ -393,11 +395,39 @@ hr {
   vertical-align: top;
 }
 .cron-jobs {
-  width: 180px;
+  width: 230px;
+  border: solid 2px #20878d;
+  border-radius: 5px;
+  padding: 10px;
+  min-height: 80vh;
+  vertical-align: top;
+  display: inline-block;
+}
+.cron-jobs .child {
+  display: inline-block;
+  width: 100%;
 }
 .cron-jobs .btn {
   width: 100%;
   background: linear-gradient(#a8b6dd, #569fd7, #134184);
+}
+.cron-jobs .btn .job-name {
+  display: inline-block;
+  width: 100%;
+  text-align: left;
+}
+.cron-jobs .btn .job-active {
+  margin-left: -40px;
+  text-align: right;
+}
+.cron-jobs .btn .job-active:hover {
+  text-shadow: #fff 1px 1px 1px;
+}
+.cron-jobs .btn .is-on {
+  color: #64ff5f;
+}
+.cron-jobs .btn .is-off {
+  color: #900;
 }
 .cron-jobs .btn:hover {
   color: #fff;
@@ -429,4 +459,15 @@ hr {
 textarea.wide {
   width: 400px;
   height: 100px;
+}
+.toggle-off {
+  background: linear-gradient(#ddb0a9, #d74c4d, #84080d);
+}
+.toggle-off:hover {
+  color: #fff;
+  background: linear-gradient(#ffd3cb, #ff5b5c, #9e0a10);
+}
+.big-button {
+  min-width: 120px;
+  padding: 10px;
 }

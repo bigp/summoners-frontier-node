@@ -321,6 +321,19 @@ _.promise = function prom(cbErrorOrPromise) {
 	})
 };
 
+function genericError(err, url, title, msg) {
+	var error = err.responseText;
+	try {
+		error = JSON.parse(err.responseText);
+	} catch(jsonErr) {}
+
+    var errorMessage = error.error || error.message || error;
+
+	traceError(errorMessage);
+
+	_.alert( title, msg + `at URL: <br/>${url}<br/><b>Reason:</b><br/><i class="red">${errorMessage}</i>` );
+}
+
 _.loadJSON = function loadJSON(url) {
 	return new Promise((resolve, reject) => {
 		$.get({
@@ -329,10 +342,9 @@ _.loadJSON = function loadJSON(url) {
 				resolve(data);
 			},
 			error(err) {
-				trace(err);
-				_.alert(
-					'JSON Load Error!',
-					`Could not load the JSON data at URL:<br/>${url}<br/><b>Reason (responseText):</b><br/>"${err.responseText}"`
+				genericError(
+					err, url,
+					'JSON Load Error', `Could not load the JSON data`
 				);
 
 				reject(err);
@@ -352,10 +364,9 @@ _.writeJSON = function loadJSON(url, data) {
 				resolve(data);
 			},
 			error(err) {
-				trace(err);
-				_.alert(
-					'JSON Write Error!',
-					`Could not write the JSON data at URL:<br/>${url}<br/><b>Reason (responseText):</b><br/>"${err.responseText}"`
+				genericError(
+					err, url,
+					'JSON Write Error', `Could not write the JSON data`
 				);
 
 				reject(err);
