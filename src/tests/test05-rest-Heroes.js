@@ -292,14 +292,14 @@ describe('=REST= Heroes', () => {
 			}
 		})
 			.then(data => {
-				assert.exists(data);
+				assert.exists(data, 'data exists');
 				assert.equal(data.id, 1, "Updated Hero 1.");
-				assert.exists(data.game.skills);
+				assert.exists(data.game.skills, 'Skills exists');
 
 				var levels = data.game.skills.map(s => s.level);
-				assert.equal(levels[0], 1, "Level #0");
-				assert.equal(levels[1], 2, "Level #1");
-				assert.equal(levels[2], 3, "Level #2");
+				assert.equal(levels[0], 1, "Has a Level #0");
+				assert.equal(levels[1], 2, "Has a Level #1");
+				assert.equal(levels[2], 3, "Has a Level #2");
 				done();
 			})
 			.catch(err => done(err));

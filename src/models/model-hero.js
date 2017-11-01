@@ -213,8 +213,30 @@ module.exports = function() {
 				_.promise(() => {
 					if (mgHelpers.isWrongVerb(req, 'PUT')) return;
 
+					var mongoSkills = validHero.game.skills;
+
+					if(!isNaN(skillLevels[0])) {
+						skillLevels.forEach((level, s) => {
+							if(s < mongoSkills.length) {
+								return mongoSkills[s].level = level;
+							}
+
+							mongoSkills.push({ level: level, identity: 'unknown' });
+						});
+					} else if(!skillLevels[0].identity) {
+						skillLevels.forEach((skill, s) => {
+							if(s < mongoSkills.length) {
+								return mongoSkills[s].level = skill.level;
+							}
+
+							mongoSkills.push({ level: skill.level, identity: 'unknown' });
+						});
+					} else {
+						validHero.game.skills = skillLevels;
+					}
+
 					//const levels = skillLevels.map(s => ({level: s}));
-					_.extend(validHero.game.skills, skillLevels);
+					//_.extend(validHero.game.skills, skillLevels);
 
 					return validHero.save();
 				})
