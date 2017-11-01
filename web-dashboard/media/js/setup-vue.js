@@ -51,7 +51,6 @@ function init() {
 		el: '#app',
 		props: ['currentJob'],
 		data: {
-			adminToken: 'test',
 			cronJobs: []
 		},
 

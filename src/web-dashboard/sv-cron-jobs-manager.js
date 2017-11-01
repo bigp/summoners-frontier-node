@@ -10,11 +10,6 @@ var JOBS = [];
 const CronJobsManager = new events();
 
 _.extend(CronJobsManager, {
-	//adminToken: '',
-	init() {
-		//this.adminToken = auth.getAdminLogin();
-	},
-
 	validateJobs(jobsData, errors) {
 		var isValid = true;
 		function nope(because) {

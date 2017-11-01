@@ -137,27 +137,3 @@ module.exports = function() {
 		}
 	};
 };
-
-
-
-// 'send-later'(Model, req, res, next, opts) {
-// 	$$$.send.notImplemented(res);
-// },
-//
-// 'schedule'(Model, req, res, next, opts) {
-// 	$$$.send.notImplemented(res);
-//
-// 	/**
-// 	 * Will serve as a 'CRON-JOB' UI access for admins / devs to
-// 	 * add/remove/edit reoccurring events.
-// 	 *
-// 	 * Instead of using a new MongoDB model just for the sake of saving
-// 	 * the state of cron-jobs, they can be written to a JSON file in the
-// 	 * /.private/ data folder. When the app starts, it'll load and start
-// 	 * a timer -or- interval that periodically checks if the current-time
-// 	 * should trigger one or more of the tasks saved in the JSON cron-jobs.
-// 	 *
-// 	 * This can be used to set weekly notifications, daily rewards,
-// 	 * monthly prizes, season resets, etc.
-// 	 */
-// },

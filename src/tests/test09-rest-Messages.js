@@ -61,7 +61,4 @@ describe('=REST= Messages', () => {
 		checkMessageOK(data.messages[0].game);
 	});
 
-
-	///////////////////////////////////////TEST MORE Thoroughly...
-
 });

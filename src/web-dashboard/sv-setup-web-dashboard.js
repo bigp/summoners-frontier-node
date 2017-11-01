@@ -14,8 +14,6 @@ function setupWebDashboard() {
 	webdash.__public = $$$.paths.__dir + '/web-dashboard';
 	webdash.__cronJobs = $$$.paths.__data + '/cron-jobs.json';
 
-	CronJobsManager.init();
-
 	loadJSONData()
 		.then(startAllJobs);
 

@@ -28,22 +28,15 @@ module.exports = function() {
 		customRoutes: {
 			//////////////////////////////////////////////////////////////
 
-			'list$'(Model, req, res, next, opts) {
-				$$$.send.notImplemented(res);
-			},
+			/**
+			 * Leave the RESTFUL custom-routes blanks for message-receipts.
+			 *
+			 * The 'message' custom-routes will take care of directly interacting with
+			 * the message-receipts collection table.
+ 			 */
 
-			'add'(Model, req, res, next, opts) {
-				$$$.send.notImplemented(res);
-			},
+			//////////////////////////////////////////////////////////////
 		},
-
-		methods: {
-			toDebugID() {
-				return this.game.identity + "#" + this.id;
-			}
-		},
-
-		///////////////////////////////////////////////////////////
 
 		schema: {
 			userId: CustomTypes.LargeInt({unique:false, required:true}),
