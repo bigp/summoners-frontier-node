@@ -51,15 +51,23 @@ module.exports = function() {
 
 			/////////////////////////////////// GAME-SPECIFIC:
 			game: {
-				msgTemplateID: CustomTypes.LargeInt(),
+				messageId: CustomTypes.LargeInt(),
 				sentFrom: CustomTypes.LargeInt(),
-				//dateExpires: CustomTypes.DateRequired(),
+				//dateExpires: CustomTypes.DateRequired(), //<-- Can be looked up on the Message source.
 
-				//To indicate whether or not the user opened the message.
+				// To indicate whether or not the user opened the message.
 				isRead: CustomTypes.Bool(false),
 
-				//To indicate whether or not the user claimed the reward in the message (if applicable).
+				// To indicate whether or not the user deleted the message
+				// (at least on his/her end, the message source will still exists for others to read).
+				isDeleted: CustomTypes.Bool(false),
+
+				// To indicate whether or not the user claimed the reward in the message (if applicable).
 				isClaimed: CustomTypes.Bool(false),
+
+				// Mark the date when a reward has been claimed
+				// (that way we can keep it for disputes and/or filtering out of the inbox after (X) time).
+				dateClaimed: Date,
 			}
 		}
 	};

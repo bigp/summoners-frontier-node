@@ -13,7 +13,7 @@ const CONFIG = $$$.env.ini;
 const moment = require('moment');
 
 module.exports = function() {
-	var User, Shop, Item, Hero, MsgReceipt, MsgTemplate;
+	var User, Shop, Item, Hero, MsgReceipt, MsgSource;
 
 	process.nextTick( () => {
 		User = $$$.models.User;
@@ -21,38 +21,39 @@ module.exports = function() {
 		Item = $$$.models.Item;
 		Hero = $$$.models.Hero;
 		MsgReceipt = $$$.models.MessageReceipt;
-		MsgTemplate = $$$.models.MessageTemplate;
+		MsgSource = $$$.models.Message;
 	});
 
+	function makeErrorCallback(res, opts) {
+		if(!opts) opts = {};
+		return err => $$$.send.error(res, opts.asString ? err.toString() : err);
+	}
+
 	return {
-		plural: 'messageTemplates',
+		plural: 'messages',
 
 		customRoutes: {
 			//////////////////////////////////////////////////////////////
 
 			'get::list$'(Model, req, res, next, opts) {
 				const results = {};
-				MsgTemplate.find()
+				MsgSource.find()
 					.then(messages => {
 						results.messages = messages;
 						mgHelpers.sendFilteredResult(res, results);
 					})
-					.catch(err => {
-						$$$.send.error(res, err);
-					}); //
+					.catch(makeErrorCallback(res));
 			},
 
 			'get::inbox$'(Model, req, res, next, opts) {
 				const results = {};
 				const q = {'game.isForEveryone':true};
-				MsgTemplate.find(q)
+				MsgSource.find(q)
 					.then(messages => {
 						results.messages = messages;
 						mgHelpers.sendFilteredResult(res, results);
 					})
-					.catch(err => {
-						$$$.send.error(res, err);
-					}); //
+					.catch(makeErrorCallback(res));
 			},
 
 			'open'(Model, req, res, next, opts) {
@@ -64,7 +65,7 @@ module.exports = function() {
 			},
 
 			'post::add'(Model, req, res, next, opts) {
-				const msg = new MsgTemplate();
+				const msg = new MsgSource();
 				const params = opts.data;
 				const user = req.auth.user;
 
@@ -82,10 +83,7 @@ module.exports = function() {
 					.then(saved => {
 						mgHelpers.sendFilteredResult(res, saved);
 					})
-					.catch(err => {
-						//if(mgHelpers.isValidationError(err, res, 'MessageTemplate is invalid.')) return;
-						$$$.send.error(res, err.toString())
-					});
+					.catch(makeErrorCallback(res, {asString:true}));
 			},
 		},
 

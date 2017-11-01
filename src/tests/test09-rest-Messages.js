@@ -9,7 +9,7 @@ const testUsers = chaiG.testUsers;
 const User = $$$.models.User;
 const PRIVATE = $$$.env.ini.PRIVATE;
 const sendAPI = $$$.send.api;
-const TEST = chaiG.makeFailAndOK('messagetemplate');
+const TEST = chaiG.makeFailAndOK('message');
 
 describe('=REST= Messages', () => {
 	if(chaiG.filterLevel < 2) return;

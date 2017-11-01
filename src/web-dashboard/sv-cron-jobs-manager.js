@@ -152,7 +152,7 @@ _.extend(CronJobsManager, {
 				},
 			};
 
-			$$$.send.api('/messagetemplate/add', 'POST', {body: data})
+			$$$.send.api('/message/add', 'POST', {body: data})
 				.then( data => {
 					trace(data);
 				})
