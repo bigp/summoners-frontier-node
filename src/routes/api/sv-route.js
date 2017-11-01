@@ -17,8 +17,12 @@ module.exports = function(route) {
 	//Ok all other routes beyond this point requires USER-AUTHENTICATED TOKENS!!!
 	route.use('/*', auth.authenticateUser);
 
-	route.use('/*', (req, res, next, err) => {
-		traceError("API ERROR: " + err);
+	route.use('/*', (err, req, res, next) => {
+		var msg = err.message || err;
+		traceError("API ERROR." + msg);
+		trace(err);
+
+		res.status(500).send({error: 'Could not get data at this URL.'})
 	});
 
 	////////////////////////////////////////////////////////////////////////////////////////////////

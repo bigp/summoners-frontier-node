@@ -3,11 +3,18 @@
  */
 const events = require('events');
 const later = require('later');
+const auth = require('../routes/api/sv-auth');
+const moment = require('moment');
 var JOBS = [];
 
 const CronJobsManager = new events();
 
 _.extend(CronJobsManager, {
+	//adminToken: '',
+	init() {
+		//this.adminToken = auth.getAdminLogin();
+	},
+
 	validateJobs(jobsData, errors) {
 		var isValid = true;
 		function nope(because) {
@@ -125,15 +132,38 @@ _.extend(CronJobsManager, {
 
 	JOB_TYPES: {
 		GENERIC_MESSAGE(job) {
-			trace("Generic...");
+			//trace("Generic...");
+			var expireSplit = job.dateExpiresIn.trim().split(' ');
+			var expireAmount = expireSplit[0] | 0;
+			var expireUnits = expireSplit[1];
+			var dateExpires = moment().add(expireAmount, expireUnits);
+
+			const data = {
+				game: {
+					jobName: job.name,
+					jobID: job.id,
+					title: job.title,
+					message: job.message,
+					imageURL: job.imageURL,
+					dateExpires: dateExpires,
+					type: job.type,
+					isPublished: true,
+					isForEveryone: true
+				},
+			};
+
+			$$$.send.api('/messagetemplate/add', 'POST', {body: data})
+				.then( data => {
+					trace(data);
+				})
 		},
 
 		LOOTCRATE_REWARD(job) {
-			trace("LootCrate...");
+			//trace("LootCrate...");
 		},
 
 		CURRENCY_REWARD(job) {
-			trace("Currency...");
+			//trace("Currency...");
 		}
 	}
 });

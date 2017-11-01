@@ -48,7 +48,7 @@ module.exports = function() {
 			add() {
 				const user = $$$.app.user;
 				return {
-					url: api + '/user/add',
+					url: api + '/user/public/add',
 					method: 'post',
 					data: {
 						name: user.name,

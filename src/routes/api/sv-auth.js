@@ -21,7 +21,7 @@ const ERRORS = _.mapValues({
 	}
 }, (cbError, name) => {
 	const errorTitle = name.replace(/_/g, ' ');
-	return (res) => $$$.send.errorCustom(res, cbError(res), errorTitle);
+	return res => $$$.send.errorCustom(res, cbError(res), errorTitle);
 });
 
 function isAuthorized(req) {
@@ -54,10 +54,18 @@ function isAuthorized(req) {
 module.exports = {
 	ERRORS: ERRORS,
 
+	getAdminLogin() {
+		return _.makeToken(PRIVATE.AUTH_ADMIN, new Date().toLocaleDateString());
+	},
+
 	isAuthMiddleware(req, res, next) {
 		const authOK = isAuthorized(req);
 
-		if(!req.auth || !req.auth.isAdmin && requestLimiter.isTooMuch(req)) {
+		if(!req.auth) {
+			return ERRORS.NOT_AUTHORIZED(res);
+		}
+
+		if(!req.auth.isAdmin && requestLimiter.isTooMuch(req)) {
 			return ERRORS.REQUEST_LIMIT(res);
 		}
 
@@ -76,15 +84,17 @@ module.exports = {
 			return $$$.send.errorCustom(res, "Please redirect to '/user/public/login'", 'Login URL has changed.');
 		}
 
-		const USERAUTH_ERROR = (err) => $$$.send.errorCustom(res, err, "User Authentication Failed");
+		const USERAUTH_ERROR = err => $$$.send.errorCustom(res, err, "User Authentication Failed");
 
 		if(!req.auth || !(req.auth.isAdmin || req.auth.isAuth)) {
 			return USERAUTH_ERROR("Request missing OR has incorrect Authorization key.");
 		}
 
 		const authCodes = req.auth.codes;
-		if(authCodes.length<3) {
-			return USERAUTH_ERROR("Request missing parts of Authorization to determine username & token");
+		if(authCodes.length<3 && !req.auth.isAdmin) {
+			return USERAUTH_ERROR("Request missing parts of Authorization to determine username & token: " + authCodes.length);
+		} else if(req.auth.isAdmin) {
+			return next();
 		}
 
 		const username = authCodes[1];

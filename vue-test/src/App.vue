@@ -12,11 +12,6 @@
 		return JSON.stringify(json, null, '  ');
     }
 
-    function makeToken() {
-		var args = [].slice.call(arguments);
-		return btoa(args.join('::'));
-    }
-
 	function sendAjax(urlObj, callbacks) {
 		const request = _.merge(urlObj, callbacks, {
 			contentType: "application/json; charset=utf-8",
@@ -24,7 +19,7 @@
 			beforeSend(xhr) {
 				if(_.isNullOrEmpty($$$.app.authCode)) return;
 
-				const code = makeToken($$$.app.authCode, $$$.app.user.username, $$$.app.user.token);
+				const code = _.makeToken($$$.app.authCode, $$$.app.user.username, $$$.app.user.token);
 
 				xhr.setRequestHeader('Authorization', code);
 			}

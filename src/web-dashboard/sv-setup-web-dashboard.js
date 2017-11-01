@@ -14,6 +14,8 @@ function setupWebDashboard() {
 	webdash.__public = $$$.paths.__dir + '/web-dashboard';
 	webdash.__cronJobs = $$$.paths.__data + '/cron-jobs.json';
 
+	CronJobsManager.init();
+
 	loadJSONData()
 		.then(startAllJobs);
 
@@ -48,7 +50,7 @@ function setupWebDashboard() {
 
 		CronJobsManager.checkAll(webdash.JSON_DATA);
 
-		$$$.files.writeJSON(webdash.__cronJobs, webdash.JSON_DATA, true)
+		writeJSONData()
 			.then(() => res.send({ok:1}))
 			.catch(err => {
 				$$$.send.error(res, 'Could not write the CRON-JOBS JSON data.');
@@ -57,13 +59,27 @@ function setupWebDashboard() {
 
 	$$$.app.use('/web-dashboard', webdash.route);
 
+
+	const writeDataPeriodically =
+		new TimedDirtyFlag({
+			secondsInterval: 10,
+			onDirty() {
+				trace("Writing current JSON-DATA...");
+				writeJSONData();
+			}
+		});
+
 	CronJobsManager.on('job-published', job => {
 		webdash.io.emit('job-published', job);
-	})
+
+		writeDataPeriodically.isDirty = true;
+	});
 }
 
 function loadJSONData() {
 	return new Promise((resolve, reject) => {
+		const defaultData = { cronJobs:[] };
+
 		$$$.files.ensureDirExists(webdash.__cronJobs);
 
 		if(fs.existsSync(webdash.__cronJobs)) {
@@ -71,12 +87,21 @@ function loadJSONData() {
 				.then(data => {
 					webdash.JSON_DATA = data;
 					resolve();
+				})
+				.catch(err => {
+					webdash.JSON_DATA = defaultData;
 				});
 		} else {
-			webdash.JSON_DATA = { cronJobs:[] };
+			webdash.JSON_DATA = defaultData;
 			resolve();
 		}
 	})
+}
+
+function writeJSONData() {
+	if(!webdash.JSON_DATA) return;
+
+	return $$$.files.writeJSON(webdash.__cronJobs, webdash.JSON_DATA, true);
 }
 
 function startAllJobs() {

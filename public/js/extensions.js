@@ -131,7 +131,7 @@ p.toPath = function() {
 	}
 };
 
-"".endsWith || (function() {
+if(!"".endsWith) {
 	p.endsWith = function(searchString, position) {
 		var subjectString = this.toString();
 		if (typeof position !== 'number' || !isFinite(position) || Math.floor(position) !== position || position > subjectString.length) {
@@ -141,7 +141,7 @@ p.toPath = function() {
 		var lastIndex = subjectString.lastIndexOf(searchString, position);
 		return lastIndex !== -1 && lastIndex === position;
 	};
-})();
+}
 
 var regexEmoji = /:([a-z0-9\-\_ ]*):/gi;
 var regexIcon = /\~([a-z0-9\-\_ ]*)\~/gi;
@@ -321,6 +321,11 @@ _.promise = function prom(cbErrorOrPromise) {
 	})
 };
 
+_.makeToken = function makeToken() {
+	var args = [].slice.call(arguments);
+	return args.join('::').toBase64();
+};
+
 function genericError(err, url, title, msg) {
 	var error = err.responseText;
 	try {
@@ -425,6 +430,55 @@ GLOBALS.AsyncEach = AsyncEach;
 
 //////////////////////////////////////////////////////////////
 
+function TimedDirtyFlag(params) {
+	if(!params) throw 'TimedDirtyFlag needs a params object';
+	if(!params.onDirty) throw 'TimedDirtyFlag needs an "onDirty" callback.';
+	if(!params.secondsInterval) throw 'TimedDirtyFlag needs a "secondsInterval" time (in seconds).';
+	this.params = params;
+	this.isDirty = false;
+	this.time = params.secondsInterval * 1000;
+	this.id = -1;
+
+	this.start();
+}
+
+_.extend(TimedDirtyFlag.prototype, {
+	stop() {
+		var self = this;
+		if(self.id>0) clearTimeout(self.id);
+		self.id = -1;
+		self.isRunning = true;
+	},
+
+	start() {
+		var self = this;
+		self.isRunning = true;
+
+		if(!self.params.skipFirst) {
+			return self.loopCheck();
+		}
+
+		self.id = setTimeout(function() { self.loopCheck(); }, self.time);
+	},
+
+	loopCheck() {
+		var self = this;
+		if(!self.isRunning) return;
+
+		if(self.isDirty) {
+			self.isDirty = false;
+			self.params.onDirty();
+		}
+
+		self.id = setTimeout(function() { self.loopCheck(); }, self.time);
+	}
+});
+
+
+GLOBALS.TimedDirtyFlag = TimedDirtyFlag;
+
+//////////////////////////////////////////////////////////////
+
 if(!console) {
 	console = { log() {}, error() {}, clear() {}, }
 }
@@ -450,9 +504,27 @@ if(isNode()) {
 	GLOBALS.traceError = function(err) { trace(err.toString().red); };
 
 	module.exports = GLOBALS;
+
+	_.extend(String.prototype, {
+		toBase64() {
+			return new Buffer(this.toString()).toString('base64');
+		},
+		fromBase64() {
+			return new Buffer(this.toString(), 'base64').toString('ascii');
+		}
+	});
 } else {
 	GLOBALS.traceClear = console.clear.bind(console);
 	GLOBALS.traceError = console.error.bind(console);
+
+	_.extend(String.prototype, {
+		toBase64() {
+			return btoa(this.toString());
+		},
+		fromBase64() {
+			return atob(this.toString());
+		}
+	});
 }
 
 GLOBALS.traceProps = function(obj, pattern) {

@@ -51,6 +51,7 @@ function init() {
 		el: '#app',
 		props: ['currentJob'],
 		data: {
+			adminToken: 'test',
 			cronJobs: []
 		},
 
@@ -64,8 +65,13 @@ function init() {
 				return job[prop] ? 'circle is-on' : 'circle-o is-off';
 			},
 
+			getPublishedDate(job) {
+				if(!job) job = this.currentJob;
+				var date = new Date(job.published.dateLast);
+				return job.published.dateLast ? date.toLocaleString() : '';
+			},
+
 			onToggle(prop, job) {
-				trace("Toggling...");
 				if(!job) job = this.currentJob;
 				job[prop] = !job[prop];
 				this.onSave(job);
@@ -88,9 +94,10 @@ function init() {
 						dateLast: null,
 					},
 					schedule: 'Every 2 seconds',
+					dateExpiresIn: '1 day',
 					title: 'YOUR_TITLE_HERE ' + numJobs,
 					message: 'YOUR_MESSAGE_HERE ' + numJobs,
-					image: 'sword-ref',
+					imageURL: 'sword-ref',
 					type: 'Generic Message'
 				};
 

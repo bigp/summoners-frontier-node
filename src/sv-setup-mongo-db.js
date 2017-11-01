@@ -62,19 +62,23 @@ function forEachModel(schemaFile, name) {
 	const adminRoutes = '/admin' + Model.__routes;
 
 	_.keys(customRoutes).forEach(routeName => {
-		const __customRoute = Model.__route + "/" + routeName;
-		const __adminRoute = adminRoute + "/" + routeName;
-		const customRoute = customRoutes[routeName];
+		var methodSplit = routeName.split('::');
+		var method = 'use';
+		var __route = routeName;
 
-		api.use(__customRoute, (req, res, next) => {
-			const opts = makeOptionsObj(req);
-			customRoute(Model, req, res, next, opts);
-		});
+		if(methodSplit.length===2) {
+			method = methodSplit[0].toLowerCase();
+			__route = methodSplit[1];
+		}
 
-		api.use(__adminRoute, (req, res, next) => {
-			const opts = makeOptionsObj(req);
-			customRoute(Model, req, res, next, opts);
-		});
+		const __customRoute = Model.__route + "/" + __route;
+		const __adminRoute = adminRoute + "/" + __route;
+		const customRouteMiddleWare = (req, res, next) => {
+			customRoutes[routeName](Model, req, res, next, makeOptionsObj(req));
+		};
+
+		api[method](__customRoute, customRouteMiddleWare);
+		api[method](__adminRoute, customRouteMiddleWare);
 	});
 
 	api.use(adminRoutes + "$", (req, res, next) => {

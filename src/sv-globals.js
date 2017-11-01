@@ -66,15 +66,6 @@ _.extend( events.prototype, {
 	}
 });
 
-_.extend(String.prototype,  {
-	toBase64() {
-		return new Buffer(this.toString()).toString('base64');
-	},
-	fromBase64() {
-		return new Buffer(this.toString(), 'base64').toString('ascii');
-	}
-});
-
 const $$$ = global.$$$ = new events();
 const _slice = [].slice;
 
@@ -156,6 +147,7 @@ _.extend($$$, {
 		},
 
 		errorCustom(res, errMessage, errTitle) {
+			if(!res) throw new Error("You have to pass a 'res' object to this method.");
 			res.statusMessage = errTitle;
 			return this.error(res, errMessage);
 		},
@@ -184,7 +176,7 @@ _.extend($$$, {
 				};
 			}
 
-			return request[method]($$$.paths.__api + urlEnd, options)
+			return request[method.toLowerCase()]($$$.paths.__api + urlEnd, options)
 				.then(data => {
 					if(data && data.data) {
 						return data.data;
@@ -238,8 +230,9 @@ _.extend($$$, {
 
 					try {
 						var data = JSON.parse(content);
+						if(data) return resolve(data);
 
-						resolve(data);
+						reject(new Error('JSON data is undefined/null: ' + data));
 					} catch(jsonErr) {
 						reject(jsonErr);
 					}

@@ -50,6 +50,7 @@
           <btn class="big-button" icon="clock-o" @click="onJobAdd">Add Scheduled Job</btn>
           <btn class="big-button" icon="envelope-o no-edit" @click="onSendDM">Send Direct Message</btn>
           <i id="spinner" class="fa fa-3x fa-circle-o-notch"></i>
+          <!--<i class="no-edit">admin-token: "{{adminToken}}"</i>-->
       </hbox>
 
       <hbox class="bottom-area init-hidden">
@@ -96,7 +97,7 @@
                           <i class="fa fa-circle"></i>
                       </i>
                       {{currentJob.published.numTotal}} times,
-                      {{currentJob.published.dateLast ? 'Last Published on ' + currentJob.published.dateLast : 'Never published yet.'}}
+                      {{currentJob.published.dateLast ? 'Last Published on ' + getPublishedDate() : 'Never published yet.'}}
                   </i>
                 </hbox>
 
@@ -104,6 +105,12 @@
                     <i>Schedule:</i>
                     <input id="jobSchedule" v-model="currentJob.schedule">
                     <btn icon="calendar" class="no-edit">Edit</btn>
+                </hbox>
+
+                <hbox class="inline-block">
+                    <i>Message Expires in:</i>
+                    <input id="jobExpiresIn" v-model="currentJob.dateExpiresIn">
+                    <!-- <btn icon="calendar" class="no-edit">Edit</btn> -->
                 </hbox>
 
                 <hbox>

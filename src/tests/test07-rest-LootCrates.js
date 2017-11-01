@@ -11,7 +11,7 @@ const PRIVATE = $$$.env.ini.PRIVATE;
 const sendAPI = $$$.send.api;
 
 describe('=REST= LootCrates', () => {
-	if(chaiG.filterLevel < 4) return;
+	if(chaiG.filterLevel < 6) return;
 
 	var chamberlainpi, peter;
 

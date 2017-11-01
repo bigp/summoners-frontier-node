@@ -189,8 +189,11 @@ module.exports = function() {
 			':itemID/*'(Model, req, res, next, opts) {
 				const itemID = req.params.itemID;
 				const user = req.auth.user;
+				_.promise(() => {
+					if(!user) throw 'Unauthorized user';
 
-				Model.find({userId: user.id, id: itemID}).limit(1)
+					return Model.find({userId: user.id, id: itemID}).limit(1)
+				})
 					.then( validItem => {
 						if(!validItem.length) throw 'Invalid item ID';
 						req.validItem = validItem[0];
@@ -201,6 +204,8 @@ module.exports = function() {
 					.catch(err => {
 						$$$.send.error(res, err);
 					});
+
+
 			},
 
 			':itemID/unequip'(Model, req, res, next, opts) {
