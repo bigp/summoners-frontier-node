@@ -51,9 +51,13 @@ module.exports = function() {
 				// To indicate whether or not the user opened the message.
 				isRead: CustomTypes.Bool(false),
 
+				// Marks the date when this message was read.
+				dateRead: Date,
+
 				// To indicate whether or not the user deleted the message
 				// (at least on his/her end, the message source will still exists for others to read).
 				isDeleted: CustomTypes.Bool(false),
+				dateDeleted: Date,
 
 				// To indicate whether or not the user claimed the reward in the message (if applicable).
 				isClaimed: CustomTypes.Bool(false),
