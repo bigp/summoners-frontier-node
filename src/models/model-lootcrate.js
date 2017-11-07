@@ -109,11 +109,10 @@ module.exports = function() {
 			/////////////////////////////////// GAME-SPECIFIC:
 			game: {
 				lootTableIdentity: CustomTypes.String32({required:true}),
-				zoneIdentity: CustomTypes.String32({required:true}),
-				name: CustomTypes.String32({required: true}),
-				magicFind: CustomTypes.Int({required: true}),
-				quality: CustomTypes.String16({required:true}),
+				itemLevel: CustomTypes.Int({required: true}),
 				variance: CustomTypes.Int({required: true}),
+				quality: CustomTypes.String16({required:true}),
+				magicFind: CustomTypes.Int({required: true}),
 			}
 		}
 	};
