@@ -122,12 +122,15 @@ module.exports = function() {
 					const gameData = itemData.game = {};
 					gameData.identity = jsonItem.identity;
 					gameData.isEquipped = false;
+					gameData.magicFind = $$$.randInt();
+					gameData.itemLevel = $$$.randInt();
+					gameData.variance = $$$.randInt();
+
 					gameData.randomSeeds = {
 						quality: $$$.randInt(),
 						affix: $$$.randInt(),
 						itemLevel: $$$.randInt(),
-						variance: $$$.randInt(),
-						magicFind: $$$.randInt()
+						variance: $$$.randInt()
 					};
 					//gameData.heroEquipped = '';
 
@@ -351,13 +354,18 @@ module.exports = function() {
 				identity: CustomTypes.String128({required:true}),
 				isIdentified: {type: Boolean, default: false},
 				heroEquipped: CustomTypes.LargeInt({default: 0, index: true}),
+
 				randomSeeds: {
 					quality: CustomTypes.LargeInt({default: 1}),
 					affix: CustomTypes.LargeInt({default: 1}),
 					itemLevel: CustomTypes.LargeInt({default: 1}),
 					variance: CustomTypes.LargeInt({default: 1}),
-					magicFind: CustomTypes.Number({default: 1, max: 100})
 				},
+
+				//New (as of Nov. 2017)
+				itemLevel: CustomTypes.LargeInt({default: 1}),
+				variance: CustomTypes.LargeInt({default: 1}),
+				magicFind: CustomTypes.Number({default: 1, max: 100})
 			}
 		}
 	};
