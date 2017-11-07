@@ -348,37 +348,53 @@ describe('=REST= Heroes', () => {
 	////////////////////////////////////////////////////// DELETE
 	if(chaiG.filterLevel < 5) return;
 
-	it('Delete hero (chamberlainpi FAIL Wrong Verb)', done => {
-		chamberlainpi.sendAuth(`/hero/1/remove`, 'get')
-			.then(data => {
-				done('Should not exists!');
-			})
-			.catch(err => {
-				assert.exists(err);
-				done();
-			});
-	});
+	if(false) {
+		it('Delete hero (chamberlainpi FAIL Wrong Verb)', done => {
+			chamberlainpi.sendAuth(`/hero/1/remove`, 'get')
+				.then(data => {
+					done('Should not exists!');
+				})
+				.catch(err => {
+					assert.exists(err);
+					done();
+				});
+		});
 
-	it('Delete hero (chamberlainpi with hero 1)', done => {
-		chamberlainpi.sendAuth(`/hero/${hero1.id}/remove`, 'delete')
-			.then(data => {
-				assert.exists(data);
-				assert.exists(data.removed);
-				assert.equal(data.removed.id, 2);
-				assert.equal(data.numItemsAffected, 1, 'Items affected.');
+		it('Delete hero (chamberlainpi with hero 1)', done => {
+			chamberlainpi.sendAuth(`/hero/${hero1.id}/remove`, 'delete')
+				.then(data => {
+					assert.exists(data);
+					assert.exists(data.removed);
+					assert.equal(data.removed.id, 2);
+					assert.equal(data.numItemsAffected, 1, 'Items affected.');
+					done();
+				})
+				.catch(err => done(err));
+		});
+
+		it('Delete hero (chamberlainpi REMOVE ALL)', done => {
+			chamberlainpi.sendAuth(`/hero/remove-all`, 'delete')
+				.then(data => {
+					assert.exists(data);
+					assert.notExists(data.removed);
+					assert.equal(data.numItemsAffected===0, true);
+					done();
+				})
+				.catch(err => done(err));
+		});
+	}
+
+	it('Get all heroes (AGAIN)', done => {
+		chamberlainpi.sendAuth('/hero/list', 'get')
+			.then(datas => {
+				assert.exists(datas);
+				//trace(datas);
+				//assert.equal(datas.length, 10);
+				chamberlainpi.heroes = datas;
 				done();
+
 			})
 			.catch(err => done(err));
-	});
 
-	it('Delete hero (chamberlainpi REMOVE ALL)', done => {
-		chamberlainpi.sendAuth(`/hero/remove-all`, 'delete')
-			.then(data => {
-				assert.exists(data);
-				assert.notExists(data.removed);
-				assert.equal(data.numItemsAffected===0, true);
-				done();
-			})
-			.catch(err => done(err));
 	});
 });

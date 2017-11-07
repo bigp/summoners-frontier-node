@@ -59,7 +59,7 @@ describe('=GAME= Specific User Actions', () => {
 				assert.exists(data.heroes, 'heroes exists.');
 				assert.exists(data.explorations, 'explorations exists.');
 				assert.equal(data.items.length>0, true, 'items > 0.');
-				assert.equal(data.heroes.length===0, true, 'heroes === 0..');
+				assert.equal(data.heroes.length===10, true, 'heroes === 0..');
 				done();
 			})
 			.catch(err => done(err));

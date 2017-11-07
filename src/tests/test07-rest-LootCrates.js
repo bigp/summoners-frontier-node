@@ -113,20 +113,18 @@ describe('=REST= LootCrates', () => {
 		body: {
 			lootCrate: {
 				lootTableIdentity: 'lootTableIdentity',
+				crateTypeIdentity: 'crateTypeIdentity',
 				lootCrateType: 'lootCrateType',
 				zoneIdentity: 'zoneIdentity',
 				magicFind: 1,
-				name: 'LootCrate Name',
 			}
 		}
 	}, data => {
 		assert.isTrue(data.id > 0, 'ID is valid.');
 		assert.exists(data.game, '"game" object exists.');
 		assert.isTrue(data.game.lootTableIdentity.length>0, 'Has a lootTableIdentity.');
-		assert.isTrue(data.game.lootCrateType.length>0, 'Has a lootCrateType.');
-		assert.isTrue(data.game.zoneIdentity.length>0, 'Has a zoneIdentity.');
 		assert.isTrue(data.game.magicFind>0, 'Has magicFind.');
-		assert.isTrue(data.game.name.length>0, 'Has a name.');
+		assert.isTrue(data.game.crateTypeIdentity.length>0, 'Has a crateTypeIdentity.');
 	});
 
 	failTest('post::/list', '(chamberlainpi FAIL Wrong Verb)');
@@ -139,10 +137,8 @@ describe('=REST= LootCrates', () => {
 		assert.isTrue(data.id > 0, 'ID is valid.');
 		assert.exists(data.game, '"game" object exists.');
 		assert.isTrue(data.game.lootTableIdentity.length>0, 'Has a lootTableIdentity.');
-		assert.isTrue(data.game.lootCrateType.length>0, 'Has a lootCrateType.');
-		assert.isTrue(data.game.zoneIdentity.length>0, 'Has a zoneIdentity.');
 		assert.isTrue(data.game.magicFind>0, 'Has magicFind.');
-		assert.isTrue(data.game.name.length>0, 'Has a name.');
+		assert.isTrue(data.game.crateTypeIdentity.length>0, 'Has a crateTypeIdentity.');
 	});
 
 	failTest('/remove', '(chamberlainpi FAIL Wrong Verb)');
@@ -161,40 +157,32 @@ describe('=REST= LootCrates', () => {
 		body: {
 			lootCrate: {
 				lootTableIdentity: 'lootTableIdentity',
-				lootCrateType: 'lootCrateType',
-				zoneIdentity: 'zoneIdentity',
 				magicFind: 1,
-				name: 'LootCrate Name',
+				crateTypeIdentity: 'crateTypeIdentity',
 			}
 		}
 	}, data => {
 		assert.isTrue(data.id > 0, 'ID is valid.');
 		assert.exists(data.game, '"game" object exists.');
 		assert.isTrue(data.game.lootTableIdentity.length>0, 'Has a lootTableIdentity.');
-		assert.isTrue(data.game.lootCrateType.length>0, 'Has a lootCrateType.');
-		assert.isTrue(data.game.zoneIdentity.length>0, 'Has a zoneIdentity.');
 		assert.isTrue(data.game.magicFind>0, 'Has magicFind.');
-		assert.isTrue(data.game.name.length>0, 'Has a name.');
+		assert.isTrue(data.game.crateTypeIdentity.length>0, 'Has a crateTypeIdentity.');
 	});
 
 	successTest('post::/add', '(chamberlainpi OK)', {
 		body: {
 			lootCrate: {
 				lootTableIdentity: 'lootTableIdentity',
-				lootCrateType: 'lootCrateType',
-				zoneIdentity: 'zoneIdentity',
 				magicFind: 1,
-				name: 'LootCrate Name',
+				crateTypeIdentity: 'crateTypeIdentity',
 			}
 		}
 	}, data => {
 		assert.isTrue(data.id > 0, 'ID is valid.');
 		assert.exists(data.game, '"game" object exists.');
 		assert.isTrue(data.game.lootTableIdentity.length>0, 'Has a lootTableIdentity.');
-		assert.isTrue(data.game.lootCrateType.length>0, 'Has a lootCrateType.');
-		assert.isTrue(data.game.zoneIdentity.length>0, 'Has a zoneIdentity.');
 		assert.isTrue(data.game.magicFind>0, 'Has magicFind.');
-		assert.isTrue(data.game.name.length>0, 'Has a name.');
+		assert.isTrue(data.game.crateTypeIdentity.length>0, 'Has a crateTypeIdentity.');
 	});
 
 });

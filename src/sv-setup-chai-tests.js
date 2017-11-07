@@ -7,7 +7,7 @@ const path = require('path');
 const chaiG = require('./sv-chai-globals');
 const CONFIG = $$$.env.ini.MOCHA || {};
 const regexTestFiles = new RegExp(CONFIG.TEST_FILE_PATTERN || '^test', 'i');
-const mocha = new Mocha({bail:1});
+const mocha = new Mocha({bail:1}); //
 
 module.exports = function start(onFinishTests) {
 	function addTest(file, name) {

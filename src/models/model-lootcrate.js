@@ -45,7 +45,7 @@ module.exports = function() {
 				_.promise(() => {
 					if(mgHelpers.isWrongVerb(req, 'POST')) return;
 					if(!crate) throw 'Missing "lootCrate" in POST data.';
-					if(mgHelpers.hasMissingFields(crate, 'lootTableIdentity,lootCrateType,zoneIdentity,name,magicFind')) return;
+					if(mgHelpers.hasMissingFields(crate, 'lootTableIdentity,crateTypeIdentity,magicFind')) return;
 					if(isNaN(crate.magicFind)) throw 'Invalid "magicFind" (isNaN) value in POST data.';
 
 					var lootCrate = new Model();
@@ -109,10 +109,10 @@ module.exports = function() {
 			/////////////////////////////////// GAME-SPECIFIC:
 			game: {
 				explorationId: CustomTypes.LargeInt({default: -1}),
+				crateTypeIdentity: CustomTypes.String32({required:true}),
 				lootTableIdentity: CustomTypes.String32({required:true}),
 				itemLevel: CustomTypes.Int({required: true}),
 				variance: CustomTypes.Int({required: true}),
-				quality: CustomTypes.String16({required:true}),
 				magicFind: CustomTypes.Int({required: true}),
 			}
 		}
