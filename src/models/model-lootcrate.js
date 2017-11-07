@@ -108,6 +108,7 @@ module.exports = function() {
 
 			/////////////////////////////////// GAME-SPECIFIC:
 			game: {
+				explorationId: CustomTypes.LargeInt({default: -1}),
 				lootTableIdentity: CustomTypes.String32({required:true}),
 				itemLevel: CustomTypes.Int({required: true}),
 				variance: CustomTypes.Int({required: true}),
