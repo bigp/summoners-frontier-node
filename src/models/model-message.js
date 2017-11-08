@@ -88,6 +88,7 @@ module.exports = function() {
 									type: g.type,
 									isForEveryone: g.isForEveryone,
 									dateExpires: g.dateExpires,
+									dateSent: msg.dateCreated
 								},
 								hasReceipt: rcp!=null,
 								receipt: rcp
