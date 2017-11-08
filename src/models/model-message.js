@@ -264,11 +264,16 @@ module.exports = function() {
 				imageURL: CustomTypes.StringCustom(1024),
 				type: CustomTypes.StringCustom(64, {required:true}),
 
+				// TODO: Get the DM (Direct Messages) working for specific users:
 				destinations: [CustomTypes.LargeInt()],
+
+				// TODO: Get the DM (Direct Messages) working for groups of users:
 				destinationGroups: [CustomTypes.LargeInt()],
 
 				dateExpires: CustomTypes.DateRequired(),
-				dateToPublish: CustomTypes.DateRequired(),
+
+				//Not really required anymore, the CRON-Job decides when to publish the message.
+				//dateToPublish: CustomTypes.DateRequired(),
 
 				//For scheduled messages, they can only be 'read' once this flag is true.
 				isPublished: CustomTypes.Bool(false),

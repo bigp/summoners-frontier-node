@@ -400,6 +400,14 @@ module.exports = function() {
 				xp: CustomTypes.LargeInt({default: 0}),
 				name: CustomTypes.String128({required:false}),
 
+				/**
+				 * TODO: For Messages, have the users "belong" to certain destination-groups.
+				 *
+				 * Examples:
+				 *  - By demographics (?),
+ 				 */
+				destinationGroupIDs: [CustomTypes.Int()],
+
 				actsZones: {
 					completed: CustomTypes.Int(),
 				},
