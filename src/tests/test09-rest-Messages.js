@@ -112,11 +112,10 @@ describe('=REST= Messages', () => {
 	TEST.OK('get::/inbox', 'Get message-headers AFTER deleting.', null, data => {
 		assert.equal(data.length, 1, 'Inbox messages.length correct.');
 		checkInboxOK(data[0]);
-		trace(data[0]);
 	});
 
 	TEST.OK('put::/open/2/read', 'Read the only message.', null, data => {
-		trace(data);
+		//trace(data);
 	});
 
 	//////////////////////////////////////////////////////////////////////////////////

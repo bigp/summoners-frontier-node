@@ -85,13 +85,7 @@ module.exports = function() {
 
 							return {
 								userId: user.id,
-								game: _.merge(game, {
-									skills: [
-										{level: 0},
-										{level: 0},
-										{level: 0},
-									]
-								})
+								game: game
 							};
 						});
 
