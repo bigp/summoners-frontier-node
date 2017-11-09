@@ -53,9 +53,7 @@ module.exports = function() {
 				const lists = {receipts: null, messages:null, messageIds: null};
 
 				_.promise(() => {
-					const q = {userId: user.id};
-
-					return MsgReceipt.find()
+					return MsgReceipt.find({userId: user.id});
 				})
 					.then(receipts => {
 						lists.receipts = receipts;
