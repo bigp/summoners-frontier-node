@@ -125,40 +125,57 @@ _.extend(CronJobsManager, {
 		job._cron = null;
 	},
 
+	prepareMessageData(job) {
+		//trace("Generic...");
+		var expireSplit = job.dateExpiresIn.trim().split(' ');
+		var expireAmount = expireSplit[0] | 0;
+		var expireUnits = expireSplit[1];
+		var dateExpires = moment().add(expireAmount, expireUnits);
+
+		return {
+			game: {
+				jobName: job.name,
+				jobID: job.id,
+				title: job.title,
+				message: job.message,
+				imageURL: job.imageURL,
+				dateExpires: dateExpires,
+				type: job.type,
+				reward: job.reward,
+				isPublished: true,
+				isForEveryone: true
+			},
+		};
+	},
+
+	sendMessage(data) {
+		return $$$.send.api('/message/add', 'POST', {body: data})
+			.then( data => {
+				trace(data);
+			})
+			.catch(err => {
+				traceError("CRON-JOB ERROR: " + (err.message || err));
+				CronJobsManager.emit('job-error', err);
+			});
+	},
+
 	JOB_TYPES: {
 		GENERIC_MESSAGE(job) {
-			//trace("Generic...");
-			var expireSplit = job.dateExpiresIn.trim().split(' ');
-			var expireAmount = expireSplit[0] | 0;
-			var expireUnits = expireSplit[1];
-			var dateExpires = moment().add(expireAmount, expireUnits);
+			const data = CronJobsManager.prepareMessageData(job);
 
-			const data = {
-				game: {
-					jobName: job.name,
-					jobID: job.id,
-					title: job.title,
-					message: job.message,
-					imageURL: job.imageURL,
-					dateExpires: dateExpires,
-					type: job.type,
-					isPublished: true,
-					isForEveryone: true
-				},
-			};
-
-			$$$.send.api('/message/add', 'POST', {body: data})
-				.then( data => {
-					trace(data);
-				})
+			CronJobsManager.sendMessage(data);
 		},
 
 		LOOTCRATE_REWARD(job) {
-			//trace("LootCrate...");
+			const data = CronJobsManager.prepareMessageData(job);
+
+			CronJobsManager.sendMessage(data);
 		},
 
 		CURRENCY_REWARD(job) {
-			//trace("Currency...");
+			const data = CronJobsManager.prepareMessageData(job);
+
+			CronJobsManager.sendMessage(data);
 		}
 	}
 });

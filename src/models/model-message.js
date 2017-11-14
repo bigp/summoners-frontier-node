@@ -289,7 +289,7 @@ module.exports = function() {
 				 */
 
 				reward: {
-					item: CustomTypes.StringCustom(1024), // Potentially long JSON data.
+					item: CustomTypes.StringCustom(1024), // Potentially long JSON/CSV data.
 					costType: CustomTypes.String64(64), //Gold, Gems, Shards, etc.
 					costAmount: CustomTypes.Int(), //Number
 				},

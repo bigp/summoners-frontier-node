@@ -72,6 +72,10 @@ function setupWebDashboard() {
 
 		writeDataPeriodically.isDirty = true;
 	});
+
+	CronJobsManager.on('job-error', err => {
+		webdash.io.emit('job-error', err);
+	});
 }
 
 function loadJSONData() {
