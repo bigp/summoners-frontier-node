@@ -288,7 +288,11 @@ describe('=REST= Heroes', () => {
 	it('Update SkillLevels on a hero (1)', done => {
 		chamberlainpi.sendAuth(`/hero/1/skill-levels/`, 'put', {
 			body: {
-				skillLevels: [1, 2, 3],
+				skillLevels: [
+					{level:1, identity: 'test'},
+					{level:2, identity: 'test'},
+					{level:3, identity: 'test'}
+				],
 			}
 		})
 			.then(data => {
