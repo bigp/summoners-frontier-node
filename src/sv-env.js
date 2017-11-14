@@ -24,7 +24,7 @@ module.exports = function (privatePath) {
 	}
 
 	//Expose a "_ini" field to make it shareable on Vue-based / Webpack Configuration files:
-	process.env = _.extend(env, {ini: ini}, {isTesting: _.isTruthy(ini.TEST)});
+	process.env = _.extend(env, {ini: ini}, {isTesting: !!process.env.isTesting});
 
 	if(ini.HTTPS) {
 		process.env.HTTP_TYPE = _.isTruthy(ini.HTTPS.ENABLED) ? "https" : "http";

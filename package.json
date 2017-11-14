@@ -9,6 +9,7 @@
   "scripts": {
     "test": "node sf-dev.js test",
     "dev": "node sf-dev.js cluster",
+    "scratch": "node sf-dev.js scratch",
     "start": "node sf-dev.js",
     "webpack": "webpack --config web-dashboard/webpack.config.js --progress --colors"
   },

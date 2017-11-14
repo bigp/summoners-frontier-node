@@ -33,8 +33,6 @@ Promise.all([
 			].join(' ')
 		);
 
-		//trace($$$.jsonLoader.globals);
-
 		//Oh, before we go, check if we should be running the Test Suites (CHAI)...
 		if(!$$$.env.isTesting) return;
 
@@ -44,11 +42,11 @@ Promise.all([
 	.catch( err => {
 		//If any errors occur in the previous steps... show the error in the console!!!
 		traceError("========= OH NO! ==========");
-		traceError(err);
+		trace(err);
 	});
 
 
-if(_.isTruthy($$$.env.ini.TEST)) {
+if(_.isTruthy($$$.env.isTesting)) {
 	$$$.sockets = [];
 	$$$.server.on('connection', socket => {
 		$$$.sockets.push(socket);

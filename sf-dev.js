@@ -27,11 +27,8 @@ switch(args[0]) {
 		return;
 	}
 
-	case 'test': {
-		require('./test');
-		return;
-	}
-
+	case 'test': process.env.isTesting = true; break;
+	case 'scratch': require('./scratch'); return;
 	default: break;
 }
 
