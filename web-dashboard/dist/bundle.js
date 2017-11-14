@@ -1087,7 +1087,7 @@ function loadCronJobs() {
 				__CRON_JOBS = $$$.vue.cronJobs = data.cronJobs;
 
 				if(__CRON_JOBS && __CRON_JOBS.length>0) {
-					$$$.vue.currentJob = __CRON_JOBS[0];
+					$$$.vue.onJobSelected(__CRON_JOBS[0]);
 				}
 			})
 			.catch(err => {
@@ -1127,6 +1127,10 @@ function init() {
 			},
 
 			onJobSelected(job) {
+				if(!job.reward) {
+					job.reward = {item:''};
+				}
+
 				this.currentJob = job;
 			},
 
@@ -1147,7 +1151,8 @@ function init() {
 					title: 'YOUR_TITLE_HERE ' + numJobs,
 					message: 'YOUR_MESSAGE_HERE ' + numJobs,
 					imageURL: 'sword-ref',
-					type: 'Generic Message'
+					type: 'Generic Message',
+					reward: { item: '' }
 				};
 
 				__CRON_JOBS.push( job );
