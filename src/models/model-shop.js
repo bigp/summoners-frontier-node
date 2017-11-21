@@ -313,7 +313,9 @@ module.exports = function() {
 					})
 					.then( itemResults => {
 						modifyCost(itemCost, currency, -1);
-
+						trace('WHAT DOES THIS SAY?'.cyan);
+						trace(itemResults);
+						
 						//TODO for multiple items, solve why the '_...' private properties leak through this!
 						results.item = itemResults.newest[0];
 
