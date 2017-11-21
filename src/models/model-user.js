@@ -64,6 +64,11 @@ module.exports = function() {
 							essenceLow: g.ESSENCE_LOW,
 							essenceMid: g.ESSENCE_MID,
 							essenceHigh: g.ESSENCE_HIGH,
+
+							relicsSword: g.RELIC_SWORD,
+							relicsShield: g.RELIC_SHIELD,
+							relicsStaff: g.RELIC_STAFF,
+							relicsBow: g.RELIC_BOW,
 						}
 					};
 
@@ -435,9 +440,17 @@ module.exports = function() {
 					essenceLow: CustomTypes.LargeInt(),
 					essenceMid: CustomTypes.LargeInt(),
 					essenceHigh: CustomTypes.LargeInt(),
+
+					relicsSword: CustomTypes.LargeInt(),
+					relicsShield: CustomTypes.LargeInt(),
+					relicsStaff: CustomTypes.LargeInt(),
+					relicsBow: CustomTypes.LargeInt(),
 				},
 
 				shopInfo: {
+					//TODO: FEATURE!!! We could have the players purchase EXTRA shop-slots to see more items per refresh-keys.
+					expansionSlots: CustomTypes.Int({default:0}),
+
 					dateLastPurchasedFeaturedItem: CustomTypes.DateRequired({required: false, default: new Date(0)}),
 					refreshKey: {
 						purchased: [CustomTypes.Int()],

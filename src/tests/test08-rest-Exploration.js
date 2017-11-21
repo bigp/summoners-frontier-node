@@ -12,7 +12,7 @@ const sendAPI = $$$.send.api;
 const TEST = chaiG.makeFailAndOK('exploration');
 
 describe('=REST= Explorations', () => {
-	if(chaiG.filterLevel < 6) return;
+	if(chaiG.filterLevel < 10) return;
 
 	TEST.SET_USER(() => testUsers.chamberlainpi);
 

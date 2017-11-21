@@ -14,14 +14,18 @@ module.exports = {
 		const weapons = jsonSheets['item-weapons'].data;
 		const armor = jsonSheets['item-armors'].data;
 		const relic = jsonSheets['item-artifacts'].data;
-		const allItems = [].concat(weapons, armor, relic);
+		const currency = jsonSheets['item-currency'].data;
+		const allItems = [].concat(weapons, armor, relic, currency);
 		const allIdentities = allItems.map(item => item.identity);
 		const allNames = allItems.map(item => item.name);
+
+		currency.identities = currency.map(item => item.identity);
 
 		return {
 			weapon: weapons,
 			armor: armor,
 			relic: relic,
+			currency: currency,
 
 			all: {
 				items: allItems,

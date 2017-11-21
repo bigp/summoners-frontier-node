@@ -12,7 +12,7 @@ const sendAPI = $$$.send.api;
 const TEST = chaiG.makeFailAndOK('message');
 
 describe('=REST= Messages', () => {
-	if(chaiG.filterLevel < 2) return;
+	if(chaiG.filterLevel < 10) return;
 
 	const msgOther = {
 		message: 'Other Message',

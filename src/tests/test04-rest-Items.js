@@ -69,7 +69,7 @@ describe('=REST= Items', () => {
 
 	TEST.FAIL('post::/list', 'Get all items (FAIL wrong HTTP VERB)');
 
-	TEST.OK('post::/add', 'Add custom item (chamberlainpi)', {
+	TEST.OK('post::/add', 'Add item (chamberlainpi)', {
 		body: {
 			list: [
 				{identity: 'item_sword', randomSeeds: randomItemSeeds(1,1,1,1)},
@@ -83,7 +83,19 @@ describe('=REST= Items', () => {
 		assert.notExists(datas.oldest);
 	});
 
-	TEST.FAIL('post::/add', 'Add custom item WITH HERO-ID (FAIL, HERO does not exists!)', {
+	TEST.OK('post::/add', 'Add currency item $$$ (chamberlainpi)', {
+		body: {
+			list: [
+				{identity: 'item_sword', randomSeeds: randomItemSeeds(1,1,1,1)},
+				{identity: 'item_hero_scroll'},
+				{identity: 'item_identity_scroll'},
+			]
+		}
+	}, datas => {
+		assert.exists(datas);
+	});
+
+	TEST.FAIL('post::/add', 'Add item WITH HERO-ID (FAIL, HERO does not exists!)', {
 		body: {
 			list: [
 				{identity: 'item_sword', randomSeeds: randomItemSeeds(1,1,1,1)},
@@ -102,7 +114,7 @@ describe('=REST= Items', () => {
 
 	TEST.SET_USER(() => testUsers.peter);
 
-	TEST.FAIL('post::/add', 'Add custom item (FAIL - INVALID for peter)', {
+	TEST.FAIL('post::/add', 'Add item (FAIL - INVALID for peter)', {
 		body: {
 			list: [
 				{identity: 'item_sword', randomSeeds: randomItemSeeds(4,4,4,4)},
@@ -112,7 +124,7 @@ describe('=REST= Items', () => {
 		}
 	});
 
-	TEST.FAIL('post::/add', 'Add custom item (FAIL - missing LIST for peter)', {
+	TEST.FAIL('post::/add', 'Add item (FAIL - missing LIST for peter)', {
 		body: { empty: true }
 	});
 

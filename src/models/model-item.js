@@ -4,6 +4,7 @@
 
 const gameHelpers = require('../sv-json-helpers');
 const mgHelpers = require('../sv-mongo-helpers');
+const changeCase = require('change-case');
 const mongoose = mgHelpers.mongoose;
 const Schema  = mongoose.Schema;
 const Types  = Schema.Types;
@@ -46,17 +47,48 @@ module.exports = function() {
 				});
 			})
 			.then( user => {
-				var jsonItems, validIdentities;
+				var jsonItems, jsonCurrencies, validIdentities;
+				var list = opts.data.list, listCurrencies=[];
 
 				try {
 					jsonItems = gameHelpers.getItems();
 					validIdentities = jsonItems.all.identities;
+					jsonCurrencies = jsonItems.currency;
 				} catch(err) {
 					throw 'Issue reading the JSON "sf-dev" items, was a table renamed? ' + err.message;
 				}
 
+				list = list.filter(item => {
+					const found = jsonCurrencies.find(currency => currency.identity === item.identity);
+					if(found) {
+						listCurrencies.push({currency:found, item: item});
+						return false;
+					}
+					return true;
+				});
+
+				var isCurrencyChanged = false;
+
+				//Now check if we have any currency-items to add to the user's currency table:
+				if(listCurrencies.length) {
+
+					const userCurrency = user.game.currency;
+
+					listCurrencies.forEach(obj => {
+						const item = obj.item;
+						const currency = obj.currency;
+
+						const currencyName = changeCase.camelCase(currency.type);
+
+						if(currency.reward<1) throw "Currency Item's reward should be greater than zero!";
+						userCurrency[currencyName] += currency.reward | 0;
+					});
+
+					isCurrencyChanged = true;
+				}
+
 				var invalidIdentities = [];
-				const items = opts.data.list.map(item => {
+				const items = list.map(item => {
 					if(!validIdentities.has(item.identity)) {
 						invalidIdentities.push(item);
 					}
@@ -75,7 +107,12 @@ module.exports = function() {
 				}
 
 				function promiseAddItems(oldest) {
-					return Item.create(items)
+					return _.promise(() => {
+							return isCurrencyChanged ? user.save() : true;
+						}).then(saved => {
+							//isCurrencyChanged && trace(saved);
+							return Item.create(items);
+						})
 						.then(newest => {
 							return mgHelpers.makeNewestAndOldest(newest, oldest);
 						});

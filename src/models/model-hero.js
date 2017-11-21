@@ -212,7 +212,6 @@ module.exports = function() {
 					return validHero.save();
 				})
 					.then( saved => {
-						trace(saved);
 						mgHelpers.sendFilteredResult(res, saved);
 					})
 					.catch(err => {
