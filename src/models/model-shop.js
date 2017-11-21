@@ -275,7 +275,7 @@ module.exports = function() {
 			'buy/item'(Model, req, res, next, opts) {
 				const user = req.auth.user;
 				const currency = user.game.currency;
-				const itemData = opts.data.item;
+				const indexAndSeed = opts.data.item;
 				const refreshKey = req.shopSession.refreshKey;
 				const results = { isItemPurchased: true };
 
@@ -283,10 +283,10 @@ module.exports = function() {
 
 				_.promise(() => {
 					if(mgHelpers.isWrongVerb(req, 'POST')) return;
-					if(!itemData) throw 'Missing "item" in POST data.';
-					if(isNaN(itemData.index)) throw 'Missing "item.index" in POST data.';
-					if(isNaN(itemData.seed)) throw 'Missing "item.seed" in POST data.';
-					if(itemData.seed!==refreshKey.seed) {
+					if(!indexAndSeed) throw 'Missing "item" in POST data.';
+					if(isNaN(indexAndSeed.index)) throw 'Missing "item.index" in POST data.';
+					if(isNaN(indexAndSeed.seed)) throw 'Missing "item.seed" in POST data.';
+					if(indexAndSeed.seed!==refreshKey.seed) {
 						//trace(req.shopSession.refreshKey.seed);
 						//trace('req.shopSession.refreshKey: '.red + itemData.seed + " is not equal (!=) " + refreshKey.seed );
 						throw 'Incorrect "item.seed" used, does not match current refresh seed.';
@@ -299,13 +299,13 @@ module.exports = function() {
 
 					return Model.find({
 						userId: user.id,
-						'game.item.index': itemData.index,
-						'game.item.seed': itemData.seed,
+						'game.item.index': indexAndSeed.index,
+						'game.item.seed': indexAndSeed.seed,
 					})
 				})
 					.then( existingItems => {
 						if(existingItems && existingItems.length>0) {
-							throw `You already purchased this item: {index: ${itemData.index}, seed: ${itemData.seed}}`;
+							throw `You already purchased this item: {index: ${indexAndSeed.index}, seed: ${indexAndSeed.seed}}`;
 						}
 
 						//Add the items to the list:
@@ -313,16 +313,16 @@ module.exports = function() {
 					})
 					.then( itemResults => {
 						modifyCost(itemCost, currency, -1);
-						trace('WHAT DOES THIS SAY?'.cyan);
-						trace(itemResults);
-						
-						//TODO for multiple items, solve why the '_...' private properties leak through this!
-						results.item = itemResults.newest[0];
+
+						if(itemResults.newest) {
+							//TODO for multiple items, solve why the '_...' private properties leak through this!
+							results.item = itemResults.newest[0];
+						}
 
 						const shopItem = new Model();
 						shopItem.userId = user.id;
 						shopItem.game = _.extend({
-							item: itemData,
+							item: indexAndSeed,
 							cost: itemCost
 						}, refreshKey);
 
