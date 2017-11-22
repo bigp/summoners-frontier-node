@@ -78,13 +78,14 @@ module.exports = function() {
 						const validIdentities = jsonHeroes.all.identities;
 
 						var invalidIdentities = [];
-						const heroes = opts.data.list.map(game => {
+						const heroes = opts.data.list.map((game, i) => {
 							if(!validIdentities.has(game.identity)) {
 								invalidIdentities.push(game);
 							}
 
 							return {
 								userId: user.id,
+								dateCreated: moment().add(i,'ms'),
 								game: game
 							};
 						});
@@ -266,6 +267,45 @@ module.exports = function() {
 					});
 			},
 
+			':heroID/swap-identity'(Model, req, res, next, opts) {
+				const jsonHeroes = gameHelpers.getHeroes();
+				const validHero = req.validHero;
+				const identityPrev = validHero.game.identity;
+				const identityNext = opts.data.identity;
+
+				_.promise(() => {
+					if (mgHelpers.isWrongVerb(req, 'PUT')) return;
+
+					// Validate whether or not we have a valid previous "identity" / "AwakenReference" to upgrade to the desired identity
+					const heroDataPrev = jsonHeroes.find( hero => hero.identity === identityPrev);
+					if(!heroDataPrev) throw `The Hero you're trying to swap FROM ${identityPrev} isn't even valid in the Heroes data sheet!`;
+
+					const heroDataNext = jsonHeroes.find( hero => hero.identity === identityNext);
+					if(!heroDataNext) throw `The Hero you're trying to swap TO ${identityNext} isn't even valid in the Heroes data sheet!`;
+
+					const awakenReferencePrev = heroDataPrev['awaken-reference'];
+					const awakenReferenceNext = heroDataNext['awaken-reference'];
+
+					// trace('awakenReferenceNext: ' + awakenReferenceNext.red);
+					// trace('awakenReferencePrev: ' + awakenReferencePrev.red);
+					// trace('identityPrev: ' + identityPrev.red);
+					// trace('identityNext: ' + identityNext.red);
+
+					if(awakenReferenceNext !== awakenReferencePrev && awakenReferenceNext !== identityPrev) {
+						throw `You cannot swap the identity of incompatible Heroes (FROM ${identityPrev} -> TO ${identityNext}) refer to the data sheet to make sure it's the right one!`;
+					}
+
+					validHero.game.identity = identityNext;
+					return validHero.save();
+				})
+					.then(savedHero => {
+						mgHelpers.sendFilteredResult(res, savedHero);
+					})
+					.catch(err => {
+						$$$.send.error(res, err);
+					});
+			},
+
 			'remove-all'(Model, req, res, next, opts) {
 				const user = req.auth.user;
 				const Item = $$$.models.Item;
@@ -295,12 +335,8 @@ module.exports = function() {
 				_.promise(() => {
 					if(mgHelpers.isWrongVerb(req, 'PUT')) return;
 
-					return Model.updateMany({
-						userId: user.id
-					}, {
-						// Reset heroes to zero (0)
-						'game.exploringActZone': 0
-					});
+					// Reset heroes to zero (0)
+					return Model.updateMany({userId: user.id}, {'game.exploringActZone': 0});
 				})
 					.then( updated => {
 						mgHelpers.sendFilteredResult(res, updated);
@@ -328,6 +364,8 @@ module.exports = function() {
 				identity: CustomTypes.String128({required:true}),
 				exploringActZone: CustomTypes.Int({required:true, default: 0}),
 				dateLastUsedTapAbility: CustomTypes.DateRequired(),
+				qualityLevel: CustomTypes.Int({default: 0}),
+
 				randomSeeds: {
 					variance: CustomTypes.LargeInt({default: 1}),
 				},

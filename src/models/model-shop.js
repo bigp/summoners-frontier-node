@@ -411,6 +411,33 @@ module.exports = function() {
 						mgHelpers.sendFilteredResult(res, results);
 					})
 					.catch(err => $$$.send.error(res, err));
+			},
+
+			'put::expansion-slots'(Model, req, res, next, opts) {
+				const user = req.auth.user;
+				const currency = user.game.currency;
+				const shopInfo = user.game.shopInfo;
+				const cost = opts.data.cost;
+				const expansionSlots = opts.data.expansionSlots;
+				const limit = jsonGlobals.SHOP_EXPANSION_LIMIT;
+
+				_.promise(() => {
+					if(isNaN(expansionSlots)) throw 'Missing "expansionSlots" field in POST data.';
+					if(expansionSlots < 0 || expansionSlots > limit) throw `"expansionSlots" value should be between 0 - ${limit}`;
+					if(isCostMissing(cost, currency, true)) return;
+
+					modifyCost(cost, currency, -1);
+
+					shopInfo.expansionSlots = expansionSlots;
+
+					return user.save();
+				})
+					.then( saved => {
+						mgHelpers.sendFilteredResult(res, saved.game);
+					})
+					.catch( err => {
+						$$$.send.error(res, err);
+					})
 			}
 		},
 

@@ -38,6 +38,7 @@ module.exports = {
 	getHeroes() {
 		const jsonHeroes = jsonSheets['heroes'].data;
 
+		//Make a copy of the Heroes data (Google Sheet) so we can add shortcut fields (like all, all.identities, all.names)
 		var dup = [].concat(jsonHeroes);
 		dup.all = {
 			identities: jsonHeroes.map(hero => hero.identity),

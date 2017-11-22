@@ -12,7 +12,7 @@ const sendAPI = $$$.send.api;
 const TEST = chaiG.makeFailAndOK('shop');
 
 describe('=REST= Shop', () => {
-	if(chaiG.filterLevel < 11) return;
+	if(chaiG.filterLevel < 9) return;
 
 	var chamberlainpi, shopInfo, itemIndex0, newItem, intentionalDelay = 1000;
 	var itemRandomSword = [{identity: 'item_sword', randomSeeds: chaiG.randomItemSeeds(4,4,4,4)}];
@@ -155,10 +155,7 @@ describe('=REST= Shop', () => {
 
 	TEST.OK('delete::/sell/items', 'Sell an Item (chamberlainpi)', () => {
 		return {
-			body: {
-				items: [newItem],
-				cost: {gold: 1},
-			}
+			body: { items: [newItem], cost: {gold: 1}, }
 		}
 	}, data => {
 		assert.exists(data.currency);
@@ -167,6 +164,19 @@ describe('=REST= Shop', () => {
 		assert.equal(data.numItemsSold, 1, 'numItemsSold == 1?');
 
 		chamberlainpi.game.currency = data.currency;
+	});
+
+	///////////////////////////////////////////////////////////////// Add Expansion:
+
+	const gemsCost = gems => ({body: {expansionSlots: 1, cost: {gems: gems} }});
+
+	TEST.FAIL('post::/expansion-slots', '(WRONG VERB)', gemsCost(1));
+	TEST.FAIL('put::/expansion-slots', 'Set the Expansion Slots to 1 (FAIL for 99999 Gold)', gemsCost(99999));
+
+	TEST.OK('put::/expansion-slots', 'Set the Expansion Slots to 1 for 1 Gold', gemsCost(1), data => {
+		assert.exists(data.currency, 'Currency exists');
+		assert.exists(data.shopInfo, 'ShopInfo exists');
+		assert.equal(data.shopInfo.expansionSlots, 1, 'ExpansionSlots == 1');
 	});
 
 	///////////////////////////////////////////////////////////////// Get / Buy Featured Item:

@@ -58,13 +58,20 @@ const chaiG = module.exports = {
 				});
 			},
 
+			SEND(url, method, body) {
+				if(!TEST_METHODS.testUser) {
+					return $$$.send.api(url, method, body);
+				}
+
+				return TEST_METHODS.testUser.sendAuth(url, method, body);
+			},
+
 			RESOLVE_URL(url, body) {
 				var method = "get";
 
-				if(url.has('::')) {
-					var urlSplit = url.split('::');
-					method = urlSplit[0];
-					url = urlSplit[1];
+				if(!_.isFunction(url)) {
+					var urlStr = url || '...';
+					url = () => urlStr;
 				}
 
 				if(!_.isFunction(body)) {
@@ -72,7 +79,25 @@ const chaiG = module.exports = {
 					body = () => str;
 				}
 
-				return {url: `/${prefix}${url}`, padded: _.padEnd(`${method}::/${prefix}${url}`, 30) + "> ", method: method, getBody: body};
+				function getURL() {
+					var urlStr = url();
+					if(urlStr.has('::')) {
+						var urlSplit = urlStr.split('::');
+						method = urlSplit[0];
+						urlStr = urlSplit[1];
+					}
+
+					return `/${prefix}${urlStr}`;
+				}
+
+				var paddedURL = getURL().replace(/undefined/g, '...');
+
+				return {
+					getURL: getURL,
+					padded: _.padEnd(`${method}::${paddedURL}`, 30) + "> ",
+					method: method,
+					getBody: body
+				};
 			},
 
 			OK(url, title, body, onData) {
@@ -83,10 +108,12 @@ const chaiG = module.exports = {
 				const resolved = TEST_METHODS.RESOLVE_URL(url, body);
 
 				it(resolved.padded + title, done => {
-					TEST_METHODS.testUser.sendAuth(resolved.url, resolved.method, resolved.getBody())
+					TEST_METHODS.SEND(resolved.getURL(), resolved.method, resolved.getBody())
 						.then(data => {
 							assert.exists(data);
 
+							// If the callback signature takes 2 arguments, assume
+							// it needs the 'done' callback for asynchronous uses.
 							if(onData.length===2) {
 								onData(data, done);
 								return;
@@ -107,7 +134,7 @@ const chaiG = module.exports = {
 				const resolved = TEST_METHODS.RESOLVE_URL(url, body);
 
 				it(resolved.padded + ('* '.red) + title, done => {
-					TEST_METHODS.testUser.sendAuth(resolved.url, resolved.method, resolved.getBody())
+					TEST_METHODS.SEND(resolved.getURL(), resolved.method, resolved.getBody())
 						.then(data => done('Should not exists!'))
 						.catch(err => {
 							assert.exists(err);

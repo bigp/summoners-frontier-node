@@ -10,395 +10,225 @@ const testUsers = chaiG.testUsers;
 const User = $$$.models.User;
 const PRIVATE = $$$.env.ini.PRIVATE;
 const sendAPI = $$$.send.api;
+const TEST = chaiG.makeFailAndOK('hero');
+const TEST_ITEM = chaiG.makeFailAndOK('item');
 
 describe('=REST= Heroes', () => {
 	if(chaiG.filterLevel < 2) return;
 
-	var chamberlainpi, peter, hero0, hero1, item0, item1;
+	var chamberlainpi, heroTestForSwap=0, hero0=0, hero1=1, item0=0, item1=1;
 
-	it('INIT', done => {
-		chamberlainpi = testUsers.chamberlainpi;
-		peter = testUsers.peter;
-		done();
+	TEST.SET_USER(() => chamberlainpi = testUsers.chamberlainpi);
+	TEST_ITEM.SET_USER(() => chamberlainpi);
+
+	TEST.OK('post::/random/5', 'Generate random Heroes (chamberlainpi ANOTHER FEW [5] )', null, data => {
+		assert.exists(data);
+		assert.equal(data.length>0, true);
+		assert.equal(data[0].userId, chamberlainpi.id, "Hero ID == User ID");
 	});
 
-	it('Generate random Heroes (chamberlainpi ANOTHER FEW [5] )', done => {
-		chamberlainpi.sendAuth('/hero/random/5', 'post')
-			.then(data => {
-				assert.exists(data);
-				assert.equal(data.length>0, true);
-				assert.equal(data[0].userId, chamberlainpi.id, "Hero ID == User ID");
-				done();
-			})
-			.catch(err => done(err));
+	TEST.SET_USER(() => testUsers.peter);
+	TEST.FAIL('post::/random/19', 'Generate random Heroes weapon (peter FAIL TOO MANY)');
 
+	TEST.SET_USER(() => null);
+	TEST.FAIL('post::/random/19', 'Generate random Heroes weapon (UNAUTHORIZED)');
+
+	TEST.SET_USER(() => testUsers.chamberlainpi);
+
+	TEST.OK('post::/add', 'Add Custom Heroes (chamberlainpi)', {
+		body: {
+			list: [
+				{identity: 'hero_marauder', randomSeeds: {variance: 1}},
+				{identity: 'hero_guardian', randomSeeds: {variance: 2}},
+				{identity: 'hero_raremage', randomSeeds: {variance: 3}},
+			]
+		}
+	}, data => {
+		assert.exists(data.newest);
+		assert.equal(data.newest.length, 3);
+		assert.equal(data.newest[0].userId, chamberlainpi.id, "Hero ID == User ID");
 	});
 
-	it('Generate random Heroes weapon (peter FAIL TOO MANY)', done => {
-		peter = testUsers.peter;
-		peter.sendAuth('/hero/random/19', 'post')
-			.then(data => {
-				done('Should not exists!');
-			})
-			.catch(err => {
-				assert.exists(err);
-				done();
-			});
+	TEST.OK('post::/add', 'Add Custom Heroes (chamberlainpi with showAll)', {
+		body: {
+			showAll:1,
+			list: [
+				// THIS HERO IS IMPORTANT TO TEST OUT THE SWAP (only one that currently has a awakening-reference:
+				{identity: 'hero_rareassassin', randomSeeds: {variance: 4}}, //<--- DON'T CHANGE!!!
+				{identity: 'hero_guardian', randomSeeds: {variance: 5}},
+			]
+		}
+	}, data => {
+		assert.exists(data.oldest);
+		assert.exists(data.newest);
+		assert.equal(data.newest.length, 2);
 
+		//Don't take any chances, just FIND the 'rareassassin' manually from the results:
+		heroTestForSwap = data.newest.find(hero => hero.game.identity==='hero_rareassassin');
+
+		assert.equal(data.newest[0].userId, chamberlainpi.id, "newest Hero ID == User ID");
+		assert.equal(data.oldest[0].userId, chamberlainpi.id, "oldest Hero ID == User ID");
 	});
 
-	it('Generate random Heroes weapon (FAIL UNAUTHORIZED)', done => {
-		sendAPI('/hero/random/19', 'post')
-			.then(data => {
-				done('Should not exists!');
-			})
-			.catch(err => {
-				assert.exists(err);
-				done();
-			});
+	TEST.OK('get::/list', 'Get all heroes', null, datas => {
+		assert.exists(datas);
+		assert.equal(datas.length, 10);
+		chamberlainpi.heroes = datas;
 
-	});
-
-	it('Add Custom Heroes (chamberlainpi)', done => {
-		chamberlainpi.sendAuth('/hero/add', 'post', {
-			body: {
-				list: [
-					{identity: 'hero_marauder', randomSeeds: {variance: 1}},
-					{identity: 'hero_guardian', randomSeeds: {variance: 2}},
-					{identity: 'hero_raremage', randomSeeds: {variance: 3}},
-				]
-			}
-		})
-			.then(data => {
-				assert.exists(data.newest);
-				assert.equal(data.newest.length, 3);
-				assert.equal(data.newest[0].userId, chamberlainpi.id, "Hero ID == User ID");
-				done();
-			})
-			.catch(err => done(err));
-
-	});
-
-	it('Add Custom Heroes (chamberlainpi with showAll)', done => {
-		chamberlainpi.sendAuth('/hero/add', 'post', {
-			body: {
-				showAll:1,
-				list: [
-					{identity: 'hero_marauder', randomSeeds: {variance: 4}},
-					{identity: 'hero_guardian', randomSeeds: {variance: 5}},
-				]
-			}
-		})
-			.then(data => {
-				assert.exists(data.oldest);
-				assert.exists(data.newest);
-				assert.equal(data.newest.length, 2);
-				assert.equal(data.newest[0].userId, chamberlainpi.id, "newest Hero ID == User ID");
-				assert.equal(data.oldest[0].userId, chamberlainpi.id, "oldest Hero ID == User ID");
-				done();
-			})
-			.catch(err => done(err));
-
-	});
-
-	it('Get all heroes', done => {
-		chamberlainpi.sendAuth('/hero/list', 'get')
-			.then(datas => {
-				assert.exists(datas);
-				assert.equal(datas.length, 10);
-				chamberlainpi.heroes = datas;
-				done();
-
-			})
-			.catch(err => done(err));
-
-	});
-
-	////////////////////////////////////////////////////// EQUIP TESTS
-
-	it('Equip item to a hero (0 - 0)', done => {
 		hero0 = chamberlainpi.heroes[0];
 		item0 = chamberlainpi.items[0];
 		hero1 = chamberlainpi.heroes[1];
 		item1 = chamberlainpi.items[1];
-
-		chamberlainpi.sendAuth(`/item/${item0.id}/equip-to/${hero0.id}`, 'put')
-			.then(datas => {
-				assert.exists(datas.item);
-				assert.equal(datas.previousHeroID, 0);
-				done();
-			})
-			.catch(err => done(err));
-
 	});
 
-	it('Equip item to a hero (1 - 1)', done => {
-		chamberlainpi.sendAuth(`/item/${item1.id}/equip-to/${hero1.id}`, 'put')
-			.then(datas => {
-				assert.exists(datas.item);
-				assert.equal(datas.previousHeroID, 0);
-				done();
-			})
-			.catch(err => done(err));
+	////////////////////////////////////////////////////// EQUIP TESTS
 
+	TEST_ITEM.OK(() => `put::/${item0.id}/equip-to/${hero0.id}`, 'Equip item to a hero (0 - 0)', null, datas => {
+		assert.exists(datas.item);
+		assert.equal(datas.previousHeroID, 0);
 	});
 
-	it('Equip item to a hero (PASS FROM PREVIOUS HERO!)', done => {
-		chamberlainpi.sendAuth(`/item/${item0.id}/equip-to/${hero1.id}`, 'put')
-			.then(datas => {
-				assert.exists(datas.item);
-				assert.equal(datas.previousHeroID, 1);
-				done();
-			})
-			.catch(err => done(err));
+	TEST_ITEM.OK(() => `put::/${item1.id}/equip-to/${hero1.id}`, 'Equip item to a hero (1 - 1)', null, datas => {
+		assert.exists(datas.item);
+		assert.equal(datas.previousHeroID, 0);
 	});
 
-	it('Unequip item 0', done => {
-		chamberlainpi.sendAuth(`/item/${item0.id}/unequip`, 'put', {
-			body: {
-				cost: {gold:1}
-			}
-		})
-			.then(data => {
-				assert.exists(data);
-				done();
-			})
-			.catch(err => done(err));
+	TEST_ITEM.OK(() => `put::/${item0.id}/equip-to/${hero1.id}`, 'Equip item to a hero (PASS FROM PREVIOUS HERO!)', null, datas => {
+		assert.exists(datas.item);
+		assert.equal(datas.previousHeroID, 1);
 	});
 
-	it('Get list of items (chamberlainpi)', done => {
-		chamberlainpi.sendAuth(`/item/list`, 'get')
-			.then(data => {
-				assert.exists(data);
-				assert.equal(data.length>0, true);
-				done();
-			})
-			.catch(err => done(err));
+	TEST_ITEM.OK(() => `put::/${item0.id}/unequip`, 'Unequip item 0', {body: {cost: {gold:1}}}, data => {
+		assert.exists(data);
+		trace("Unequipped item:");
+		trace(data);
 	});
 
-	it('Check equipped items (chamberlainpi on hero0)', done => {
-		chamberlainpi.sendAuth(`/item/equipped-on/${hero0.id}`, 'get')
-			.then(data => {
-				assert.exists(data);
-				assert.equal(data.length, 0);
-				done();
-			})
-			.catch(err => done(err));
+	TEST_ITEM.OK('get::/list', 'Get list of items (chamberlainpi)', null, data => {
+		assert.exists(data);
+		assert.equal(data.length > 0, true);
 	});
 
-	it('Check equipped items (chamberlainpi on hero1)', done => {
-		chamberlainpi.sendAuth(`/item/equipped-on/${hero1.id}`, 'get')
-			.then(data => {
-				assert.exists(data);
-				assert.equal(data.length, 1);
-				assert.equal(data[0].userId, chamberlainpi.id);
-				assert.equal(data[0].game.heroEquipped, hero1.id);
-				done();
-			})
-			.catch(err => done(err));
+	TEST_ITEM.OK(() => `get::/equipped-on/${hero0.id}`, 'Check equipped items (chamberlainpi on hero0)', null, data => {
+		assert.exists(data);
+		assert.equal(data.length, 0);
 	});
 
-	it('Check NON-equipped items (chamberlainpi)', done => {
-		chamberlainpi.sendAuth(`/item/equipped-off`, 'get')
-			.then(data => {
-				assert.exists(data);
-				assert.equal(data.length>0,true);
-
-				done();
-			})
-			.catch(err => done(err));
+	TEST_ITEM.OK(() => `get::/equipped-on/${hero1.id}`, 'Check equipped items (chamberlainpi on hero1)', null, data => {
+		assert.exists(data);
+		assert.equal(data.length, 1);
+		assert.equal(data[0].userId, chamberlainpi.id);
+		assert.equal(data[0].game.heroEquipped, hero1.id);
 	});
 
-	it('Equip item to a hero (FAIL with WRONG HERO ID)', done => {
-		chamberlainpi.sendAuth(`/item/1/equip-to/9999`, 'put')
-			.then(data => {
-				done('Should not exists!');
-			})
-			.catch(err => {
-				assert.exists(err);
-				done();
-			});
+	TEST_ITEM.OK(`get::/equipped-off`, 'Check NON-equipped items (chamberlainpi)', null, data => {
+		assert.exists(data);
+		assert.equal(data.length>0,true);
 	});
 
-	it('Equip item to a hero (FAIL with WRONG ITEM ID)', done => {
-		chamberlainpi.sendAuth(`/item/9999/equip-to/1`, 'put')
-			.then(data => {
-				done('Should not exists!');
-			})
-			.catch(err => {
-				assert.exists(err);
-				done();
-			});
-	});
+	TEST_ITEM.FAIL(`put::/1/equip-to/9999`, 'Equip item to a hero (FAIL with WRONG HERO ID!)');
+	TEST_ITEM.FAIL(`put::/9999/equip-to/1`, 'Equip item to a hero (FAIL with WRONG ITEM ID!)');
 
-	it('Equip item to a hero (FAIL UNAUTHORIZED)', done => {
-		sendAPI(`/item/1/equip-to/1`, 'put')
-			.then(data => {
-				assert.notExists(data);
-				done('Should not exists!');
-			})
-			.catch(err => {
-				assert.exists(err);
-				done();
-			});
-	});
+	TEST_ITEM.SET_USER(() => null);
+	TEST_ITEM.FAIL(`put::/1/equip-to/1`, 'Equip item to a hero (FAIL UNAUTHORIZED)');
 
-	it('Check equipped items (chamberlainpi on hero 9999 [EMPTY])', done => {
-		chamberlainpi.sendAuth(`/item/equipped-on/9999`, 'get')
-			.then(data => {
-				assert.exists(data);
-				assert.equal(data.length, 0);
-				done();
-			})
-			.catch(err => done(err));
+	TEST_ITEM.SET_USER(() => chamberlainpi);
+
+	TEST_ITEM.OK(`get::/equipped-on/9999`, 'Check equipped items (chamberlainpi on hero 9999 [EMPTY])', null, data => {
+		assert.exists(data);
+		assert.equal(data.length, 0);
 	});
 
 	////////////////////////////////////////////////////// TAP-ABILITY:
 
-	it('Update Tap-Ability on a hero (1)', done => {
-		chamberlainpi.sendAuth(`/hero/1/tap-ability/`, 'put', {
-			body: {dateTapped: moment()}
-		})
-			.then(data => {
-				assert.exists(data);
-				assert.equal(data.id, 1, "Updated Hero 1.");
-				assert.exists(data.game.dateLastUsedTapAbility, 'Date last Tap Ability');
-				// assert.exists(datas.item);
-				// assert.equal(datas.previousHeroID, 0);
-				done();
-			})
-			.catch(err => done(err));
-
+	TEST.OK(`put::/1/tap-ability`, 'Update Tap-Ability on a hero (1)', () => ({body: {dateTapped: moment()}}), data => {
+		assert.exists(data);
+		assert.equal(data.id, 1, "Updated Hero 1.");
+		assert.exists(data.game.dateLastUsedTapAbility, 'Date last Tap Ability');
 	});
 
-	it('Update Tap-Ability on a hero (FAIL, missing dateTapped)', done => {
-		chamberlainpi.sendAuth(`/hero/1/tap-ability/`, 'put')
-			.then(data => {
-				done('Should not exists!');
-			})
-			.catch(err => {
-				assert.exists(err);
-				done();
-			});
 
-	});
+	TEST.FAIL(`put::/1/tap-ability/`, 'Update Tap-Ability on a hero (FAIL, missing dateTapped)');
 
 	////////////////////////////////////////////////////// SKILLS:
 
-	it('Update SkillLevels on a hero (1)', done => {
-		chamberlainpi.sendAuth(`/hero/1/skill-levels/`, 'put', {
-			body: {
-				skillLevels: [
-					{level:1, identity: 'test'},
-					{level:2, identity: 'test'},
-					{level:3, identity: 'test'}
-				],
-			}
-		})
-			.then(data => {
-				assert.exists(data, 'data exists');
-				assert.equal(data.id, 1, "Updated Hero 1.");
-				assert.exists(data.game.skills, 'Skills exists');
+	TEST.OK(`put::/1/skill-levels`, 'Update SkillLevels on a hero (1)', {
+		body: {
+			skillLevels: [
+				{level:1, identity: 'test'},
+				{level:2, identity: 'test'},
+				{level:3, identity: 'test'}
+			],
+		}
+	}, data => {
+		assert.exists(data, 'data exists');
+		assert.equal(data.id, 1, "Updated Hero 1.");
+		assert.exists(data.game.skills, 'Skills exists');
 
-				var levels = data.game.skills.map(s => s.level);
-				assert.equal(levels[0], 1, "Has a Level #0");
-				assert.equal(levels[1], 2, "Has a Level #1");
-				assert.equal(levels[2], 3, "Has a Level #2");
-				done();
-			})
-			.catch(err => done(err));
+		const levels = data.game.skills.map(s => s.level);
+		assert.equal(levels[0], 1, "Has a Level #0");
+		assert.equal(levels[1], 2, "Has a Level #1");
+		assert.equal(levels[2], 3, "Has a Level #2");
+	});
 
+	////////////////////////////////////////////////////// SWAP-IDENTITY: ////////////////////////////////////////////////////// TODO: bookmark right here!!!!!
+
+	const swapIdentity = {body: { identity: 'hero_rareassassin_dark' }};
+
+	TEST.FAIL(() => `put::/9999/swap-identity/`, 'Swap Identity on a hero (FAIL DOES NOT EXISTS)', swapIdentity);
+
+	TEST.FAIL(() => `put::/0/swap-identity/`, 'Swap Identity on a hero (FAIL IS NOT COMPATIBLE)', swapIdentity);
+
+	TEST.OK(() => `put::/${heroTestForSwap.id}/swap-identity/`, 'Swap Identity on a hero (OK)', swapIdentity, data => {
+		assert.exists(data, 'data exists');
+		const g = data.game;
+		assert.exists(g, 'data.game exists');
+		assert.equal(g.identity, swapIdentity.body.identity, 'Swapped with correct identity');
 	});
 
 	////////////////////////////////////////////////////// LIST:
 
-	it('List available heroes (where "exploringActZone" == 0)', done => {
-		chamberlainpi.sendAuth(`/hero/list/available`, 'get')
-			.then(datas => {
-				assert.exists(datas);
-				assert.isArray(datas);
-				assert.equal(datas[0].id, 1, "Listing Hero 1.");
-				assert.equal(datas[1].id, 2, "Listing Hero 2.");
-				done();
-			})
-			.catch(err => done(err));
-
+	TEST.OK('get::/list/available','List available heroes (where "exploringActZone" == 0)', null, datas => {
+		assert.exists(datas);
+		assert.isArray(datas);
+		assert.equal(datas[0].id, 1, "Listing Hero 1.");
+		assert.equal(datas[1].id, 2, "Listing Hero 2.");
 	});
 
 	////////////////////////////////////////////////////// UPDATES
 
-	it('Update Hero XP (chamberlainpi hero 1)', done => {
-		chamberlainpi.sendAuth(`/hero/${hero1.id}/xp`, 'put', {
-			body: {xp: 1234}
-		})
-			.then(data => {
-				assert.exists(data);
-				assert.equal(data.game.xp, 1234, 'XP hero matches.');
-				done();
-			})
-			.catch(err => done(err));
+	TEST.OK(() => `put::/${hero1.id}/xp`, 'Update Hero XP (chamberlainpi hero 1)', {body: {xp: 1234}}, data => {
+		assert.exists(data);
+		assert.equal(data.game.xp, 1234, 'XP hero matches.');
 	});
 
-	it('Reset Explorations (chamberlainpi)', done => {
-		chamberlainpi.sendAuth(`/hero/reset-exploration`, 'put')
-			.then(data => {
-				assert.exists(data);
-				done();
-			})
-			.catch(err => done(err));
+	TEST.OK(`put::/reset-exploration`, 'Reset Explorations (chamberlainpi)', null, data => {
+		assert.exists(data);
 	});
-
 
 	////////////////////////////////////////////////////// DELETE
+
 	if(chaiG.filterLevel < 5) return;
 
 	if(false) {
-		it('Delete hero (chamberlainpi FAIL Wrong Verb)', done => {
-			chamberlainpi.sendAuth(`/hero/1/remove`, 'get')
-				.then(data => {
-					done('Should not exists!');
-				})
-				.catch(err => {
-					assert.exists(err);
-					done();
-				});
+		TEST.FAIL(`get::/1/remove`, 'Delete hero (chamberlainpi FAIL Wrong Verb)');
+
+		TEST.OK(() => `delete::/${hero1.id}/remove`, 'Delete hero (chamberlainpi with hero 1)', null, data => {
+			assert.exists(data);
+			assert.exists(data.removed);
+			assert.equal(data.removed.id, 2);
+			assert.equal(data.numItemsAffected, 1, 'Items affected.');
 		});
 
-		it('Delete hero (chamberlainpi with hero 1)', done => {
-			chamberlainpi.sendAuth(`/hero/${hero1.id}/remove`, 'delete')
-				.then(data => {
-					assert.exists(data);
-					assert.exists(data.removed);
-					assert.equal(data.removed.id, 2);
-					assert.equal(data.numItemsAffected, 1, 'Items affected.');
-					done();
-				})
-				.catch(err => done(err));
-		});
-
-		it('Delete hero (chamberlainpi REMOVE ALL)', done => {
-			chamberlainpi.sendAuth(`/hero/remove-all`, 'delete')
-				.then(data => {
-					assert.exists(data);
-					assert.notExists(data.removed);
-					assert.equal(data.numItemsAffected===0, true);
-					done();
-				})
-				.catch(err => done(err));
+		TEST.OK(`delete::/remove-all`, 'Delete hero (chamberlainpi REMOVE ALL)', null, data => {
+			assert.exists(data);
+			assert.notExists(data.removed);
+			assert.equal(data.numItemsAffected===0, true);
 		});
 	}
 
-	it('Get all heroes (AGAIN)', done => {
-		chamberlainpi.sendAuth('/hero/list', 'get')
-			.then(datas => {
-				assert.exists(datas);
-				//trace(datas);
-				//assert.equal(datas.length, 10);
-				chamberlainpi.heroes = datas;
-				done();
-
-			})
-			.catch(err => done(err));
-
+	TEST.OK(`get::/list`, 'Get all heroes (AGAIN)', null, datas => {
+		assert.exists(datas);
+		chamberlainpi.heroes = datas;
 	});
 });

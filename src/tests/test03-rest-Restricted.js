@@ -11,13 +11,18 @@ const PRIVATE = $$$.env.ini.PRIVATE;
 const sendAPI = $$$.send.api;
 
 describe('=REST= User-Restricted actions', () => {
-	if(chaiG.filterLevel < 2) return;
-
 	var chamberlainpi;
 
-	it('Test User-Restricted call [FAIL EMPTY]', done => {
+	it('Login chamberlainpi...', done => {
 		chamberlainpi = testUsers.chamberlainpi;
 
+		chamberlainpi.sendLogin()
+			.then(() => done());
+	});
+
+	if(chaiG.filterLevel < 10) return;
+
+	it('Test User-Restricted call [FAIL EMPTY]', done => {
 		sendAPI('/user/test-echo', 'post', {headers:{Authorization:'???'}})
 			.then(data => {
 				assert.notExists(data);
