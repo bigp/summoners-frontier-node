@@ -173,17 +173,22 @@ describe('=REST= Heroes', () => {
 
 	////////////////////////////////////////////////////// SWAP-IDENTITY: ////////////////////////////////////////////////////// TODO: bookmark right here!!!!!
 
-	const swapIdentity = {body: { identity: 'hero_rareassassin_dark' }};
+	const swapIdentity = essences => ({body: { identity: 'hero_rareassassin_dark', cost: {essenceHigh: essences} }});
 
-	TEST.FAIL(() => `put::/9999/swap-identity/`, 'Swap Identity on a hero (FAIL DOES NOT EXISTS)', swapIdentity);
+	TEST.FAIL(() => `put::/9999/swap-identity/`, 'Swap Identity on a hero (FAIL DOES NOT EXISTS)', swapIdentity(1));
 
-	TEST.FAIL(() => `put::/0/swap-identity/`, 'Swap Identity on a hero (FAIL IS NOT COMPATIBLE)', swapIdentity);
+	TEST.FAIL(() => `put::/0/swap-identity/`, 'Swap Identity on a hero (FAIL IS NOT COMPATIBLE)', swapIdentity(1));
+	TEST.FAIL(() => `put::/${heroTestForSwap.id}/swap-identity/`, 'Swap Identity on a hero (FAIL TOO EXPENSIVE)', swapIdentity(9999));
 
-	TEST.OK(() => `put::/${heroTestForSwap.id}/swap-identity/`, 'Swap Identity on a hero (OK)', swapIdentity, data => {
+	TEST.OK(() => `put::/${heroTestForSwap.id}/swap-identity/`, 'Swap Identity on a hero (OK)', swapIdentity(1), data => {
 		assert.exists(data, 'data exists');
-		const g = data.game;
-		assert.exists(g, 'data.game exists');
-		assert.equal(g.identity, swapIdentity.body.identity, 'Swapped with correct identity');
+
+		const heroData = data.hero.game;
+		const currency = data.currency;
+
+		assert.exists(heroData, 'data.game exists');
+		assert.equal(heroData.identity, data.body.identity, 'Swapped with correct identity');
+		assert.equal(currency.essenceHigh, 0, "Essence High == 0");
 	});
 
 	////////////////////////////////////////////////////// LIST:

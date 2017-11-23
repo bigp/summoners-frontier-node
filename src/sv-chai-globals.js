@@ -108,9 +108,12 @@ const chaiG = module.exports = {
 				const resolved = TEST_METHODS.RESOLVE_URL(url, body);
 
 				it(resolved.padded + title, done => {
-					TEST_METHODS.SEND(resolved.getURL(), resolved.method, resolved.getBody())
+					const resolvedBody = resolved.getBody();
+					TEST_METHODS.SEND(resolved.getURL(), resolved.method, resolvedBody)
 						.then(data => {
 							assert.exists(data);
+
+							data.body = resolvedBody ? resolvedBody.body : null;
 
 							// If the callback signature takes 2 arguments, assume
 							// it needs the 'done' callback for asynchronous uses.

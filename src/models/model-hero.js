@@ -267,15 +267,16 @@ module.exports = function() {
 					});
 			},
 
-			':heroID/swap-identity'(Model, req, res, next, opts) {
+			'put::/:heroID/swap-identity'(Model, req, res, next, opts) {
+				const user = req.auth.user;
+				const currency = user.game.currency;
+				const cost = opts.data.cost;
 				const jsonHeroes = gameHelpers.getHeroes();
 				const validHero = req.validHero;
 				const identityPrev = validHero.game.identity;
 				const identityNext = opts.data.identity;
 
 				_.promise(() => {
-					if (mgHelpers.isWrongVerb(req, 'PUT')) return;
-
 					// Validate whether or not we have a valid previous "identity" / "AwakenReference" to upgrade to the desired identity
 					const heroDataPrev = jsonHeroes.find( hero => hero.identity === identityPrev);
 					if(!heroDataPrev) throw `The Hero you're trying to swap FROM ${identityPrev} isn't even valid in the Heroes data sheet!`;
@@ -286,20 +287,20 @@ module.exports = function() {
 					const awakenReferencePrev = heroDataPrev['awaken-reference'];
 					const awakenReferenceNext = heroDataNext['awaken-reference'];
 
-					// trace('awakenReferenceNext: ' + awakenReferenceNext.red);
-					// trace('awakenReferencePrev: ' + awakenReferencePrev.red);
-					// trace('identityPrev: ' + identityPrev.red);
-					// trace('identityNext: ' + identityNext.red);
-
 					if(awakenReferenceNext !== awakenReferencePrev && awakenReferenceNext !== identityPrev) {
 						throw `You cannot swap the identity of incompatible Heroes (FROM ${identityPrev} -> TO ${identityNext}) refer to the data sheet to make sure it's the right one!`;
 					}
 
+					// Verify we have enough currency to do the Identity Swap:
+					if(mgHelpers.currency.isInvalid(cost, currency, true)) return;
+
 					validHero.game.identity = identityNext;
-					return validHero.save();
+					mgHelpers.currency.modify(cost, currency, -1);
+
+					return Promise.all([user.save(), validHero.save()]);
 				})
-					.then(savedHero => {
-						mgHelpers.sendFilteredResult(res, savedHero);
+					.then(results => {
+						mgHelpers.sendFilteredResult(res, {currency: results[0].game.currency, hero: results[1]});
 					})
 					.catch(err => {
 						$$$.send.error(res, err);

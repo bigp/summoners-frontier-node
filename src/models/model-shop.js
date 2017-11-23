@@ -114,46 +114,6 @@ module.exports = function() {
 
 	checkUpdateFeaturedItem();
 
-	const ERROR_COST = 'Missing "cost" field on POST data (specify gold / gems / magic / etc.).';
-
-	function isCostMissing(cost, currency, hasSufficient) {
-		if(!cost) throw ERROR_COST;
-		if(!currency) throw "Missing argument 'userCurrency' in isCostMissing(...)";
-
-		//Validate cost information:
-		var hasAnyData = false;
-		_.keys(cost).forEach( coinType => {
-			const value = cost[coinType];
-			if(isNaN(value)) {
-				throw 'Invalid currency value for type: ' + coinType;
-			}
-
-			if(value <= 0) {
-				throw 'Cost values must be greater than zero (0): ' + coinType;
-			}
-
-			if(isNaN(currency[coinType])) {
-				throw 'Invalid currency type, user does not have any: ' + coinType;
-			}
-
-			if(hasSufficient && currency[coinType] < value) {
-				throw `Insufficient ${coinType} to purchase this item.`;
-			}
-
-			hasAnyData = true;
-		});
-
-		if(!hasAnyData) throw ERROR_COST;
-
-		return false;
-	}
-
-	function modifyCost(cost, currency, multiplier) {
-		_.keys(cost).forEach( key => {
-			currency[key] += multiplier * Math.abs(cost[key]);
-		});
-	}
-
 	return {
 		plural: 'shop',
 
@@ -200,9 +160,9 @@ module.exports = function() {
 
 				_.promise(() => {
 					if(mgHelpers.isWrongVerb(req, 'PUT')) return;
-					if(isCostMissing(cost, currency, true)) return;
+					if(mgHelpers.currency.isInvalid(cost, currency, true)) return;
 
-					modifyCost(cost, currency, -1);
+					mgHelpers.currency.modify(cost, currency, -1);
 
 					return saveRefreshedKey(req);
 				})
@@ -248,12 +208,12 @@ module.exports = function() {
 					itemCost = opts.data.cost;
 					if(!itemCost) throw ERROR_COST;
 
-					if(isCostMissing(itemCost, currency, true)) return;
+					if(mgHelpers.currency.isInvalid(itemCost, currency, true)) return;
 
 					return Item.addItems(req, res, next, opts);
 				})
 					.then( itemResults => {
-						modifyCost(itemCost, currency, -1);
+						mgHelpers.currency.modify(itemCost, currency, -1);
 
 						results.item = itemResults.newest[0];
 						results.currency = currency;
@@ -295,7 +255,7 @@ module.exports = function() {
 					itemCost = opts.data.cost;
 					if(!itemCost) throw ERROR_COST;
 
-					if(isCostMissing(itemCost, currency, true)) return;
+					if(mgHelpers.currency.isInvalid(itemCost, currency, true)) return;
 
 					return Model.find({
 						userId: user.id,
@@ -312,7 +272,7 @@ module.exports = function() {
 						return Item.addItems(req, res, next, opts);
 					})
 					.then( itemResults => {
-						modifyCost(itemCost, currency, -1);
+						mgHelpers.currency.modify(itemCost, currency, -1);
 
 						if(itemResults.newest) {
 							//TODO for multiple items, solve why the '_...' private properties leak through this!
@@ -353,9 +313,9 @@ module.exports = function() {
 					if(!item) throw 'Missing "item" field in POST data!';
 					if(!item.id) throw 'Missing "item.id" field in POST data!';
 
-					if(isCostMissing(cost, currency, false)) return;
+					if(mgHelpers.currency.isInvalid(cost, currency, false)) return;
 
-					modifyCost(cost, currency, 1);
+					mgHelpers.currency.modify(cost, currency, 1);
 
 					return Promise.all([
 						Item.remove({userId: user.id, id: item.id}),
@@ -388,9 +348,9 @@ module.exports = function() {
 					if(!items[0]) throw 'Empty/null item found on "items[0]"!';
 					if(!items[0].id) throw 'Missing "items[0].id" field in POST data!';
 
-					if(isCostMissing(cost, currency, false)) return;
+					if(mgHelpers.currency.isInvalid(cost, currency, false)) return;
 
-					modifyCost(cost, currency, 1);
+					mgHelpers.currency.modify(cost, currency, 1);
 
 					var allIDs = items.map((item, i) => {
 						if(!item) throw 'One of the supplied items is null! ' + i;
@@ -424,9 +384,9 @@ module.exports = function() {
 				_.promise(() => {
 					if(isNaN(expansionSlots)) throw 'Missing "expansionSlots" field in POST data.';
 					if(expansionSlots < 0 || expansionSlots > limit) throw `"expansionSlots" value should be between 0 - ${limit}`;
-					if(isCostMissing(cost, currency, true)) return;
+					if(mgHelpers.currency.isInvalid(cost, currency, true)) return;
 
-					modifyCost(cost, currency, -1);
+					mgHelpers.currency.modify(cost, currency, -1);
 
 					shopInfo.expansionSlots = expansionSlots;
 

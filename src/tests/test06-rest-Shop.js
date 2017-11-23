@@ -12,7 +12,7 @@ const sendAPI = $$$.send.api;
 const TEST = chaiG.makeFailAndOK('shop');
 
 describe('=REST= Shop', () => {
-	if(chaiG.filterLevel < 9) return;
+	if(chaiG.filterLevel < 10) return;
 
 	var chamberlainpi, shopInfo, itemIndex0, newItem, intentionalDelay = 1000;
 	var itemRandomSword = [{identity: 'item_sword', randomSeeds: chaiG.randomItemSeeds(4,4,4,4)}];

@@ -71,6 +71,8 @@ function forEachModel(schemaFile, name) {
 			__route = methodSplit[1];
 		}
 
+		if(__route.startsWith('/')) __route = __route.substr(1);
+
 		const __customRoute = Model.__route + "/" + __route;
 		const __adminRoute = adminRoute + "/" + __route;
 		const customRouteMiddleWare = (req, res, next) => {

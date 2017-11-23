@@ -225,6 +225,47 @@ const mgHelpers = {
 			resolve(_.extend(q, {userId: req.auth.user.id}));
 		});
 	},
+
+	currency: {
+		isInvalid(cost, currency, hasSufficientForBuying) {
+			const ERROR_COST = 'Missing "cost" field on POST data (specify gold / gems / magic / etc.).';
+			if(!cost) throw ERROR_COST;
+			if(!currency) throw "Missing argument 'currency' in currency.isInvalid(...)";
+
+			//Validate cost information:
+			var hasAnyData = false;
+			_.keys(cost).forEach( coinType => {
+				const value = cost[coinType];
+				if(isNaN(value)) {
+					throw 'Invalid currency value for type: ' + coinType;
+				}
+
+				if(value <= 0) {
+					throw 'Cost values must be greater than zero (0): ' + coinType;
+				}
+
+				if(isNaN(currency[coinType])) {
+					throw 'Invalid currency type, user does not have any: ' + coinType;
+				}
+
+				if(hasSufficientForBuying && currency[coinType] < value) {
+					throw `Insufficient "${coinType}" to purchase this item.`;
+				}
+
+				hasAnyData = true;
+			});
+
+			if(!hasAnyData) throw ERROR_COST;
+
+			return false;
+		},
+
+		modify(cost, currency, multiplier) {
+			_.keys(cost).forEach( key => {
+				currency[key] += multiplier * Math.abs(cost[key]);
+			});
+		}
+	}
 };
 
 module.exports = mgHelpers;
