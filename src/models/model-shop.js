@@ -426,8 +426,8 @@ module.exports = function() {
 				cost: {
 					gold: CustomTypes.Int(),
 					gems: CustomTypes.Int(),
-					scrollIdentify: CustomTypes.Int(),
-					scrollSummonHero: CustomTypes.Int(),
+					scrollsIdentify: CustomTypes.Int(),
+					scrollsSummonHero: CustomTypes.Int(),
 					magicOrbs: CustomTypes.Int(),
 				}
 			}

@@ -2,6 +2,7 @@
  * Created by Chamberlain on 8/15/2017.
  */
 const mongoose = require('mongoose');
+const findOrCreate = require('mongoose-findorcreate');
 const NumberInt = require('mongoose-int32');
 const changeCase = require('change-case');
 const autoIncrement = require('mongoose-auto-increment');
@@ -68,6 +69,7 @@ const mgHelpers = {
 
 	applyPlugins(schema, name) {
 		schema.plugin(beautifulUnique);
+		schema.plugin(findOrCreate);
 		schema.plugin(autoIncrement.plugin, {
 			model: name,
 			field: 'id',
@@ -227,6 +229,12 @@ const mgHelpers = {
 	},
 
 	currency: {
+		auto(cost, currency, hasSufficientForBuying) {
+			if(this.isInvalid(cost, currency, hasSufficientForBuying)) return;
+
+			this.modify(cost, currency, hasSufficientForBuying ? 1 : -1);
+		},
+
 		isInvalid(cost, currency, hasSufficientForBuying) {
 			const ERROR_COST = 'Missing "cost" field on POST data (specify gold / gems / magic / etc.).';
 			if(!cost) throw ERROR_COST;
@@ -249,7 +257,7 @@ const mgHelpers = {
 				}
 
 				if(hasSufficientForBuying && currency[coinType] < value) {
-					throw `Insufficient "${coinType}" to purchase this item.`;
+					throw `Insufficient "${coinType}" to purchase this item, has ${currency[coinType]} but requires ${value}`;
 				}
 
 				hasAnyData = true;

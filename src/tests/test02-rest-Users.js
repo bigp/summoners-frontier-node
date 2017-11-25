@@ -10,9 +10,10 @@ const testUsers = chaiG.testUsers;
 const User = $$$.models.User;
 const PRIVATE = $$$.env.ini.PRIVATE;
 const sendAPI = $$$.send.api;
+const TEST = chaiG.makeFailAndOK('user');
 
 describe('=REST= User', () => {
-	var chamberlainpi;
+	var currencyBefore;
 
 	it('Test-Post (Hello World test)', done => {
 		chaiG.makeTestUsers();
@@ -27,6 +28,8 @@ describe('=REST= User', () => {
 			.catch(catcher(done));
 	});
 
+	TEST.SET_USER(() => testUsers.chamberlainpi);
+
 	it('Get Users (ALL)', done => {
 		sendAPI('/admin/users')
 			.then(data => {
@@ -40,9 +43,7 @@ describe('=REST= User', () => {
 	});
 
 	it('Add User (/user/public/add/)', done => {
-		chamberlainpi = testUsers.chamberlainpi;
-
-		chamberlainpi.sendAuth('/user/public/add', 'post', "*")
+		testUsers.chamberlainpi.sendAuth('/user/public/add', 'post', "*")
 			.then(data => {
 				_.extend(testUsers.chamberlainpi, data);
 				assert.exists(data);
@@ -55,9 +56,7 @@ describe('=REST= User', () => {
 	});
 
 	it('Login User (with a slight delay to modify PING timestamp)', done => {
-		const chamberlainpi = testUsers.chamberlainpi;
-
-		chamberlainpi.sendLogin()
+		testUsers.chamberlainpi.sendLogin()
 			.then(data => {
 				assert.exists(data);
 				done();
@@ -69,100 +68,44 @@ describe('=REST= User', () => {
 
 	if(chaiG.filterLevel < 2) return;
 
-	it('Check Currency (/user/currency/)', done => {
-		const chamberlainpi = testUsers.chamberlainpi;
-
-		chamberlainpi.sendAuth('/user/currency', 'get')
-			.then(data => {
-				assert.exists(data);
-				done();
-			})
-			.catch(err => {
-				done(err);
-			});
-	});
-
-	it('Add Currency (/user/currency/)', done => {
-		const chamberlainpi = testUsers.chamberlainpi;
-		const currencyBefore = chamberlainpi.game.currency;
-
-		chamberlainpi.sendAuth('/user/currency', 'put', {
+	function cost(val) {
+		return {
 			body: {
-				gold:1, gems:1, magicOrbs: 1, scrollIdentify: 1, scrollSummonHero: 1,
+				gold:val,
+				gems:val,
+				magicOrbs: val,
+				scrollsIdentify: val,
+				scrollsSummonHero: val
 			}
-		})
-			.then(data => {
-				assert.equal(data.gold, currencyBefore.gold+1, "gold + 1");
-				assert.equal(data.gems, currencyBefore.gems+1, "gems + 1");
-				assert.equal(data.magicOrbs, currencyBefore.magicOrbs+1, "magicOrbs + 1");
-				assert.equal(data.scrollIdentify, currencyBefore.scrollIdentify+1, "scrolls + 1");
-				assert.equal(data.scrollSummonHero, currencyBefore.scrollSummonHero+1, "scrolls + 1");
-				done();
-			})
-			.catch(err => {
-				done(err);
-			});
+		}
+	}
+
+	TEST.OK('get::/currency', 'Check Currency', null, data => {
+		currencyBefore = data;
 	});
 
-	it('Remove Currency (/user/currency/)', done => {
-		const chamberlainpi = testUsers.chamberlainpi;
-		const currencyBefore = chamberlainpi.game.currency;
-
-		chamberlainpi.sendAuth('/user/currency', 'put', {
-			body: {
-				gold:-1, gems:-1, magicOrbs: -1, scrollIdentify: -1, scrollSummonHero: -1,
-			}
-		})
-			.then(data => {
-				assert.equal(data.gold, currencyBefore.gold, "gold - 1");
-				assert.equal(data.gems, currencyBefore.gems, "gems - 1");
-				assert.equal(data.magicOrbs, currencyBefore.magicOrbs, "magicOrbs - 1");
-				assert.equal(data.scrollIdentify, currencyBefore.scrollIdentify, "scrolls - 1");
-				assert.equal(data.scrollSummonHero, currencyBefore.scrollSummonHero, "scrolls - 1");
-				done();
-			})
-			.catch(err => {
-				done(err);
-			});
+	TEST.OK('put::/currency', 'Add Currency', cost(1), data => {
+		assert.equal(data.gold, currencyBefore.gold+1, "gold + 1");
+		assert.equal(data.gems, currencyBefore.gems+1, "gems + 1");
+		assert.equal(data.magicOrbs, currencyBefore.magicOrbs+1, "magicOrbs + 1");
+		assert.equal(data.scrollsIdentify, currencyBefore.scrollsIdentify+1, "scrolls + 1");
+		assert.equal(data.scrollsSummonHero, currencyBefore.scrollsSummonHero+1, "scrolls + 1");
 	});
 
-	it('Set User XP (/user/xp/)', done => {
-		const chamberlainpi = testUsers.chamberlainpi;
-
-		chamberlainpi.sendAuth('/user/xp', 'put', {
-			body: { xp: 1234 }
-		})
-			.then(data => {
-				assert.exists(data);
-				assert.equal(data.game.xp, 1234, 'XP matches.');
-				done();
-			})
-			.catch(err => done(err));
+	TEST.OK('put::/currency', 'Remove Currency', cost(-1), data => {
+		assert.equal(data.gold, currencyBefore.gold, "gold - 1");
+		assert.equal(data.gems, currencyBefore.gems, "gems - 1");
+		assert.equal(data.magicOrbs, currencyBefore.magicOrbs, "magicOrbs - 1");
+		assert.equal(data.scrollsIdentify, currencyBefore.scrollsIdentify, "scrolls - 1");
+		assert.equal(data.scrollsSummonHero, currencyBefore.scrollsSummonHero, "scrolls - 1");
 	});
 
-	it('Show Currency', done => {
-		const chamberlainpi = testUsers.chamberlainpi;
-
-		chamberlainpi.sendAuth('/user/currency', 'get')
-			.then(data => {
-				assert.exists(data);
-				chaiG.showTraces && trace(data);
-				done();
-			})
-			.catch(err => done(err));
+	TEST.OK('put::/xp', 'Set User XP', { body: { xp: 1234 } }, data => {
+		assert.equal(data.game.xp, 1234, 'XP matches.');
 	});
 
-	it('Logout (chamberlainpi)', done => {
-		const chamberlainpi = testUsers.chamberlainpi;
-
-		chamberlainpi.sendAuth('/user/logout', 'get')
-			.then(data => {
-				chamberlainpi.login.token = null;
-				assert.exists(data);
-				done();
-			})
-			.catch(err => {
-				done(err);
-			});
+	TEST.OK('get::/logout', 'Logout (chamberlainpi)', null, data => {
+		testUsers.chamberlainpi.login.token = null;
+		assert.exists(data);
 	});
 });

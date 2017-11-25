@@ -1937,6 +1937,10 @@ mongoose-beautiful-unique-validation@^7.0.0:
   version "7.0.0"
   resolved "https://registry.yarnpkg.com/mongoose-beautiful-unique-validation/-/mongoose-beautiful-unique-validation-7.0.0.tgz#24a7db461d0ad1d0ef2b802ed78777dc4266cc2a"
 
+mongoose-findorcreate@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/mongoose-findorcreate/-/mongoose-findorcreate-2.0.0.tgz#12bf9dcab058bcbe9640403ffde25fc5829d2cfc"
+
 mongoose-int32@^0.2.0:
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/mongoose-int32/-/mongoose-int32-0.2.0.tgz#80c8e8fc164dbac75409342723da4dbab94fba26"

@@ -13,7 +13,7 @@ const sendAPIAuth = chaiG.sendAPIAuth;
 
 
 describe('=GAME= Specific User Actions', () => {
-	if(chaiG.filterLevel < 5) return;
+	if(chaiG.filterLevel < 10) return;
 
 	var chamberlainpi;
 

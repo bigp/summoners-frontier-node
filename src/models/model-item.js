@@ -317,9 +317,9 @@ module.exports = function() {
 					if(mgHelpers.isWrongVerb(req, 'PUT')) return;
 
 					if(validItem.game.isIdentified) throw `ERROR ITEM_ALREADY_IDENTIFIED #` + debugID;
-					if(user.game.currency.scrollIdentify<=0) throw `ERROR CURRENCY_NOT_ENOUGH_SCROLLS #` + debugID;
+					if(user.game.currency.scrollsIdentify<=0) throw `ERROR CURRENCY_NOT_ENOUGH_SCROLLS #` + debugID;
 
-					user.game.currency.scrollIdentify -= 1;
+					user.game.currency.scrollsIdentify -= 1;
 					validItem.game.isIdentified = true;
 
 					const doBoth = Promise.all([validItem.save(), user.save()]);
@@ -389,6 +389,7 @@ module.exports = function() {
 			/////////////////////////////////// GAME-SPECIFIC:
 			game: {
 				identity: CustomTypes.String128({required:true}),
+				isResearched: {type: Boolean, default: false},
 				isIdentified: {type: Boolean, default: false},
 				heroEquipped: CustomTypes.LargeInt({default: 0, index: true}),
 

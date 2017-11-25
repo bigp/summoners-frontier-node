@@ -14,7 +14,7 @@ const TEST = chaiG.makeFailAndOK('hero');
 const TEST_ITEM = chaiG.makeFailAndOK('item');
 
 describe('=REST= Heroes', () => {
-	if(chaiG.filterLevel < 2) return;
+	if(chaiG.filterLevel < 10) return;
 
 	var chamberlainpi, heroTestForSwap=0, hero0=0, hero1=1, item0=0, item1=1;
 

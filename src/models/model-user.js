@@ -46,10 +46,10 @@ module.exports = function() {
 							gems: g.GEMS,
 							magicOrbs: g.MAGIC_ORBS,
 
-							scrollIdentify: g.SCROLLS_IDENTIFY,
-							scrollSummonHero: g.SCROLLS_SUMMON_HERO,
-							scrollSummonRare: g.SCROLLS_SUMMON_RARE,
-							scrollSummonLegendary: g.SCROLLS_SUMMON_LEGENDARY,
+							scrollsIdentify: g.SCROLLS_IDENTIFY,
+							scrollsSummonHero: g.SCROLLS_SUMMON_HERO,
+							scrollsSummonRare: g.SCROLLS_SUMMON_RARE,
+							scrollsSummonLegendary: g.SCROLLS_SUMMON_LEGENDARY,
 
 							shardsItemsCommon: g.SHARDS_ITEMS_COMMON,
 							shardsItemsMagic: g.SHARDS_ITEMS_MAGIC,
@@ -422,10 +422,10 @@ module.exports = function() {
 					gems: CustomTypes.Int(),
 					magicOrbs: CustomTypes.Int(),
 
-					scrollIdentify: CustomTypes.Int(),
-					scrollSummonHero: CustomTypes.Int(),
-					scrollSummonRare: CustomTypes.Int(),
-					scrollSummonLegendary: CustomTypes.Int(),
+					scrollsIdentify: CustomTypes.Int(),
+					scrollsSummonHero: CustomTypes.Int(),
+					scrollsSummonRare: CustomTypes.Int(),
+					scrollsSummonLegendary: CustomTypes.Int(),
 
 					shardsItemsCommon: CustomTypes.LargeInt(),
 					shardsItemsMagic: CustomTypes.LargeInt(),
