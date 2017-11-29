@@ -58,8 +58,12 @@ describe('=REST= Research Slots', () => {
 	TEST.FAIL('put::/0/0/busy', 'Slot == BUSY (FAIL ALREADY BUSY)', itemToResearch);
 	TEST.FAIL('get::/0/0/busy', 'Slot == BUSY (FAIL WRONG VERB)', itemToResearch);
 
-	TEST.OK('put::/0/0/completed', 'Slot == COMPLETED (OK)', null, data => {
+	TEST.FAIL('put::/0/0/completed', 'Slot == COMPLETED (FAIL, TOO EARLY TO COMPLETE)');
+
+	TEST.OK('put::/0/0/completed', 'Slot == COMPLETED (OK)', {body: {cost:{gems:2}}}, data => {
 		assert.exists(data.slot, "data.slot exist");
+		assert.exists(data.currency, 'Currency exists.');
+		assert.equal(data.currency.gems, 9, 'Gems match.');
 	});
 
 	TEST.OK('get::/list', 'Get list of slots.', null, data => assertSlotList(data, 'completed', 14));

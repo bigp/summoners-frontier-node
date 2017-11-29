@@ -13,7 +13,7 @@ const ObjectId = Types.ObjectId;
 const CONFIG = $$$.env.ini;
 
 module.exports = function() {
-	var User, Shop, Item, Hero, jsonGlobals;
+	var User, Shop, Item, Hero, jsonGlobals, trayTimes;
 
 	process.nextTick( () => {
 		User = $$$.models.User;
@@ -21,6 +21,13 @@ module.exports = function() {
 		Item = $$$.models.Item;
 		Hero = $$$.models.Hero;
 		jsonGlobals = $$$.jsonLoader.globals['preset-1'];
+
+		const trayTimesSplit = decodeURIComponent(jsonGlobals.RESEARCH_TRAY_DURATIONS).split('\n');
+
+		trayTimes = trayTimesSplit.map( timeStr => {
+			const timeSplit = timeStr.trim().split(' ');
+			return {amount: timeSplit[0] | 0, unit: timeSplit[1] };
+		});
 	});
 
 	const STATUS = {
@@ -142,6 +149,7 @@ module.exports = function() {
 
 					slot.game.dateStarted = dateZero;
 					slot.game.dateCompleted = dateZero;
+					slot.game.dateEnd = dateZero;
 
 					return slotStatus.buyStatus(STATUS.UNLOCKED);
 				})
@@ -151,24 +159,29 @@ module.exports = function() {
 
 			'put::/:trayID/:slotID/busy'(Model, req, res, next, opts) {
 				const user = req.auth.user;
+				const slot = req.slot;
 				const slotStatus = req.slotStatus;
 				const itemID = opts.data.itemID;
+				const trayID = slot.game.trayID;
 
-				_.promise(() => {
-					if (isNaN(itemID)) throw 'Must provide a numerical "itemID" value in data: ' + itemID;
-
-					slotStatus.check(STATUS.UNLOCKED, 'dateStarted');
-
-					return Item.findOne({userId: user.id, id: itemID});
-				})
+				Item.findOne({userId: user.id, id: itemID})
 					.then(item => {
 						if(!item) throw 'Item does not exists OR does not belong to this user.';
 						if(item.game.isIdentified) throw 'Item is already identified!';
 						if(item.game.isResearched) throw 'Item is already being researched!';
 
-						item.game.isResearched = true;
-						slotStatus.results.item = item;
+						const time = trayTimes[trayID];
+						if(!time) throw 'SF-DEV JSON Globals error: Missing tray-time for tray ID: ' + trayID;
+						if (isNaN(itemID)) throw 'Must provide a numerical "itemID" value in data: ' + itemID;
 
+						slotStatus.check(STATUS.UNLOCKED, 'dateStarted');
+
+						var now = slot.game.dateStarted;
+						slot.game.dateEnd = moment(now).add(time.amount, time.unit);
+
+						item.game.isResearched = true;
+
+						slotStatus.results.item = item;
 						slotStatus.game.itemID = itemID;
 
 						return Promise.all([
@@ -182,14 +195,28 @@ module.exports = function() {
 
 			'put::/:trayID/:slotID/completed'(Model, req, res, next, opts) {
 				const user = req.auth.user;
+				const slot = req.slot;
 				const slotStatus = req.slotStatus;
 				const itemID = slotStatus.game.itemID;
+				const dateEnd = moment(slot.game.dateEnd);
+				const dateNow = new Date();
+				const cost = opts.data.cost;
+				const currency = user.game.currency;
 
 				_.promise(() => {
-					slotStatus.check(STATUS.BUSY, 'dateCompleted');
 					if(isNaN(itemID) || itemID<1) throw 'No item was assigned to this slot!';
 
-					return slotStatus.saveStatus(STATUS.COMPLETED);
+					//If a 'cost' field is present, assume we're trying to use a boost for IMMEDIATE completion:
+					if(cost) {
+						if(mgHelpers.currency.isInvalid(cost, currency, true)) return;
+						slotStatus.results.currency = currency;
+					} else if(dateEnd.isSameOrAfter(dateNow)) throw 'Research is not completed yet';
+
+					slotStatus.check(STATUS.BUSY, 'dateCompleted');
+
+					if(cost) mgHelpers.currency.modify(cost, currency, -1);
+
+					return Promise.all([user.save(), slotStatus.saveStatus(STATUS.COMPLETED)]);
 				})
 					.then(() => slotStatus.send())
 					.catch( err => $$$.send.error(res, err) );
@@ -242,6 +269,7 @@ module.exports = function() {
 				status: CustomTypes.String16({default: STATUS.LOCKED}),
 				dateUnlocked: CustomTypes.DateRequired({default: new Date(0)}),
 				dateStarted: CustomTypes.DateRequired({default: new Date(0)}),
+				dateEnd: CustomTypes.DateRequired({default: new Date(0)}),
 				dateCompleted: CustomTypes.DateRequired({default: new Date(0)}),
 			}
 		}
