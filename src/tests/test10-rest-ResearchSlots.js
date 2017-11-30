@@ -17,7 +17,8 @@ describe('=REST= Research Slots', () => {
 	if(chaiG.filterLevel < 8) return;
 
 	const cost = {body:{cost:{gold:1,gems:1}}};
-	const itemToResearch = {body: {itemID: 14, cost: {scrollsIdentify:1}}};
+	const itemID = 3;
+	const itemToResearch = {body: {itemID: itemID, cost: {scrollsIdentify:1}}};
 
 	TEST.SET_USER(() => testUsers.chamberlainpi);
 	TEST_ITEM.SET_USER(() => testUsers.chamberlainpi);
@@ -53,7 +54,7 @@ describe('=REST= Research Slots', () => {
 		assert.exists(data.currency, "data.currency exist");
 	});
 
-	TEST.OK('get::/list', 'Get list of slots.', null, data => assertSlotList(data, 'busy', 14));
+	TEST.OK('get::/list', 'Get list of slots.', null, data => assertSlotList(data, 'busy', itemID));
 
 	TEST.FAIL('put::/0/0/busy', 'Slot == BUSY (FAIL ALREADY BUSY)', itemToResearch);
 	TEST.FAIL('get::/0/0/busy', 'Slot == BUSY (FAIL WRONG VERB)', itemToResearch);
@@ -66,7 +67,7 @@ describe('=REST= Research Slots', () => {
 		assert.equal(data.currency.gems, 9, 'Gems match.');
 	});
 
-	TEST.OK('get::/list', 'Get list of slots.', null, data => assertSlotList(data, 'completed', 14));
+	TEST.OK('get::/list', 'Get list of slots.', null, data => assertSlotList(data, 'completed', itemID));
 
 	TEST.FAIL('put::/0/0/completed', 'Slot == COMPLETED (FAIL ALREADY COMPLETED)');
 

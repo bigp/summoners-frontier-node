@@ -18,53 +18,12 @@ describe('=REST= Items', () => {
 	const randomItemSeeds = chaiG.randomItemSeeds;
 	var chamberlainpi, peter;
 
-	TEST.SET_USER(() => chamberlainpi = testUsers.chamberlainpi);
-
-	TEST.OK('post::/random/weapon', 'Generate random item weapon (chamberlainpi)', null,
-		data => {
-			assert.exists(data);
-			assert.equal(data.length>0, true);
-			assert.equal(data[0].userId, testUsers.chamberlainpi.id, "Item ID == User ID");
-		}
-	);
-
-	var quantity = 5;
-
-	TEST.OK('post::/random/weapon/' + quantity, 'Generate random item weapon (chamberlainpi ANOTHER FEW [5] )', null, data => {
-		assert.equal(data.length, quantity);
-		assert.equal(data[0].userId, testUsers.chamberlainpi.id, "Item ID == User ID");
-	});
-
 	TEST.SET_USER(() => peter = testUsers.peter);
-
-	TEST.FAIL('post::/random/weapon', 'Generate random item weapon (peter NOT logged in)');
-
-	it('Generate random item weapon (peter WHEN logged in)', done => {
-		peter.sendLogin()
-			.then(() => peter.sendAuth('/item/random/weapon', 'post'))
-			.then(data => {
-				assert.exists(data);
-				assert.equal(data[0].userId, testUsers.peter.id, "Item ID == User ID");
-				done();
-			})
-			.catch(err => done(err));
-	});
-
-	TEST.FAIL('post::/random/weapon/33', 'Generate random item weapon (peter FAIL add too many [33])');
-
-	TEST.SET_USER(() => testUsers.peter);
-
-	TEST.OK('post::/random/weapon/3', 'Generate random item weapon (peter WHEN logged in, add [3])', null,
-		data => {
-			assert.exists(data);
-			assert.equal(data[0].userId, peter.id, "Item ID == User ID");
-		});
-
-	TEST.SET_USER(() => testUsers.chamberlainpi);
+	TEST.SET_USER(() => chamberlainpi = testUsers.chamberlainpi);
 
 	TEST.OK('get::/list', 'Get all items', null, datas => {
 		assert.exists(datas);
-		assert.equal(datas.length, 6);
+		assert.equal(datas.length, 0);
 	});
 
 	TEST.FAIL('post::/list', 'Get all items (FAIL wrong HTTP VERB)');
@@ -124,15 +83,14 @@ describe('=REST= Items', () => {
 		}
 	});
 
-	TEST.FAIL('post::/add', 'Add item (FAIL - missing LIST for peter)', {
-		body: { empty: true }
-	});
+	TEST.FAIL('post::/add', 'Add item (FAIL - missing LIST for peter)', {body: { empty: true }});
 
 	var peterItem;
 	TEST.OK('post::/add', 'Add custom item (VALID for peter)', {
 		body: {
 			showAll: 1,
 			list: [
+				{identity: 'item_sword', randomSeeds: randomItemSeeds(7,7,7,7)},
 				{identity: 'item_sword', randomSeeds: randomItemSeeds(7,7,7,7)},
 			]
 		}
@@ -153,7 +111,7 @@ describe('=REST= Items', () => {
 
 	TEST.SET_USER(() => testUsers.peter);
 	TEST.OK('delete::/remove-all', 'Remove ALL items (peter)', null, data => {
-		assert.equal(data.numRemoved, 5, "numRemoved");
+		assert.equal(data.numRemoved, 2, "numRemoved");
 	});
 
 	TEST.OK('get::/list', 'Get all items (peter, after deleting)', null, datas => {

@@ -149,14 +149,6 @@ module.exports = function() {
 		},
 
 		ITEMS: {
-			add_random() {
-				return {
-					url: api + '/item/random/weapon',
-					method: 'post',
-					data: {}
-				};
-			},
-
 			list() {
 				return {
 					url: api + '/item/list',

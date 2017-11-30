@@ -170,26 +170,6 @@ const mgHelpers = {
 		return true;
 	},
 
-	prepareRandomCountRequest(Model, req, res, next, generatorWithUser) {
-		return new Promise((resolve, reject) => {
-			if (mgHelpers.isWrongVerb(req, 'POST')) return;
-
-			const user = req.auth.user;
-
-			var count = req.params.count || 1;
-			if (count > CONFIG.GAME_RULES.MAX_RANDOM_COUNT) {
-				throw `Random "count" parameter too high: ${count} in "${req.fullURL}"`;
-			}
-
-			var results = [];
-			for(var c=0; c<count; c++) {
-				results.push( generatorWithUser(user) );
-			}
-
-			resolve( Model.create(results) );
-		});
-	},
-
 	getAllByCurrentUser(Model, req, res, next, opts) {
 		return new Promise((resolve, reject) => {
 			if (mgHelpers.isWrongVerb(req, 'GET')) return;

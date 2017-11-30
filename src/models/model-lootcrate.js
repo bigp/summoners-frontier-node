@@ -15,7 +15,6 @@ const ObjectId = Types.ObjectId;
 const CONFIG = $$$.env.ini;
 
 module.exports = function() {
-	const GAME_RULES = CONFIG.GAME_RULES;
 	const moment = require('moment');
 
 	var User, Shop, Item;

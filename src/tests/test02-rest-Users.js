@@ -42,7 +42,7 @@ describe('=REST= User', () => {
 			.catch(catcher(done));
 	});
 
-	it('Add User (/user/public/add/)', done => {
+	it('Add User (CHAMBERLAINPI /user/public/add/)', done => {
 		testUsers.chamberlainpi.sendAuth('/user/public/add', 'post', "*")
 			.then(data => {
 				_.extend(testUsers.chamberlainpi, data);
@@ -55,8 +55,32 @@ describe('=REST= User', () => {
 			});
 	});
 
-	it('Login User (with a slight delay to modify PING timestamp)', done => {
+	it('Add User (PETER /user/public/add/)', done => {
+		testUsers.peter.sendAuth('/user/public/add', 'post', "*")
+			.then(data => {
+				_.extend(testUsers.peter, data);
+				assert.exists(data);
+
+				setTimeout(done, 50);
+			})
+			.catch(err => {
+				done(err);
+			});
+	});
+
+	it('Login User (chamberlainpi)', done => {
 		testUsers.chamberlainpi.sendLogin()
+			.then(data => {
+				assert.exists(data);
+				done();
+			})
+			.catch(err => {
+				done(err);
+			});
+	});
+
+	it('Login User (peter)', done => {
+		testUsers.peter.sendLogin()
 			.then(data => {
 				assert.exists(data);
 				done();

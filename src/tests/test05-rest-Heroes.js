@@ -21,20 +21,6 @@ describe('=REST= Heroes', () => {
 	TEST.SET_USER(() => chamberlainpi = testUsers.chamberlainpi);
 	TEST_ITEM.SET_USER(() => chamberlainpi);
 
-	TEST.OK('post::/random/5', 'Generate random Heroes (chamberlainpi ANOTHER FEW [5] )', null, data => {
-		assert.exists(data);
-		assert.equal(data.length>0, true);
-		assert.equal(data[0].userId, chamberlainpi.id, "Hero ID == User ID");
-	});
-
-	TEST.SET_USER(() => testUsers.peter);
-	TEST.FAIL('post::/random/19', 'Generate random Heroes weapon (peter FAIL TOO MANY)');
-
-	TEST.SET_USER(() => null);
-	TEST.FAIL('post::/random/19', 'Generate random Heroes weapon (UNAUTHORIZED)');
-
-	TEST.SET_USER(() => testUsers.chamberlainpi);
-
 	TEST.OK('post::/add', 'Add Custom Heroes (chamberlainpi)', {
 		body: {
 			list: [

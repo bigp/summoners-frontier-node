@@ -36,11 +36,11 @@ const chaiG = module.exports = {
 			_password: $$$.md5('pi3rr3')
 		});
 
-		chaiG.testUsers.jon = new User({
-			name: 'Jon',
-			username: 'Jon123',
-			email: 'jon@gmail.com',
-			_password: $$$.md5('pi3rr3'),
+		chaiG.testUsers.peter = new User({
+			name: 'Peter',
+			username: 'Peter123',
+			email: 'peter@gmail.com',
+			_password: $$$.md5('PI#RR#'),
 		});
 	},
 

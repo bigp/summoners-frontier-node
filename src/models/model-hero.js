@@ -19,31 +19,6 @@ module.exports = function() {
 		customRoutes: {
 			//////////////////////////////////////////////////////////////
 
-			'random/:count?'(Model, req, res, next, opts) {
-				const jsonHeroes = gameHelpers.getHeroes();
-				if(!jsonHeroes) return $$$.send.error(res, "JSON heroes not loaded yet.");
-
-				mgHelpers.prepareRandomCountRequest(Model, req, res, next, generateHero)
-					.then(items => {
-						mgHelpers.sendFilteredResult(res, items);
-					})
-					.catch(err => {
-						$$$.send.error(res, "Could not create items!", err);
-					});
-
-				function generateHero(user) {
-					var heroJSON = jsonHeroes.pickRandom();
-					var heroData = _.clone(opts.data);
-					heroData.userId = user.id;
-
-					var gameData = heroData.game = {};
-					gameData.identity = heroJSON.identity;
-					gameData.randomSeed = (Math.random() * 100) | 0;
-					gameData.skills = [1,1,1].map(s => ({ level: s }));
-					return heroData;
-				}
-			},
-
 			'list$/'(Model, req, res, next, opts) {
 				mgHelpers.getAllByCurrentUser(Model, req, res, next, opts)
 					.then(items => {
@@ -370,6 +345,7 @@ module.exports = function() {
 				randomSeeds: {
 					variance: CustomTypes.LargeInt({default: 1}),
 				},
+
 				skills: [
 					new Schema({
 						identity: CustomTypes.String32(),

@@ -135,46 +135,6 @@ module.exports = function() {
 		customRoutes: {
 			//////////////////////////////////////////////////////////////
 
-			'random/:type/:count?'(Model, req, res, next, opts) {
-
-				const jsonItems = gameHelpers.getItems();
-				if(!jsonItems) return $$$.send.error(res, "JSON items not loaded yet.");
-				if(!jsonItems[req.params.type]) {
-					return $$$.send.error(res, "Wrong item type specified, not defined in JSON item categories.");
-				}
-
-				mgHelpers.prepareRandomCountRequest(Model, req, res, next, generateItem)
-					.then(items => {
-						mgHelpers.sendFilteredResult(res, items);
-					})
-					.catch(err => {
-						$$$.send.error(res, "Could not create items!", err);
-					});
-
-				function generateItem(user) {
-					const jsonItem = jsonItems[req.params.type].pickRandom();
-					const itemData = _.clone(opts.data);
-					itemData.userId = user.id;
-
-					const gameData = itemData.game = {};
-					gameData.identity = jsonItem.identity;
-					gameData.isEquipped = false;
-					gameData.magicFind = $$$.randInt();
-					gameData.itemLevel = $$$.randInt();
-					gameData.variance = $$$.randInt();
-
-					gameData.randomSeeds = {
-						quality: $$$.randInt(),
-						affix: $$$.randInt(),
-						itemLevel: $$$.randInt(),
-						variance: $$$.randInt()
-					};
-					//gameData.heroEquipped = '';
-
-					return itemData;
-				}
-			},
-
 			'list$'(Model, req, res, next, opts) {
 				mgHelpers.getAllByCurrentUser(Model, req, res, next, opts)
 					.then(items => {

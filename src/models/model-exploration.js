@@ -13,7 +13,6 @@ const Types  = Schema.Types;
 const CustomTypes  = mongoose.CustomTypes;
 const ObjectId = Types.ObjectId;
 const CONFIG = $$$.env.ini;
-const GAME_RULES = CONFIG.GAME_RULES;
 const moment = require('moment');
 
 module.exports = function() {
