@@ -166,8 +166,6 @@ _.traverse = function(masterDest, masterSrc, cb) {
 		_.each(src, (value, key) => {
 			var destValue = dest[key];
 			if(_.isUndefined(destValue)) {
-				//traceError(_.jsonPretty(dest));
-				//traceError(_.jsonPretty(src));
 				return cb('Key does not exists on destination object: ' + key);
 			}
 

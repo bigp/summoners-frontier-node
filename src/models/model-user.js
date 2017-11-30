@@ -47,9 +47,13 @@ module.exports = function() {
 							magicOrbs: g.MAGIC_ORBS,
 
 							scrollsIdentify: g.SCROLLS_IDENTIFY,
-							scrollsSummonHero: g.SCROLLS_SUMMON_HERO,
+							scrollsSummonCommon: g.SCROLLS_SUMMON_COMMON,
 							scrollsSummonRare: g.SCROLLS_SUMMON_RARE,
-							scrollsSummonLegendary: g.SCROLLS_SUMMON_LEGENDARY,
+							scrollsSummonMonsterFire: g.SCROLLS_SUMMON_MONSTER_FIRE,
+							scrollsSummonMonsterWater: g.SCROLLS_SUMMON_MONSTER_WATER,
+							scrollsSummonMonsterWind: g.SCROLLS_SUMMON_MONSTER_WIND,
+							scrollsSummonMonsterLight: g.SCROLLS_SUMMON_MONSTER_LIGHT,
+							scrollsSummonMonsterDark: g.SCROLLS_SUMMON_MONSTER_DARK,
 
 							shardsItemsCommon: g.SHARDS_ITEMS_COMMON,
 							shardsItemsMagic: g.SHARDS_ITEMS_MAGIC,
@@ -423,9 +427,13 @@ module.exports = function() {
 					magicOrbs: CustomTypes.Int(),
 
 					scrollsIdentify: CustomTypes.Int(),
-					scrollsSummonHero: CustomTypes.Int(),
+					scrollsSummonCommon: CustomTypes.Int(),
 					scrollsSummonRare: CustomTypes.Int(),
-					scrollsSummonLegendary: CustomTypes.Int(),
+					scrollsSummonMonsterFire: CustomTypes.Int(),
+					scrollsSummonMonsterWater: CustomTypes.Int(),
+					scrollsSummonMonsterWind: CustomTypes.Int(),
+					scrollsSummonMonsterLight: CustomTypes.Int(),
+					scrollsSummonMonsterDark: CustomTypes.Int(),
 
 					shardsItemsCommon: CustomTypes.LargeInt(),
 					shardsItemsMagic: CustomTypes.LargeInt(),

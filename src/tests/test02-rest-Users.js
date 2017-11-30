@@ -75,7 +75,7 @@ describe('=REST= User', () => {
 				gems:val,
 				magicOrbs: val,
 				scrollsIdentify: val,
-				scrollsSummonHero: val
+				scrollsSummonCommon: val
 			}
 		}
 	}
@@ -89,7 +89,7 @@ describe('=REST= User', () => {
 		assert.equal(data.gems, currencyBefore.gems+1, "gems + 1");
 		assert.equal(data.magicOrbs, currencyBefore.magicOrbs+1, "magicOrbs + 1");
 		assert.equal(data.scrollsIdentify, currencyBefore.scrollsIdentify+1, "scrolls + 1");
-		assert.equal(data.scrollsSummonHero, currencyBefore.scrollsSummonHero+1, "scrolls + 1");
+		assert.equal(data.scrollsSummonCommon, currencyBefore.scrollsSummonCommon+1, "scrolls + 1");
 	});
 
 	TEST.OK('put::/currency', 'Remove Currency', cost(-1), data => {
@@ -97,7 +97,7 @@ describe('=REST= User', () => {
 		assert.equal(data.gems, currencyBefore.gems, "gems - 1");
 		assert.equal(data.magicOrbs, currencyBefore.magicOrbs, "magicOrbs - 1");
 		assert.equal(data.scrollsIdentify, currencyBefore.scrollsIdentify, "scrolls - 1");
-		assert.equal(data.scrollsSummonHero, currencyBefore.scrollsSummonHero, "scrolls - 1");
+		assert.equal(data.scrollsSummonCommon, currencyBefore.scrollsSummonCommon, "scrolls - 1");
 	});
 
 	TEST.OK('put::/xp', 'Set User XP', { body: { xp: 1234 } }, data => {
