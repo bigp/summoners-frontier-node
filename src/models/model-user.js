@@ -251,7 +251,6 @@ module.exports = function() {
 
 			'everything/remove'(Model, req, res, next, opts) {
 				const user = req.auth.user;
-				const q = {userId: user.id};
 				const results = {user: user};
 
 				mgHelpers.prepareRemoveRequest(req)
@@ -271,27 +270,33 @@ module.exports = function() {
 
 						mgHelpers.sendFilteredResult(res, results);
 					})
-					.catch(err => {
-						$$$.send.error(res, err);
-					});
+					.catch(err => $$$.send.error(res, err));
 			},
 
-			'xp/'(Model, req, res, next, opts) {
+			'put::xp'(Model, req, res, next, opts) {
 				const user = req.auth.user;
 
 				_.promise(() => {
-					if(mgHelpers.isWrongVerb(req, 'PUT')) return;
 					if(isNaN(opts.data.xp)) throw 'Missing "xp" field in POST data.';
 
 					user.game.xp = opts.data.xp | 0;
 					return user.save();
 				})
-					.then( saved => {
-						mgHelpers.sendFilteredResult(res, saved);
-					})
-					.catch( err => {
-						$$$.send.error(res, err);
-					})
+					.then( saved => mgHelpers.sendFilteredResult(res, saved))
+					.catch( err => $$$.send.error(res, err));
+			},
+
+			'put::lastLevel'(Model, req, res, next, opts) {
+				const user = req.auth.user;
+
+				_.promise(() => {
+					if(isNaN(opts.data.lastLevel)) throw 'Missing "lastLevel" field in POST data.';
+
+					user.game.lastLevel = opts.data.lastLevel | 0;
+					return user.save();
+				})
+					.then( saved => mgHelpers.sendFilteredResult(res, saved))
+					.catch( err => $$$.send.error(res, err));
 			}
 		},
 
@@ -407,6 +412,7 @@ module.exports = function() {
 			/////////////////////////////////// GAME-SPECIFIC:
 			game: {
 				xp: CustomTypes.LargeInt({default: 0}),
+				lastLevel: CustomTypes.Int({default: 1}),
 				name: CustomTypes.String128({required:false}),
 
 				/**

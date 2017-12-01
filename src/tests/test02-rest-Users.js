@@ -128,6 +128,10 @@ describe('=REST= User', () => {
 		assert.equal(data.game.xp, 1234, 'XP matches.');
 	});
 
+	TEST.OK('put::/lastLevel', 'Set User LastLevel', { body: { lastLevel: 3 } }, data => {
+		assert.equal(data.game.lastLevel, 3, 'LastLevel matches.');
+	});
+
 	TEST.OK('get::/logout', 'Logout (chamberlainpi)', null, data => {
 		testUsers.chamberlainpi.login.token = null;
 		assert.exists(data);
