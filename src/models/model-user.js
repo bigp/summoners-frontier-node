@@ -297,6 +297,19 @@ module.exports = function() {
 				})
 					.then( saved => mgHelpers.sendFilteredResult(res, saved))
 					.catch( err => $$$.send.error(res, err));
+			},
+
+			'put::explore-slots'(Model, req, res, next, opts) {
+				const user = req.auth.user;
+
+				_.promise(() => {
+					if(isNaN(opts.data.exploreSlots)) throw 'Missing "exploreSlots" field in POST data.';
+
+					user.game.actsZones.exploreSlots = opts.data.exploreSlots | 0;
+					return user.save();
+				})
+					.then( saved => mgHelpers.sendFilteredResult(res, saved))
+					.catch( err => $$$.send.error(res, err));
 			}
 		},
 
@@ -424,6 +437,7 @@ module.exports = function() {
 				destinationGroupIDs: [CustomTypes.Int()],
 
 				actsZones: {
+					exploreSlots: CustomTypes.Int({default: 0}),
 					completed: CustomTypes.Int(),
 				},
 

@@ -132,6 +132,10 @@ describe('=REST= User', () => {
 		assert.equal(data.game.lastLevel, 3, 'LastLevel matches.');
 	});
 
+	TEST.OK('put::/explore-slots', 'Set User Explore Slots', { body: { exploreSlots: 2 } }, data => {
+		assert.equal(data.game.actsZones.exploreSlots, 2, 'exploreSlots matches.');
+	});
+
 	TEST.OK('get::/logout', 'Logout (chamberlainpi)', null, data => {
 		testUsers.chamberlainpi.login.token = null;
 		assert.exists(data);
