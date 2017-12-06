@@ -106,28 +106,13 @@ module.exports = function() {
 					invalidIdentities.map(n => n.identity).join(', ');
 				}
 
-				function promiseAddItems(oldest) {
-					return _.promise(() => {
-							return isCurrencyChanged ? user.save() : true;
-						}).then(saved => {
-							//isCurrencyChanged && trace(saved);
-							return Item.create(items);
-						})
-						.then(newest => {
-							return mgHelpers.makeNewestAndOldest(newest, oldest);
-						});
-				}
+				const getOldAndNewItems = () => Promise.all([Item.find({userId: user.id}), Item.create(items)]);
 
-				//This 'showAll' option allows to include a 'itemsOld' entry in the results:
-				if(_.isTruthy(opts.data.showAll)) {
-					return Item.find({userId: user.id}).exec()
-						.then(promiseAddItems);
-				}
-
-				return promiseAddItems();
-			})
+				return _.promise(() => isCurrencyChanged ? user.save() : true)
+						.then(getOldAndNewItems)
+						.then(oldAndNew => mgHelpers.makeNewestAndOldest(oldAndNew[1], oldAndNew[0]));
+			});
 	}
-
 
 	return {
 		plural: 'items',

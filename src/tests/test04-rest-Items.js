@@ -39,7 +39,7 @@ describe('=REST= Items', () => {
 	}, datas => {
 		assert.exists(datas);
 		assert.exists(datas.newest);
-		assert.notExists(datas.oldest);
+		assert.exists(datas.oldest);
 	});
 
 	TEST.OK('post::/add', 'Add currency item $$$ (chamberlainpi)', {
@@ -88,7 +88,6 @@ describe('=REST= Items', () => {
 	var peterItem;
 	TEST.OK('post::/add', 'Add custom item (VALID for peter)', {
 		body: {
-			showAll: 1,
 			list: [
 				{identity: 'item_sword', randomSeeds: randomItemSeeds(7,7,7,7)},
 				{identity: 'item_sword', randomSeeds: randomItemSeeds(7,7,7,7)},

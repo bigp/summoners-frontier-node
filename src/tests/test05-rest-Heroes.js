@@ -24,21 +24,6 @@ describe('=REST= Heroes', () => {
 	TEST.OK('post::/add', 'Add Custom Heroes (chamberlainpi)', {
 		body: {
 			list: [
-				{identity: 'hero_marauder', randomSeeds: {variance: 1}},
-				{identity: 'hero_guardian', randomSeeds: {variance: 2}},
-				{identity: 'hero_raremage', randomSeeds: {variance: 3}},
-			]
-		}
-	}, data => {
-		assert.exists(data.newest);
-		assert.equal(data.newest.length, 3);
-		assert.equal(data.newest[0].userId, chamberlainpi.id, "Hero ID == User ID");
-	});
-
-	TEST.OK('post::/add', 'Add Custom Heroes (chamberlainpi with showAll)', {
-		body: {
-			showAll:1,
-			list: [
 				// THIS HERO IS IMPORTANT TO TEST OUT THE SWAP (only one that currently has a awakening-reference:
 				{identity: 'hero_rareassassin', randomSeeds: {variance: 4}}, //<--- DON'T CHANGE!!!
 				{identity: 'hero_guardian', randomSeeds: {variance: 5}},

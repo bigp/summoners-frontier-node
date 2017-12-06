@@ -13,6 +13,15 @@ const CONFIG = $$$.env.ini;
 const moment = require('moment');
 
 module.exports = function() {
+	var User, Shop, Item, Hero;
+
+	process.nextTick( () => {
+		User = $$$.models.User;
+		Shop = $$$.models.Shop;
+		Item = $$$.models.Item;
+		Hero = $$$.models.Hero;
+	});
+
 	return {
 		plural: 'heros',
 
@@ -47,13 +56,14 @@ module.exports = function() {
 			},
 
 			'add'(Model, req, res, next, opts) {
+				var heroes;
 				mgHelpers.prepareAddRequest(Model, req, res, next, opts)
 					.then( user => {
 						const jsonHeroes = gameHelpers.getHeroes();
 						const validIdentities = jsonHeroes.all.identities;
 
 						var invalidIdentities = [];
-						const heroes = opts.data.list.map((game, i) => {
+						heroes = opts.data.list.map((game, i) => {
 							if(!validIdentities.has(game.identity)) {
 								invalidIdentities.push(game);
 							}
@@ -70,27 +80,15 @@ module.exports = function() {
 								invalidIdentities.map(n => n.identity).join(', ');
 						}
 
-						function promiseAddItems(oldest) {
-							return Model.create(heroes)
-								.then(newest => {
-									return mgHelpers.makeNewestAndOldest(newest, oldest);
-								})
-								.then(results => {
-									mgHelpers.sendFilteredResult(res, results);
-								});
-						}
-
-						//This 'showAll' option allows to include a 'itemsOld' entry in the results:
-						if(_.isTruthy(opts.data.showAll)) {
-							return Model.find({userId: user.id}).exec()
-								.then(promiseAddItems);
-						}
-
-						return promiseAddItems();
+						return Promise.all([Hero.find({userId: user.id}), Hero.create(heroes)]);
 					})
-					.catch(err => {
-						$$$.send.error(res, "Could not add heroes!", err);
-					});
+						.then( oldAndNew => {
+							const results = mgHelpers.makeNewestAndOldest(oldAndNew[1], oldAndNew[0]);
+							mgHelpers.sendFilteredResult(res, results);
+						})
+						.catch(err => {
+							$$$.send.error(res, "Could not add heroes!", err);
+						});
 			},
 
 			':heroID/*'(Model, req, res, next, opts) {
