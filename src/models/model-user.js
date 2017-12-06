@@ -310,6 +310,12 @@ module.exports = function() {
 				})
 					.then( saved => mgHelpers.sendFilteredResult(res, saved))
 					.catch( err => $$$.send.error(res, err));
+			},
+
+			'get::analytics'(Model, req, res, next, opts) {
+				const user = req.auth.user;
+
+				mgHelpers.sendFilteredResult(res, user.game.analytics);
 			}
 		},
 
@@ -485,6 +491,13 @@ module.exports = function() {
 						seed: CustomTypes.LargeInt({min: -1, default: -1}),
 						_dateGenerated: CustomTypes.DateRequired({required: false, default: new Date(0)}),
 					}
+				},
+
+				analytics: {
+					heroesDiscovered: [new Schema({
+						identity: CustomTypes.String128(),
+						count: CustomTypes.Int({required: true, default: 0})
+					}, {_id: false})]
 				}
 			}
 		}
