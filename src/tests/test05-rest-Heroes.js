@@ -12,6 +12,7 @@ const PRIVATE = $$$.env.ini.PRIVATE;
 const sendAPI = $$$.send.api;
 const TEST = chaiG.makeFailAndOK('hero');
 const TEST_ITEM = chaiG.makeFailAndOK('item');
+const TEST_USER = chaiG.makeFailAndOK('user');
 
 describe('=REST= Heroes', () => {
 	if(chaiG.filterLevel < 8) return;
@@ -20,6 +21,7 @@ describe('=REST= Heroes', () => {
 
 	TEST.SET_USER(() => chamberlainpi = testUsers.chamberlainpi);
 	TEST_ITEM.SET_USER(() => chamberlainpi);
+	TEST_USER.SET_USER(() => chamberlainpi);
 
 	TEST.OK('post::/add', 'Add Custom Heroes (chamberlainpi)', {
 		body: {
@@ -191,6 +193,13 @@ describe('=REST= Heroes', () => {
 
 	TEST.OK(`put::/reset-exploration`, 'Reset Explorations (chamberlainpi)', null, data => {
 		assert.exists(data);
+	});
+
+	////////////////////////////////////////////////////// USER ANALYTICS
+
+	TEST_USER.OK('get::/analytics', 'Get User Analytics', null, data => {
+		assert.exists(data, 'Analytics exists.');
+		trace(data);
 	});
 
 	////////////////////////////////////////////////////// DELETE
