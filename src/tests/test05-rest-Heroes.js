@@ -14,12 +14,23 @@ const TEST = chaiG.makeFailAndOK('hero');
 const TEST_ITEM = chaiG.makeFailAndOK('item');
 
 describe('=REST= Heroes', () => {
-	if(chaiG.filterLevel < 10) return;
+	if(chaiG.filterLevel < 8) return;
 
 	var chamberlainpi, heroTestForSwap=0, hero0=0, hero1=1, item0=0, item1=1;
 
 	TEST.SET_USER(() => chamberlainpi = testUsers.chamberlainpi);
 	TEST_ITEM.SET_USER(() => chamberlainpi);
+
+	TEST.OK('post::/add', 'Add Custom Heroes (chamberlainpi)', {
+		body: {
+			list: [
+				{identity: 'hero_guardian', randomSeeds: {variance: 1}},
+			]
+		}
+	}, data => {
+		assert.exists(data.oldest);
+		assert.exists(data.newest);
+	});
 
 	TEST.OK('post::/add', 'Add Custom Heroes (chamberlainpi)', {
 		body: {
@@ -43,7 +54,7 @@ describe('=REST= Heroes', () => {
 
 	TEST.OK('get::/list', 'Get all heroes', null, datas => {
 		assert.exists(datas);
-		assert.equal(datas.length, 10);
+		assert.equal(datas.length, 3);
 		chamberlainpi.heroes = datas;
 
 		hero0 = chamberlainpi.heroes[0];

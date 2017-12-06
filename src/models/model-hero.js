@@ -56,7 +56,10 @@ module.exports = function() {
 			},
 
 			'add'(Model, req, res, next, opts) {
+				const user = req.auth.user;
+				const heroesDiscovered = user.game.analytics.heroesDiscovered;
 				var heroes;
+
 				mgHelpers.prepareAddRequest(Model, req, res, next, opts)
 					.then( user => {
 						const jsonHeroes = gameHelpers.getHeroes();
@@ -80,15 +83,26 @@ module.exports = function() {
 								invalidIdentities.map(n => n.identity).join(', ');
 						}
 
-						return Promise.all([Hero.find({userId: user.id}), Hero.create(heroes)]);
+						//Analytics for Hero-Discovery tracking:
+						heroes.forEach( hero => {
+							const identity = hero.game.identity;
+							const found = heroesDiscovered.find(heroKnown => heroKnown.identity===identity);
+
+							if(found) {
+								found.dateLastCounted = moment();
+								return found.count++;
+							}
+
+							heroesDiscovered.push({identity: identity, count: 1});
+						});
+
+						return Promise.all([Hero.find({userId: user.id}), Hero.create(heroes), user.save()]);
 					})
 						.then( oldAndNew => {
 							const results = mgHelpers.makeNewestAndOldest(oldAndNew[1], oldAndNew[0]);
 							mgHelpers.sendFilteredResult(res, results);
 						})
-						.catch(err => {
-							$$$.send.error(res, "Could not add heroes!", err);
-						});
+						.catch(err => $$$.send.error(res, "Could not add heroes!", err));
 			},
 
 			':heroID/*'(Model, req, res, next, opts) {

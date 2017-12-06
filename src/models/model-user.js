@@ -496,6 +496,8 @@ module.exports = function() {
 				analytics: {
 					heroesDiscovered: [new Schema({
 						identity: CustomTypes.String128(),
+						dateDiscovered: CustomTypes.DateRequired(),
+						dateLastCounted: CustomTypes.DateRequired(),
 						count: CustomTypes.Int({required: true, default: 0})
 					}, {_id: false})]
 				}
