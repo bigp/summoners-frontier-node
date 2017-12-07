@@ -228,8 +228,8 @@ const mgHelpers = {
 					throw 'Invalid currency value for type: ' + coinType;
 				}
 
-				if(value <= 0) {
-					throw 'Cost values must be greater than zero (0): ' + coinType;
+				if(hasSufficientForBuying && value <= 0) {
+					throw 'Cost values must be greater than zero (0): ' + coinType + " == " + value;
 				}
 
 				if(isNaN(currency[coinType])) {
@@ -250,7 +250,9 @@ const mgHelpers = {
 
 		modify(cost, currency, multiplier) {
 			_.keys(cost).forEach( key => {
-				currency[key] += multiplier * Math.abs(cost[key]);
+				const value = cost[key];
+				currency[key] += multiplier===0 ? value : multiplier * Math.abs(value);
+				if(currency[key]<0) currency[key] = 0;
 			});
 		}
 	}

@@ -216,12 +216,28 @@ module.exports = function() {
 					});
 			},
 
-			'currency'(Model, req, res, next, opts) {
+			'get::/currency'(Model, req, res, next, opts) {
 				const user = req.auth.user;
-				if(!user) throw 'Missing user!';
 
-				//user, user.game.currency
-				user.updateCurrency(req, res, next, opts.data);
+				mgHelpers.sendFilteredResult(res, user.game.currency);
+			},
+
+			'put::/currency'(Model, req, res, next, opts) {
+				const user = req.auth.user;
+				const currency = user.game.currency;
+				const cost = opts.data;
+
+				_.promise(() => {
+					if(mgHelpers.currency.isInvalid(cost, currency, false)) return;
+
+					mgHelpers.currency.modify(cost, currency, 0);
+
+					return user.save();
+				})
+					.then(saved => {
+						mgHelpers.sendFilteredResult(res, user.game.currency);
+					})
+					.catch(err => $$$.send.error(res, err));
 			},
 
 			'everything$'(Model, req, res, next, opts) {
@@ -376,36 +392,6 @@ module.exports = function() {
 				return this.login.token ?
 					$$$.encodeToken(PRIVATE.AUTH_CODE, this.username, this.login.token) :
 					$$$.encodeToken(PRIVATE.AUTH_CODE);
-			},
-
-			updateCurrency(req, res, next, incoming, isReturned) {
-				const currency = this.game.currency;
-
-				switch(req.method) {
-					case 'GET':
-						if(isReturned) return currency;
-						return mgHelpers.sendFilteredResult(res, currency);
-					case 'PUT':
-						_.traverse(currency, incoming, (err, match) => {
-							if(err) throw err;
-
-							const key = match.key;
-							match.dest[key] += match.src[key];
-							if(match.dest[key] < 0) {
-								match.dest[key] = 0;
-							}
-						});
-						break;
-					default:
-						return $$$.send.notImplemented(res);
-				}
-
-				this.save()
-					.then(() => {
-						if(isReturned) return currency;
-						mgHelpers.sendFilteredResult(res, currency);
-					})
-					.catch(err => {throw err;});
 			}
 		},
 
@@ -466,10 +452,10 @@ module.exports = function() {
 					shardsItemsRare: CustomTypes.LargeInt(),
 					shardsItemsUnique: CustomTypes.LargeInt(),
 
-					shardsXPCommon: CustomTypes.LargeInt(),
-					shardsXPMagic: CustomTypes.LargeInt(),
-					shardsXPRare: CustomTypes.LargeInt(),
-					shardsXPUnique: CustomTypes.LargeInt(),
+					shardsXpCommon: CustomTypes.LargeInt(),
+					shardsXpMagic: CustomTypes.LargeInt(),
+					shardsXpRare: CustomTypes.LargeInt(),
+					shardsXpUnique: CustomTypes.LargeInt(),
 
 					essenceLow: CustomTypes.LargeInt(),
 					essenceMid: CustomTypes.LargeInt(),

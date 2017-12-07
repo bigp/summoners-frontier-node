@@ -193,26 +193,25 @@ module.exports = function() {
 
 			},
 
-			':itemID/unequip'(Model, req, res, next, opts) {
+			'put::/:itemID/unequip'(Model, req, res, next, opts) {
 				const user = req.auth.user;
+				const currency = user.game.currency;
 				const validItem = req.validItem;
 				const cost = opts.data.cost;
 
 				_.promise(() => {
-					if(mgHelpers.isWrongVerb(req, 'PUT')) return;
+					if(mgHelpers.currency.isInvalid(cost, currency, true)) return;
 
-					if(!cost || _.keys(cost).length===0) {
-						throw 'Must provide a cost (in POST data) to unequip items!';
-					}
+					mgHelpers.currency.modify(cost, currency, -1);
 
-					return user.updateCurrency(req, res, next, cost, true);
+					return user.save();
 				})
-					.then( paid => {
+					.then( savedUser => {
 						validItem.game.heroEquipped = 0;
 						return validItem.save();
 					})
-					.then( saved => {
-						mgHelpers.sendFilteredResult(res, saved);
+					.then( savedItem => {
+						mgHelpers.sendFilteredResult(res, savedItem);
 					})
 					.catch( err => {
 						$$$.send.error(res, err);
