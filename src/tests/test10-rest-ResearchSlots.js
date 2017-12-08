@@ -14,7 +14,7 @@ const TEST_ITEM = chaiG.makeFailAndOK('item');
 const TEST_USER = chaiG.makeFailAndOK('user');
 
 describe('=REST= Research Slots', () => {
-	if(chaiG.filterLevel < 8) return;
+	if(chaiG.filterLevel < 10) return;
 
 	const cost = {body:{cost:{gold:1,gems:1}}};
 	const itemID = 3;

@@ -84,8 +84,8 @@ describe('=REST= Heroes', () => {
 
 	TEST_ITEM.OK(() => `put::/${item0.id}/unequip`, 'Unequip item 0', {body: {cost: {gold:1}}}, data => {
 		assert.exists(data);
-		trace("Unequipped item:");
-		trace(data);
+		// trace("Unequipped item:");
+		// trace(data);
 	});
 
 	TEST_ITEM.OK('get::/list', 'Get list of items (chamberlainpi)', null, data => {
@@ -199,7 +199,17 @@ describe('=REST= Heroes', () => {
 
 	TEST_USER.OK('get::/analytics', 'Get User Analytics', null, data => {
 		assert.exists(data, 'Analytics exists.');
-		trace(data);
+		assert.exists(data.heroesDiscovered, 'heroesDiscovered exists.');
+		assert.equal(data.heroesDiscovered.length, 2, 'heroesDiscovered.length matches.');
+
+		const discovered0 = data.heroesDiscovered[0];
+		const discovered1 = data.heroesDiscovered[1];
+
+		assert.equal(discovered0.identity, 'hero_guardian', 'discovered0.identity matches.');
+		assert.equal(discovered1.identity, 'hero_rareassassin', 'discovered1.identity matches.');
+
+		assert.equal(discovered0.count, 2, 'discovered0.count matches.');
+		assert.equal(discovered1.count, 1, 'discovered1.count matches.');
 	});
 
 	////////////////////////////////////////////////////// DELETE

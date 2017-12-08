@@ -60,6 +60,7 @@ function forEachModel(schemaFile, name) {
 	const customRoutes = Model._def.customRoutes || {};
 	const adminRoute = '/admin' + Model.__route;
 	const adminRoutes = '/admin' + Model.__routes;
+	const traceRoutes = Model._def.traceRoutes;
 
 	_.keys(customRoutes).forEach(routeName => {
 		var methodSplit = routeName.split('::');
@@ -78,6 +79,10 @@ function forEachModel(schemaFile, name) {
 		const customRouteMiddleWare = (req, res, next) => {
 			customRoutes[routeName](Model, req, res, next, makeOptionsObj(req));
 		};
+
+		if(traceRoutes===true || __route.has(traceRoutes)) {
+			trace("Adding route: " + method.toUpperCase() + " :: " + __route)
+		}
 
 		api[method](__customRoute, customRouteMiddleWare);
 		api[method](__adminRoute, customRouteMiddleWare);

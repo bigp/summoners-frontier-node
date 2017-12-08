@@ -123,44 +123,45 @@ module.exports = function() {
 					});
 			},
 
-			':heroID/xp'(Model, req, res, next, opts) {
-				const user = req.auth.user;
+			'put::/:heroID/xp'(Model, req, res, next, opts) {
 				const validHero = req.validHero;
 
 				_.promise(() => {
-					if(mgHelpers.isWrongVerb(req, 'PUT')) return;
 					if(isNaN(opts.data.xp)) throw 'Missing "xp" field in POST data.';
 
 					validHero.game.xp = opts.data.xp | 0;
 					return validHero.save();
 				})
-					.then(saved => {
-						mgHelpers.sendFilteredResult(res, saved);
-					})
-					.catch( err => {
-						$$$.send.error(res, err);
-					})
+					.then(saved => mgHelpers.sendFilteredResult(res, saved))
+					.catch(err => $$$.send.error(res, err));
 			},
 
-			':heroID/exploring/:actZone'(Model, req, res, next, opts) {
+			'put::/:heroID/qualityLevel'(Model, req, res, next, opts) {
+				const validHero = req.validHero;
+
+				_.promise(() => {
+					if(isNaN(opts.data.qualityLevel)) throw 'Missing "qualityLevel" field in POST data.';
+
+					validHero.game.qualityLevel = opts.data.qualityLevel | 0;
+					return validHero.save();
+				})
+					.then(saved => mgHelpers.sendFilteredResult(res, saved))
+					.catch(err => $$$.send.error(res, err));
+			},
+
+			'put::/:heroID/exploring/:actZone'(Model, req, res, next, opts) {
 				const user = req.auth.user;
 				const validHero = req.validHero;
 				const actZone = req.params.actZone;
 
 				_.promise(() => {
-					if(mgHelpers.isWrongVerb(res, 'PUT')) return;
 					if(isNaN(actZone) || actZone < 1) throw 'Invalid actZone specified: ' + actZone;
 
 					validHero.game.exploringActZone = actZone;
 					return validHero.save();
 				})
-					.then(saved => {
-						trace(saved);
-						mgHelpers.sendFilteredResult(res, saved);
-					})
-					.catch(err => {
-						$$$.send.error(res, err);
-					});
+					.then(saved => mgHelpers.sendFilteredResult(res, saved))
+					.catch(err => $$$.send.error(res, err));
 			},
 
 			':heroID/tap-ability'(Model, req, res, next, opts) {

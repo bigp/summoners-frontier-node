@@ -3,7 +3,12 @@
  */
 
 const jsonLoader = $$$.jsonLoader;
-const jsonSheets = jsonLoader.data.sheets;
+var jsonSheets;
+
+$$$.jsonLoader.onAndEmit('json-reloaded', () => {
+	//Re-assign the newly requested set of Data Sheets in this top-scope variable:
+	jsonSheets = jsonLoader.data.sheets;
+});
 
 module.exports = {
 	getItems() {
@@ -57,6 +62,11 @@ module.exports = {
 	getShopItems() {
 		const jsonShopItems = jsonSheets['shop-items-fixed'].data;
 		return jsonShopItems;
+	},
+
+	getBoosts() {
+		const jsonBoosts = jsonSheets['boosts'].data;
+		return jsonBoosts;
 	},
 
 	getActZones() {

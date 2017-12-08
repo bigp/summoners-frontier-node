@@ -7,10 +7,11 @@ require('./src/sv-globals');
 // 	.catch(err => traceError(err));
 
 
-const CronJobsManager = require('./src/web-dashboard/sv-cron-jobs-manager');
+// const CronJobsManager = require('./src/web-dashboard/sv-cron-jobs-manager');
+//
+// CronJobsManager.checkAll({
+// 	cronJobs: [
+// 		{id: 123, schedule: 'Every 2 seconds', limit: 3}
+// 	]
+// });
 
-CronJobsManager.checkAll({
-	cronJobs: [
-		{id: 123, schedule: 'Every 2 seconds', limit: 3}
-	]
-});

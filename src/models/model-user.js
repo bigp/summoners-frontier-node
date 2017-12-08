@@ -11,10 +11,9 @@ const CONFIG = $$$.env.ini;
 const PRIVATE = CONFIG.PRIVATE;
 const Schema  = mongoose.Schema;
 const CustomTypes  = mongoose.CustomTypes;
-//const seedRandom = require('seedrandom');
 
 module.exports = function() {
-	var User, Item, Hero, Shop, LootCrate, Exploration;
+	var User, Item, Hero, Shop, LootCrate, Exploration, jsonBoosts, jsonGlobals;
 
 	process.nextTick(() => {
 		trace("In model-user.js:".magenta);
@@ -26,6 +25,12 @@ module.exports = function() {
 		Item = $$$.models.Item;
 		LootCrate = $$$.models.Lootcrate;
 		Exploration = $$$.models.Exploration;
+	});
+
+	$$$.jsonLoader.onAndEmit('json-reloaded', () => {
+		jsonGlobals = $$$.jsonLoader.globals['preset-1'];
+		jsonBoosts = gameHelpers.getBoosts().map(boost => boost.identity);
+		trace(jsonBoosts);
 	});
 
 	return {
@@ -332,8 +337,68 @@ module.exports = function() {
 				const user = req.auth.user;
 
 				mgHelpers.sendFilteredResult(res, user.game.analytics);
+			},
+
+			'put::/boosts/add'(Model, req, res, next, opts) {
+				const user = req.auth.user;
+				const boosts = user.game.boosts;
+				const slots = boosts.slots;
+
+				_.promise(() => {
+					if(slots.length >= jsonGlobals.BOOST_LIMIT) throw `Cannot add any more boost slots, reached limit! (${jsonGlobals.BOOST_LIMIT})`;
+					slots.push({identity: ''});
+
+					return user.save();
+				})
+					.then( saved => {
+						mgHelpers.sendFilteredResult(res, boosts);
+					})
+					.catch(err => $$$.send.error(res, err));
+			},
+
+			'boosts/:boostID'(Model, req, res, next, opts) {
+				const user = req.auth.user;
+				const boosts = user.game.boosts;
+				const slots = boosts.slots;
+
+				_.promise(() => {
+					if(!slots.length) throw 'Impossible to get boost, no slots available!';
+					const boostID = req.params.boostID | 0;
+					if(isNaN(boostID)) throw `boostID must be defined!`;
+					if(boostID<0 || boostID>=slots.length) throw `boostID must be between 0 - ${slots.length-1}`;
+
+					req.validBoost = slots[boostID];
+
+					next();
+				}).catch(err => $$$.send.error(res, err));
+			},
+
+			'get::boosts/:boostID'(Model, req, res, next, opts) {
+				mgHelpers.sendFilteredResult(res, req.validBoost);
+			},
+
+			'put::boosts/:boostID/activate'(Model, req, res, next, opts) {
+				const user = req.auth.user;
+				const boost = req.validBoost;
+				const boostData = opts.data.boostData;
+
+				_.promise(() => {
+					if(!boostData) throw 'Missing boostData parameter in JSON request.';
+					if(!jsonBoosts.has(boostData.identity)) throw 'Invalid boost requested: ' + boostData.identity;
+
+					//Activate a certain type of boost here:
+					boost.identity = boostData.identity;
+
+					return user.save();
+				})
+					.then(saved => {
+						mgHelpers.sendFilteredResult(res, user.game.boosts);
+					})
+					.catch(err => $$$.send.error(res, err));
 			}
 		},
+
+		traceRoutes: 'boosts',
 
 		methods: {
 			updateLoginDetails(which) {
@@ -486,7 +551,16 @@ module.exports = function() {
 						dateLastCounted: CustomTypes.DateRequired(),
 						count: CustomTypes.Int({required: true, default: 0})
 					}, {_id: false})]
-				}
+				},
+
+				boosts: {
+					slots: [new Schema({
+						identity: CustomTypes.String128(),
+						isActive: CustomTypes.Bool(false),
+						dateStarted: CustomTypes.DateRequired({default: new Date(0)}),
+						count: CustomTypes.Int(),
+					}, {_id: false})]
+				},
 			}
 		}
 	};

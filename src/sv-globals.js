@@ -63,6 +63,10 @@ global.waitTrace = function() {
 _.extend( events.prototype, {
 	has(eventName) {
 		return this.listenerCount(eventName)>0;
+	},
+	onAndEmit(eventName, cb) {
+		this.on(eventName, cb);
+		cb(this);
 	}
 });
 

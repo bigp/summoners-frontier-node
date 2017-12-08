@@ -23,7 +23,6 @@ class JSONLoader extends Events {
 
 		return $$$.request.get(url, {json: true})
 			.then(json => {
-				$$$.emit('json-reloaded');
 				return this.onDataLoaded(json)
 			})
 			.catch(err => {
@@ -43,9 +42,9 @@ class JSONLoader extends Events {
 			}
 
 			resolve(this);
-			this.emit('data', this);
-		});
 
+			this.emit('json-reloaded', this);
+		});
 	}
 
 	fixParsingIssues(key, value) {

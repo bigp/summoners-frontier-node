@@ -59,7 +59,7 @@ function setTopLevelRoutes() {
 			route.use('/*', (req, res) => {
 				const ROUTE_NAME = route._name.toUpperCase();
 				if(!req) throw new Error("Request is null!!!");
-				res.status(404).send(`[${ROUTE_NAME}] Unknown request: ` + req.fullURL);
+				res.status(404).send(`[${ROUTE_NAME}] Unknown request: [${req.method}] ` + req.fullURL);
 			});
 		})
 

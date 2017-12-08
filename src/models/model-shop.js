@@ -24,7 +24,7 @@ module.exports = function() {
 	const shopConfig = {isRoundedHours: false, expires: null};
 	const featuredItem = {config: null, interval: null, lastCheck: null, seed: 0};
 
-	function onJSONReloaded() {
+	$$$.jsonLoader.onAndEmit('json-reloaded', () => {
 		jsonGlobals = $$$.jsonLoader.globals['preset-1'];
 		shopConfig.isRoundedHours = _.isTruthy(jsonGlobals.SHOP_REFRESH_ROUNDED);
 
@@ -37,11 +37,7 @@ module.exports = function() {
 		trace(shopConfig);
 
 		setFeaturedItemIntervals();
-	}
-
-
-	$$$.on('json-reloaded', onJSONReloaded);
-	onJSONReloaded();
+	});
 
 	setInterval(checkUpdateFeaturedItem, 1000);
 
