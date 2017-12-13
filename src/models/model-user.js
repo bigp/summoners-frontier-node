@@ -379,7 +379,7 @@ module.exports = function() {
 			},
 
 			'get::boosts/:boostID'(Model, req, res, next, opts) {
-				mgHelpers.sendFilteredResult(res, req.validBoost);
+				mgHelpers.sendFilteredResult(res, {boost: req.validBoost});
 			},
 
 			'put::boosts/:boostID/activate'(Model, req, res, next, opts) {
@@ -411,7 +411,7 @@ module.exports = function() {
 					return user.save();
 				})
 					.then(saved => {
-						mgHelpers.sendFilteredResult(res, _.assign({currency: currency}, boost.toJSON()));
+						mgHelpers.sendFilteredResult(res, {currency: currency, boost: boost});
 					})
 					.catch(err => $$$.send.error(res, err));
 			},
@@ -438,7 +438,8 @@ module.exports = function() {
 					return user.save();
 				})
 					.then(saved => {
-						mgHelpers.sendFilteredResult(res, _.merge(results, boost.toJSON()));
+						results.boost = boost;
+						mgHelpers.sendFilteredResult(res, results);
 					})
 					.catch(err => $$$.send.error(res, err));
 			}

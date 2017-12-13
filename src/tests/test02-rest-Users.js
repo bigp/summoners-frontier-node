@@ -149,13 +149,13 @@ describe('=REST= User', () => {
 
 	var goldNow = 0;
 	TEST.OK('put::/boosts/add', 'Add 1st Boost', boostCost(1), data => {
-		trace("SHOW ME THE BOOST...".green);
 		assert.exists(data.currency, 'Currency exists');
 		goldNow = data.currency.gold;
 	});
 
 	TEST.OK('get::/boosts/0', 'Access boost 0', null, data => {
-		checkBoostData(data);
+		trace(data);
+		checkBoostData(data.boost);
 	});
 
 	TEST.FAIL('get::/boosts/1', 'Access boost 1 (FAIL STILL out of bounds)', null);
@@ -163,13 +163,14 @@ describe('=REST= User', () => {
 	TEST.FAIL('put::/boosts/0/activate', 'ACTIVATE boost 0 (FAIL missing boostData)', boostBody('fail'));
 
 	TEST.OK('put::/boosts/0/activate', 'ACTIVATE boost 0', boostBody('boost_gold'), data => {
-		checkBoostData(data, {identity: 'boost_gold', isActive: true, count: 1});
+		checkBoostData(data.boost, {identity: 'boost_gold', isActive: true, count: 1});
 	});
 
 	TEST.FAIL('put::/boosts/0/activate', 'ACTIVATE boost 0 (FAIL already activated)', boostBody('boost_gold'));
 
 	TEST.OK('put::/boosts/0/decrease', 'Decrease boost 0\'s used count.', null, data => {
-		checkBoostData(data, {identity: '', isActive: false, count: 0, isDepleted: true});
+		checkBoostData(data.boost, {identity: '', isActive: false, count: 0});
+		assert.isTrue(data.isDepleted, 'Is Depleted?');
 	});
 
 	TEST.OK('put::/boosts/add', 'Add 2nd Boost', boostCost(1), data => {
@@ -185,15 +186,18 @@ describe('=REST= User', () => {
 	});
 
 	TEST.OK('put::/boosts/1/activate', 'ACTIVATE boost 1', boostBody('boost_gold', {forceCount: 2}), data => {
-		checkBoostData(data, {identity: 'boost_gold', isActive: true, count: 2});
+		checkBoostData(data.boost, {identity: 'boost_gold', isActive: true, count: 2});
+		trace(data);
 	});
 
 	TEST.OK('put::/boosts/1/decrease', 'Decrease boost 1\'s used count.', null, data => {
-		checkBoostData(data, {identity: 'boost_gold', isActive: true, count: 1, isDepleted: false});
+		checkBoostData(data.boost, {identity: 'boost_gold', isActive: true, count: 1});
+		assert.isFalse(data.isDepleted, 'Is NOT Depleted?');
 	});
 
 	TEST.OK('put::/boosts/1/decrease', 'Decrease boost 1\'s used count.', null, data => {
-		checkBoostData(data, {identity: '', isActive: false, count: 0, isDepleted: true});
+		checkBoostData(data.boost, {identity: '', isActive: false, count: 0});
+		assert.isTrue(data.isDepleted, 'Is Depleted?');
 	});
 
 	TEST.FAIL('put::/boosts/1/decrease', 'Decrease boost 1 (FAIL depleted)');
