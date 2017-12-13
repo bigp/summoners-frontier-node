@@ -139,8 +139,8 @@ describe('=REST= User', () => {
 	///////////////////////////////////////////////////////////// TEST BOOSTS:
 
 	TEST.FAIL('post::/boosts/add', 'Add Boost (FAIL WRONG VERB)');
-	TEST.FAIL('get::/boosts/0', 'Access boost 0 (FAIL out of bounds)', null, true);
-	TEST.FAIL('get::/boosts/1', 'Access boost 1 (FAIL also out of bounds)', null, true);
+	TEST.FAIL('get::/boosts/0', 'Access boost 0 (FAIL out of bounds)', null);
+	TEST.FAIL('get::/boosts/1', 'Access boost 1 (FAIL also out of bounds)', null);
 
 	TEST.OK('put::/boosts/add', 'Add Boost', null, data => {
 		trace("SHOW ME THE BOOST...".green);
@@ -148,20 +148,31 @@ describe('=REST= User', () => {
 	});
 
 	TEST.OK('get::/boosts/0', 'Access boost 0', null, data => {
-		assert.exists(data.identity, "Boost.identity exists.");
-		assert.exists(data.dateStarted, "Boost.dateStarted exists.");
-		assert.equal(data.isActive, false, "Boost.isActive == false.");
-		assert.equal(data.count, 0, "Boost.count == 0.");
+		checkBoostData(data);
 	});
 
-	TEST.FAIL('get::/boosts/1', 'Access boost 1 (FAIL STILL out of bounds)', null, true);
+	TEST.FAIL('get::/boosts/1', 'Access boost 1 (FAIL STILL out of bounds)', null);
+	TEST.FAIL('put::/boosts/0/activate', 'ACTIVATE boost 0 (FAIL missing boostData)', null);
+	TEST.FAIL('put::/boosts/0/activate', 'ACTIVATE boost 0 (FAIL missing boostData)', boostBody('fail'));
 
-	// TEST.OK('put::/boosts/0', 'Activate boost 0', null, data => {
-	// 	assert.exists(data.identity, "Boost.identity exists.");
-	// 	assert.exists(data.dateStarted, "Boost.dateStarted exists.");
-	// 	assert.equal(data.isActive, false, "Boost.isActive == false.");
-	// 	assert.equal(data.count, 0, "Boost.count == 0.");
-	// });
+	TEST.OK('put::/boosts/0/activate', 'ACTIVATE boost 0', boostBody('boost_gold'), data => {
+		checkBoostData(data, {identity: 'boost_gold', isActive: true, count: 1});
+	});
+
+	function boostBody(identity) {
+		return {body: {identity:identity}};
+	}
+
+	function checkBoostData(data, compare) {
+		if(!compare) compare = {count: 0, isActive: false};
+
+		assert.exists(data.identity, "Boost.identity exists.");
+		assert.exists(data.dateStarted, "Boost.dateStarted exists.");
+
+		_.keys(compare).forEach(key => {
+			assert.equal(data[key], compare[key], `"${key}" matches.`);
+		});
+	}
 
 	///////////////////////////////////////////////////////////// TEST LOGOUT:
 

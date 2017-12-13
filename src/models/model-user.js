@@ -29,8 +29,7 @@ module.exports = function() {
 
 	$$$.jsonLoader.onAndEmit('json-reloaded', () => {
 		jsonGlobals = $$$.jsonLoader.globals['preset-1'];
-		jsonBoosts = gameHelpers.getBoosts().map(boost => boost.identity);
-		trace(jsonBoosts);
+		jsonBoosts = gameHelpers.getBoosts(); //.map(boost => boost.identity);
 	});
 
 	return {
@@ -380,19 +379,49 @@ module.exports = function() {
 			'put::boosts/:boostID/activate'(Model, req, res, next, opts) {
 				const user = req.auth.user;
 				const boost = req.validBoost;
-				const boostData = opts.data.boostData;
+				const boostData = opts.data;
 
 				_.promise(() => {
-					if(!boostData) throw 'Missing boostData parameter in JSON request.';
-					if(!jsonBoosts.has(boostData.identity)) throw 'Invalid boost requested: ' + boostData.identity;
+					if(boost.dateStarted.getTime()>0) throw 'Boost already has "dateStarted" assigned.';
+					if(boost.isActive) throw 'Boost already active.';
+					if(!boostData || !boostData.identity) throw 'Missing boost "identity" parameter in JSON request.';
 
-					//Activate a certain type of boost here:
+					var foundBoost = jsonBoosts.find(b => b.identity === boostData.identity);
+					if(!foundBoost) throw 'Invalid boost-identity requested: ' + boostData.identity;
+
 					boost.identity = boostData.identity;
+					boost.isActive = true;
+					boost.dateStarted = new Date();
+					boost.count = foundBoost['num-of-battles'];
 
 					return user.save();
 				})
 					.then(saved => {
-						mgHelpers.sendFilteredResult(res, user.game.boosts);
+						mgHelpers.sendFilteredResult(res, boost);
+					})
+					.catch(err => $$$.send.error(res, err));
+			},
+
+			'put::boosts/:boostID/consume'(Model, req, res, next, opts) {
+				const user = req.auth.user;
+				const boost = req.validBoost;
+
+				_.promise(() => {
+					if(!boost.isActive) throw 'Boost is not active.';
+					if(!boost.identity) throw 'Boost does not have an identity.';
+					if(!boost.count) throw 'Boost count already depleted.';
+
+					if((--boost.count)<=0) {
+						boost.count = 0;
+						boost.identity = '';
+						boost.isActive = false;
+						boost.dateStarted = new Date(0);
+					}
+
+					return user.save();
+				})
+					.then(saved => {
+						mgHelpers.sendFilteredResult(res, boost);
 					})
 					.catch(err => $$$.send.error(res, err));
 			}
@@ -530,6 +559,12 @@ module.exports = function() {
 					relicsShield: CustomTypes.LargeInt(),
 					relicsStaff: CustomTypes.LargeInt(),
 					relicsBow: CustomTypes.LargeInt(),
+
+					boostGold: CustomTypes.Int(),
+					boostXp: CustomTypes.Int(),
+					boostDamage: CustomTypes.Int(),
+					boostStrength: CustomTypes.Int(),
+					boostMagicfind: CustomTypes.Int(),
 				},
 
 				shopInfo: {
