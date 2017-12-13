@@ -142,7 +142,7 @@ describe('=REST= User', () => {
 	TEST.FAIL('get::/boosts/0', 'Access boost 0 (FAIL out of bounds)', null);
 	TEST.FAIL('get::/boosts/1', 'Access boost 1 (FAIL also out of bounds)', null);
 
-	TEST.OK('put::/boosts/add', 'Add Boost', null, data => {
+	TEST.OK('put::/boosts/add', 'Add 1st Boost', null, data => {
 		trace("SHOW ME THE BOOST...".green);
 		trace(data);
 	});
@@ -159,8 +159,33 @@ describe('=REST= User', () => {
 		checkBoostData(data, {identity: 'boost_gold', isActive: true, count: 1});
 	});
 
-	function boostBody(identity) {
-		return {body: {identity:identity}};
+	TEST.FAIL('put::/boosts/0/activate', 'ACTIVATE boost 0 (FAIL already activated)', boostBody('boost_gold'));
+
+	TEST.OK('put::/boosts/0/decrease', 'Decrease boost 0\'s used count.', null, data => {
+		checkBoostData(data, {identity: '', isActive: false, count: 0, isDepleted: true});
+	});
+
+	TEST.OK('put::/boosts/add', 'Add 2nd Boost', null, data => {
+		checkBoostData(data.slots[0], {identity: '', isActive: false, count: 0});
+		checkBoostData(data.slots[1], {identity: '', isActive: false, count: 0});
+	});
+
+	TEST.OK('put::/boosts/1/activate', 'ACTIVATE boost 1', boostBody('boost_gold', {forceCount: 2}), data => {
+		checkBoostData(data, {identity: 'boost_gold', isActive: true, count: 2});
+	});
+
+	TEST.OK('put::/boosts/1/decrease', 'Decrease boost 1\'s used count.', null, data => {
+		checkBoostData(data, {identity: 'boost_gold', isActive: true, count: 1, isDepleted: false});
+	});
+
+	TEST.OK('put::/boosts/1/decrease', 'Decrease boost 1\'s used count.', null, data => {
+		checkBoostData(data, {identity: '', isActive: false, count: 0, isDepleted: true});
+	});
+
+	TEST.FAIL('put::/boosts/1/decrease', 'Decrease boost 1 (FAIL depleted)');
+
+	function boostBody(identity, extra) {
+		return {body: _.merge({identity:identity}, extra)};
 	}
 
 	function checkBoostData(data, compare) {

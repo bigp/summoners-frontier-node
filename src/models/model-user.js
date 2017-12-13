@@ -382,8 +382,7 @@ module.exports = function() {
 				const boostData = opts.data;
 
 				_.promise(() => {
-					if(boost.dateStarted.getTime()>0) throw 'Boost already has "dateStarted" assigned.';
-					if(boost.isActive) throw 'Boost already active.';
+					if(boost.dateStarted.getTime()>0 || boost.isActive) throw 'Boost already active.';
 					if(!boostData || !boostData.identity) throw 'Missing boost "identity" parameter in JSON request.';
 
 					var foundBoost = jsonBoosts.find(b => b.identity === boostData.identity);
@@ -392,7 +391,7 @@ module.exports = function() {
 					boost.identity = boostData.identity;
 					boost.isActive = true;
 					boost.dateStarted = new Date();
-					boost.count = foundBoost['num-of-battles'];
+					boost.count = boostData.forceCount || foundBoost['num-of-battles'];
 
 					return user.save();
 				})
@@ -402,9 +401,10 @@ module.exports = function() {
 					.catch(err => $$$.send.error(res, err));
 			},
 
-			'put::boosts/:boostID/consume'(Model, req, res, next, opts) {
+			'put::boosts/:boostID/decrease'(Model, req, res, next, opts) {
 				const user = req.auth.user;
 				const boost = req.validBoost;
+				const results = {isDepleted:false};
 
 				_.promise(() => {
 					if(!boost.isActive) throw 'Boost is not active.';
@@ -412,6 +412,8 @@ module.exports = function() {
 					if(!boost.count) throw 'Boost count already depleted.';
 
 					if((--boost.count)<=0) {
+						results.isDepleted = true;
+
 						boost.count = 0;
 						boost.identity = '';
 						boost.isActive = false;
@@ -421,7 +423,7 @@ module.exports = function() {
 					return user.save();
 				})
 					.then(saved => {
-						mgHelpers.sendFilteredResult(res, boost);
+						mgHelpers.sendFilteredResult(res, _.merge(results, boost.toJSON()));
 					})
 					.catch(err => $$$.send.error(res, err));
 			}
