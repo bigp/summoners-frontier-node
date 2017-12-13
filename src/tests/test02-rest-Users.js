@@ -142,9 +142,11 @@ describe('=REST= User', () => {
 	TEST.FAIL('get::/boosts/0', 'Access boost 0 (FAIL out of bounds)', null);
 	TEST.FAIL('get::/boosts/1', 'Access boost 1 (FAIL also out of bounds)', null);
 
-	TEST.OK('put::/boosts/add', 'Add 1st Boost', null, data => {
+	var goldNow = 0;
+	TEST.OK('put::/boosts/add', 'Add 1st Boost', boostCost(1), data => {
 		trace("SHOW ME THE BOOST...".green);
-		trace(data);
+		assert.exists(data.currency, 'Currency exists');
+		goldNow = data.currency.gold;
 	});
 
 	TEST.OK('get::/boosts/0', 'Access boost 0', null, data => {
@@ -165,9 +167,11 @@ describe('=REST= User', () => {
 		checkBoostData(data, {identity: '', isActive: false, count: 0, isDepleted: true});
 	});
 
-	TEST.OK('put::/boosts/add', 'Add 2nd Boost', null, data => {
+	TEST.OK('put::/boosts/add', 'Add 2nd Boost', boostCost(1), data => {
 		checkBoostData(data.slots[0], {identity: '', isActive: false, count: 0});
 		checkBoostData(data.slots[1], {identity: '', isActive: false, count: 0});
+		assert.exists(data.currency, 'Currency exists');
+		assert.isTrue(data.currency.gold < goldNow, 'Is gold < last time when 1st boost-slot added.');
 	});
 
 	TEST.OK('put::/boosts/1/activate', 'ACTIVATE boost 1', boostBody('boost_gold', {forceCount: 2}), data => {
@@ -184,6 +188,9 @@ describe('=REST= User', () => {
 
 	TEST.FAIL('put::/boosts/1/decrease', 'Decrease boost 1 (FAIL depleted)');
 
+	function boostCost(goldAmount) {
+		return {body: {cost: {gold:goldAmount}}};
+	}
 	function boostBody(identity, extra) {
 		return {body: _.merge({identity:identity}, extra)};
 	}

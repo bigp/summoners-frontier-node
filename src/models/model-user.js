@@ -340,17 +340,22 @@ module.exports = function() {
 
 			'put::/boosts/add'(Model, req, res, next, opts) {
 				const user = req.auth.user;
+				const currency = user.game.currency;
 				const boosts = user.game.boosts;
 				const slots = boosts.slots;
+				const cost = opts.data.cost;
 
 				_.promise(() => {
 					if(slots.length >= jsonGlobals.BOOST_LIMIT) throw `Cannot add any more boost slots, reached limit! (${jsonGlobals.BOOST_LIMIT})`;
+					if(!cost || mgHelpers.currency.isInvalid(cost, currency, true)) throw 'Missing "cost" field in request.';
+
+					mgHelpers.currency.modify(cost, currency, -1);
 					slots.push({identity: ''});
 
 					return user.save();
 				})
 					.then( saved => {
-						mgHelpers.sendFilteredResult(res, boosts);
+						mgHelpers.sendFilteredResult(res, _.assign({currency: currency}, boosts.toJSON()));
 					})
 					.catch(err => $$$.send.error(res, err));
 			},
