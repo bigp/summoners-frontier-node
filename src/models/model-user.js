@@ -11,6 +11,7 @@ const CONFIG = $$$.env.ini;
 const PRIVATE = CONFIG.PRIVATE;
 const Schema  = mongoose.Schema;
 const CustomTypes  = mongoose.CustomTypes;
+const changeCase = require('change-case');
 
 module.exports = function() {
 	var User, Item, Hero, Shop, LootCrate, Exploration, jsonBoosts, jsonGlobals;
@@ -385,6 +386,7 @@ module.exports = function() {
 				const user = req.auth.user;
 				const boost = req.validBoost;
 				const boostData = opts.data;
+				const currency = user.game.currency;
 
 				_.promise(() => {
 					if(boost.dateStarted.getTime()>0 || boost.isActive) throw 'Boost already active.';
@@ -392,6 +394,14 @@ module.exports = function() {
 
 					var foundBoost = jsonBoosts.find(b => b.identity === boostData.identity);
 					if(!foundBoost) throw 'Invalid boost-identity requested: ' + boostData.identity;
+
+					var boostCurrency = changeCase.camelCase(boostData.identity);
+					var cost = {};
+					cost[boostCurrency] = 1;
+
+					if(mgHelpers.currency.isInvalid(cost, currency, true)) return;
+
+					mgHelpers.currency.modify(cost, currency, -1);
 
 					boost.identity = boostData.identity;
 					boost.isActive = true;
@@ -401,7 +411,7 @@ module.exports = function() {
 					return user.save();
 				})
 					.then(saved => {
-						mgHelpers.sendFilteredResult(res, boost);
+						mgHelpers.sendFilteredResult(res, _.assign({currency: currency}, boost.toJSON()));
 					})
 					.catch(err => $$$.send.error(res, err));
 			},

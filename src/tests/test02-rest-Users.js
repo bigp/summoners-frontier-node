@@ -99,7 +99,12 @@ describe('=REST= User', () => {
 				gems:val,
 				magicOrbs: val,
 				scrollsIdentify: val,
-				scrollsSummonCommon: val
+				scrollsSummonCommon: val,
+				boostGold: val,
+				boostXp: val,
+				boostDamage: val,
+				boostMagicfind: val,
+				boostStrength: val,
 			}
 		}
 	}
@@ -108,20 +113,20 @@ describe('=REST= User', () => {
 		currencyBefore = data;
 	});
 
-	TEST.OK('put::/currency', 'Add Currency', cost(1), data => {
-		assert.equal(data.gold, currencyBefore.gold+1, "gold + 1");
-		assert.equal(data.gems, currencyBefore.gems+1, "gems + 1");
-		assert.equal(data.magicOrbs, currencyBefore.magicOrbs+1, "magicOrbs + 1");
-		assert.equal(data.scrollsIdentify, currencyBefore.scrollsIdentify+1, "scrolls + 1");
-		assert.equal(data.scrollsSummonCommon, currencyBefore.scrollsSummonCommon+1, "scrolls + 1");
+	TEST.OK('put::/currency', 'Add Currency', cost(2), data => {
+		assert.equal(data.gold, currencyBefore.gold+2, "gold + 1");
+		assert.equal(data.gems, currencyBefore.gems+2, "gems + 1");
+		assert.equal(data.magicOrbs, currencyBefore.magicOrbs+2, "magicOrbs + 1");
+		assert.equal(data.scrollsIdentify, currencyBefore.scrollsIdentify+2, "scrolls + 1");
+		assert.equal(data.scrollsSummonCommon, currencyBefore.scrollsSummonCommon+2, "scrolls + 1");
 	});
 
 	TEST.OK('put::/currency', 'Remove Currency', cost(-1), data => {
-		assert.equal(data.gold, currencyBefore.gold, "gold - 1");
-		assert.equal(data.gems, currencyBefore.gems, "gems - 1");
-		assert.equal(data.magicOrbs, currencyBefore.magicOrbs, "magicOrbs - 1");
-		assert.equal(data.scrollsIdentify, currencyBefore.scrollsIdentify, "scrolls - 1");
-		assert.equal(data.scrollsSummonCommon, currencyBefore.scrollsSummonCommon, "scrolls - 1");
+		assert.equal(data.gold, currencyBefore.gold+1, "gold - 1");
+		assert.equal(data.gems, currencyBefore.gems+1, "gems - 1");
+		assert.equal(data.magicOrbs, currencyBefore.magicOrbs+1, "magicOrbs - 1");
+		assert.equal(data.scrollsIdentify, currencyBefore.scrollsIdentify+1, "scrolls - 1");
+		assert.equal(data.scrollsSummonCommon, currencyBefore.scrollsSummonCommon+1, "scrolls - 1");
 	});
 
 	TEST.OK('put::/xp', 'Set User XP', { body: { xp: 1234 } }, data => {
@@ -172,6 +177,11 @@ describe('=REST= User', () => {
 		checkBoostData(data.slots[1], {identity: '', isActive: false, count: 0});
 		assert.exists(data.currency, 'Currency exists');
 		assert.isTrue(data.currency.gold < goldNow, 'Is gold < last time when 1st boost-slot added.');
+	});
+
+	TEST.FAIL('put::/boosts/1/activate', 'ACTIVATE boost 1 (FAIL Unsufficient boost currency)', boostBody('boost_gold'));
+	TEST.OK('put::/currency', 'Add Currency', cost(1), data => {
+		assert.isTrue(data.boostGold>0, "boostGold is > 0.");
 	});
 
 	TEST.OK('put::/boosts/1/activate', 'ACTIVATE boost 1', boostBody('boost_gold', {forceCount: 2}), data => {
