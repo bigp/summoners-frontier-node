@@ -347,7 +347,7 @@ module.exports = function() {
 				//New (as of Nov. 2017)
 				itemLevel: CustomTypes.LargeInt({default: 1}),
 				variance: CustomTypes.LargeInt({default: 1}),
-				magicFind: CustomTypes.Number({default: 1, max: 100})
+				magicFind: CustomTypes.Number({default: 1, max: 5000})
 			}
 		}
 	};
