@@ -102,9 +102,8 @@ describe('=REST= User', () => {
 				scrollsSummonCommon: val,
 				boostGold: val,
 				boostXp: val,
-				boostDamage: val,
+				boostHealth: val,
 				boostMagicfind: val,
-				boostStrength: val,
 			}
 		}
 	}
@@ -154,7 +153,6 @@ describe('=REST= User', () => {
 	});
 
 	TEST.OK('get::/boosts/0', 'Access boost 0', null, data => {
-		trace(data);
 		checkBoostData(data.boost);
 	});
 
@@ -187,7 +185,6 @@ describe('=REST= User', () => {
 
 	TEST.OK('put::/boosts/1/activate', 'ACTIVATE boost 1', boostBody('boost_gold', {forceCount: 2}), data => {
 		checkBoostData(data.boost, {identity: 'boost_gold', isActive: true, count: 2});
-		trace(data);
 	});
 
 	TEST.OK('put::/boosts/1/decrease', 'Decrease boost 1\'s used count.', null, data => {
@@ -201,6 +198,12 @@ describe('=REST= User', () => {
 	});
 
 	TEST.FAIL('put::/boosts/1/decrease', 'Decrease boost 1 (FAIL depleted)');
+
+	TEST.FAIL('put::/boosts/clear-all', 'Clear All boosts slots (FAIL Wrong Verb)');
+	TEST.OK('delete::/boosts/clear-all', 'Clear All boosts slots', null, data => {
+		assert.exists(data.slots);
+		assert.isTrue(data.slots.length===0, 'Is slots empty.');
+	});
 
 	function boostCost(goldAmount) {
 		return {body: {cost: {gold:goldAmount}}};

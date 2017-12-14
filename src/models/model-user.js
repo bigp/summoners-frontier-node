@@ -419,7 +419,7 @@ module.exports = function() {
 			'put::boosts/:boostID/decrease'(Model, req, res, next, opts) {
 				const user = req.auth.user;
 				const boost = req.validBoost;
-				const results = {isDepleted:false};
+				const results = {isDepleted:false, boost:boost};
 
 				_.promise(() => {
 					if(!boost.isActive) throw 'Boost is not active.';
@@ -438,8 +438,19 @@ module.exports = function() {
 					return user.save();
 				})
 					.then(saved => {
-						results.boost = boost;
 						mgHelpers.sendFilteredResult(res, results);
+					})
+					.catch(err => $$$.send.error(res, err));
+			},
+
+			'delete::boosts/clear-all/'(Model, req, res, next, opts) {
+				const user = req.auth.user;
+				const boosts = user.game.boosts;
+
+				boosts.slots = [];
+				user.save()
+					.then(saved => {
+						mgHelpers.sendFilteredResult(res, boosts);
 					})
 					.catch(err => $$$.send.error(res, err));
 			}
@@ -580,8 +591,7 @@ module.exports = function() {
 
 					boostGold: CustomTypes.Int(),
 					boostXp: CustomTypes.Int(),
-					boostDamage: CustomTypes.Int(),
-					boostStrength: CustomTypes.Int(),
+					boostHealth: CustomTypes.Int(),
 					boostMagicfind: CustomTypes.Int(),
 				},
 
@@ -607,6 +617,11 @@ module.exports = function() {
 				},
 
 				boosts: {
+					//TODO: Move boosts from 'currency' to here 'inventory', and dynamically add them.
+					inventory: {
+						// ???
+					},
+
 					slots: [new Schema({
 						identity: CustomTypes.String128(),
 						isActive: CustomTypes.Bool(false),
