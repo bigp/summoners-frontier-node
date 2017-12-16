@@ -249,7 +249,7 @@ module.exports = function() {
 			'everything$'(Model, req, res, next, opts) {
 				const user = req.auth.user;
 				const q = {userId: user.id};
-				const results = {user: user};
+				const results = {user: user.toJSON()};
 
 				Promise.all([
 					Item.find(q).sort('id').exec(),
@@ -263,7 +263,7 @@ module.exports = function() {
 						results.lootCrates = belongings[2];
 						results.explorations = belongings[3];
 						results.jsonLoader = {dateLoaded: $$$.jsonLoader.dateLoaded};
-						results.user.boosts.currency = user.getBoostCurrencyKVs();
+						results.user.game.boosts.currency = user.getBoostCurrencyKVs();
 
 						mgHelpers.sendFilteredResult(res, results);
 					})

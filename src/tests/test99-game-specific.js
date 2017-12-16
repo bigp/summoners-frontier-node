@@ -7,12 +7,27 @@ const assert = chaiG.chai.assert;
 const catcher = chaiG.catcher;
 const testUsers = chaiG.testUsers;
 const User = $$$.models.User;
-const PRIVATE = $$$.env.ini.PRIVATE;
-const sendAPI = $$$.send.api;
-const sendAPIAuth = chaiG.sendAPIAuth;
-
+const TEST = chaiG.makeFailAndOK('user');
 
 describe('=GAME= Specific User Actions', () => {
+	TEST.SET_USER(() => testUsers.chamberlainpi);
+
+	TEST.OK('get::/everything', 'GET EVERYTHING!', null, data => {
+		assert.exists(data.user, 'user exists.');
+		assert.exists(data.user.login, 'login exists.');
+		assert.exists(data.user.login.token, 'token exists.');
+		assert.exists(data.user.game, 'game exists.');
+		assert.exists(data.user.game.currency, 'currency exists.');
+		assert.exists(data.items, 'items exists.');
+		assert.exists(data.heroes, 'heroes exists.');
+		assert.exists(data.explorations, 'explorations exists.');
+		assert.exists(data.user.game.boosts, 'boosts info exists.');
+		assert.exists(data.user.game.boosts.currency, 'boosts.currency exists.');
+		trace(data.user.game);
+		assert.equal(data.items.length>0, true, 'Has some items.');
+		assert.equal(data.heroes.length, 3, 'heroes matches..');
+	});
+
 	if(chaiG.filterLevel < 10) return;
 
 	var chamberlainpi;
@@ -46,25 +61,7 @@ describe('=GAME= Specific User Actions', () => {
 
 	});
 
-	it('GET EVERYTHING!', done => {
-		chamberlainpi.sendAuth('/user/everything', 'get')
-			.then(data => {
-				assert.exists(data, 'data exists.');
-				assert.exists(data.user, 'user exists.');
-				assert.exists(data.user.login, 'login exists.');
-				assert.exists(data.user.login.token, 'token exists.');
-				assert.exists(data.user.game, 'game exists.');
-				assert.exists(data.user.game.currency, 'currency exists.');
-				assert.exists(data.items, 'items exists.');
-				assert.exists(data.heroes, 'heroes exists.');
-				assert.exists(data.explorations, 'explorations exists.');
-				assert.equal(data.items.length>0, true, 'items > 0.');
-				assert.equal(data.heroes.length===10, true, 'heroes === 0..');
-				done();
-			})
-			.catch(err => done(err));
 
-	});
 
 	it('REMOVE EVERTHING!', done => {
 		chamberlainpi.sendAuth('/user/everything/remove', 'delete')
