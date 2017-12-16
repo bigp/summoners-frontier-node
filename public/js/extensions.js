@@ -36,6 +36,15 @@ p.has = function(item) {
 	return this.indexOf(item)>-1;
 };
 
+p.findOrPush = function(cb, obj) {
+	let found = this.find(cb);
+	if(!found) {
+		this.push(obj);
+		found = this.find(cb);
+	}
+	return found;
+};
+
 Array._map_toKeyValues = function(name,i) {
 	return {value: i, name: name};
 };

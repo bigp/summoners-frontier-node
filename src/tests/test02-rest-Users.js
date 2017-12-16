@@ -99,11 +99,7 @@ describe('=REST= User', () => {
 				gems:val,
 				magicOrbs: val,
 				scrollsIdentify: val,
-				scrollsSummonCommon: val,
-				boostGold: val,
-				boostXp: val,
-				boostHealth: val,
-				boostMagicfind: val,
+				scrollsSummonCommon: val
 			}
 		}
 	}
@@ -145,6 +141,13 @@ describe('=REST= User', () => {
 	TEST.FAIL('post::/boosts/add', 'Add Boost (FAIL WRONG VERB)');
 	TEST.FAIL('get::/boosts/0', 'Access boost 0 (FAIL out of bounds)', null);
 	TEST.FAIL('get::/boosts/1', 'Access boost 1 (FAIL also out of bounds)', null);
+	TEST.OK('get::/boosts/currency', 'Get boost currency', null, data => {
+		checkBoostCurrency(data.currency, 0);
+	});
+
+	TEST.OK('put::/boosts/currency', 'Add boost currency (1 each)', {body: {boost_gold:1, boost_xp:1, boost_health:1, boost_magicfind:1}}, data => {
+		checkBoostCurrency(data.currency, 1);
+	});
 
 	var goldNow = 0;
 	TEST.OK('put::/boosts/add', 'Add 1st Boost', boostCost(1), data => {
@@ -162,6 +165,8 @@ describe('=REST= User', () => {
 
 	TEST.OK('put::/boosts/0/activate', 'ACTIVATE boost 0', boostBody('boost_gold'), data => {
 		checkBoostData(data.boost, {identity: 'boost_gold', isActive: true, count: 1});
+		assert.exists(data.currency);
+		assert.equal(data.currency.boost_gold, 0, 'Is boost_gold == 0.');
 	});
 
 	TEST.FAIL('put::/boosts/0/activate', 'ACTIVATE boost 0 (FAIL already activated)', boostBody('boost_gold'));
@@ -179,12 +184,16 @@ describe('=REST= User', () => {
 	});
 
 	TEST.FAIL('put::/boosts/1/activate', 'ACTIVATE boost 1 (FAIL Unsufficient boost currency)', boostBody('boost_gold'));
-	TEST.OK('put::/currency', 'Add Currency', cost(1), data => {
-		assert.isTrue(data.boostGold>0, "boostGold is > 0.");
+	TEST.OK('put::/boosts/currency', 'Add 1 boost_gold currency', {body:{boost_gold:1}}, data => {
+		assert.exists(data);
+		assert.exists(data.currency);
+		assert.isTrue(data.currency.boost_gold > 0, "boostGold is > 0.");
 	});
 
 	TEST.OK('put::/boosts/1/activate', 'ACTIVATE boost 1', boostBody('boost_gold', {forceCount: 2}), data => {
 		checkBoostData(data.boost, {identity: 'boost_gold', isActive: true, count: 2});
+		assert.exists(data.currency);
+		assert.equal(data.currency.boost_gold, 0, 'Is boost_gold == 0.');
 	});
 
 	TEST.OK('put::/boosts/1/decrease', 'Decrease boost 1\'s used count.', null, data => {
@@ -220,6 +229,14 @@ describe('=REST= User', () => {
 
 		_.keys(compare).forEach(key => {
 			assert.equal(data[key], compare[key], `"${key}" matches.`);
+		});
+	}
+
+	function checkBoostCurrency(data, value) {
+		assert.exists(data, 'Has boostCurrency result.');
+
+		_.keys(data).forEach(key => {
+			assert.equal(data[key], value, `"${key}" matches.`);
 		});
 	}
 

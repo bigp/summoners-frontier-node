@@ -31,6 +31,7 @@ module.exports = function() {
 	$$$.jsonLoader.onAndEmit('json-reloaded', () => {
 		jsonGlobals = $$$.jsonLoader.globals['preset-1'];
 		jsonBoosts = gameHelpers.getBoosts(); //.map(boost => boost.identity);
+		jsonBoosts.identities = jsonBoosts.map(b => b.identity.toLowerCase());
 	});
 
 	return {
@@ -256,15 +257,16 @@ module.exports = function() {
 					LootCrate.find(q).sort('id').exec(),
 					Exploration.find(q).sort('id').exec(),
 				])
-				.then( belongings  => {
-					results.items = belongings[0];
-					results.heroes = belongings[1];
-					results.lootCrates = belongings[2];
-					results.explorations = belongings[3];
-					results.jsonLoader = {dateLoaded: $$$.jsonLoader.dateLoaded};
+					.then( belongings  => {
+						results.items = belongings[0];
+						results.heroes = belongings[1];
+						results.lootCrates = belongings[2];
+						results.explorations = belongings[3];
+						results.jsonLoader = {dateLoaded: $$$.jsonLoader.dateLoaded};
+						results.user.boosts.currency = user.getBoostCurrencyKVs();
 
-					mgHelpers.sendFilteredResult(res, results);
-				})
+						mgHelpers.sendFilteredResult(res, results);
+					})
 					.catch(err => {
 						$$$.send.error(res, err);
 					})
@@ -339,6 +341,54 @@ module.exports = function() {
 				mgHelpers.sendFilteredResult(res, user.game.analytics);
 			},
 
+			//////////////////////////////////////////////// BOOSTS REST API:
+
+			'get::/boosts/currency'(Model, req, res, next, opts) {
+				const user = req.auth.user;
+
+				mgHelpers.sendFilteredResult(res, {currency: user.getBoostCurrencyKVs()});
+			},
+
+			'put::/boosts/currency'(Model, req, res, next, opts) {
+				const user = req.auth.user;
+				const boostCurrency = user.game.boosts._currency;
+				const boostData = opts.data;
+				const validIdentities = jsonBoosts.identities;
+
+				_.promise(() => {
+					if(!boostData) throw 'Missing "boosts" field in JSON data.';
+
+					var wrongIdentities = [];
+					var wrongTypes = [];
+
+					_.keys(boostData).forEach(identity => {
+
+						if(!validIdentities.has(identity)) wrongIdentities.push(identity);
+						if(isNaN(boostData[identity])) wrongTypes.push(identity);
+
+						// Pre-modify the boostCurrency, it's ok even if it fails
+						// as it only commits changes if we call .save() on user
+						const value = boostData[identity] | 0;
+						let bc = boostCurrency.findOrPush(b => b.identity === identity, {identity: identity, amount: 0});
+
+						//Offset the value (positively or negatively)
+						bc.amount += value;
+						
+						//Never let the value go below zero:
+						if(bc.amount<0) bc.amount = 0;
+					});
+
+					if(wrongIdentities.length>0) throw 'Found wrong Boost Types in JSON data: ' + wrongIdentities.join(', ');
+					if(wrongTypes.length>0) throw 'Found wrong value type for amounts of boost: ' + wrongTypes.join(', ');
+
+					return user.save();
+				})
+					.then(saved => {
+						mgHelpers.sendFilteredResult(res, {currency: user.getBoostCurrencyKVs()});
+					})
+					.catch(err => $$$.send.error(res, err));
+			},
+
 			'put::/boosts/add'(Model, req, res, next, opts) {
 				const user = req.auth.user;
 				const currency = user.game.currency;
@@ -386,22 +436,23 @@ module.exports = function() {
 				const user = req.auth.user;
 				const boost = req.validBoost;
 				const boostData = opts.data;
-				const currency = user.game.currency;
+				const boostCurrency = user.game.boosts._currency;
+				const cost = 1;
 
 				_.promise(() => {
 					if(boost.dateStarted.getTime()>0 || boost.isActive) throw 'Boost already active.';
 					if(!boostData || !boostData.identity) throw 'Missing boost "identity" parameter in JSON request.';
 
-					var foundBoost = jsonBoosts.find(b => b.identity === boostData.identity);
-					if(!foundBoost) throw 'Invalid boost-identity requested: ' + boostData.identity;
+					const identity = boostData.identity;
 
-					var boostCurrency = changeCase.camelCase(boostData.identity);
-					var cost = {};
-					cost[boostCurrency] = 1;
+					var foundBoost = jsonBoosts.find(b => b.identity === identity);
+					if(!foundBoost) throw 'Invalid boost-identity requested: ' + identity;
 
-					if(mgHelpers.currency.isInvalid(cost, currency, true)) return;
+					var bc = boostCurrency.find(b => b.identity === identity);
+					if(!bc) throw 'User does not have any boost-currency of type: ' + identity;
+					if(bc.amount<cost) throw 'User has unsufficient boost-currency of type: ' + identity;
 
-					mgHelpers.currency.modify(cost, currency, -1);
+					bc.amount -= cost;
 
 					boost.identity = boostData.identity;
 					boost.isActive = true;
@@ -411,7 +462,7 @@ module.exports = function() {
 					return user.save();
 				})
 					.then(saved => {
-						mgHelpers.sendFilteredResult(res, {currency: currency, boost: boost});
+						mgHelpers.sendFilteredResult(res, {currency: user.getBoostCurrencyKVs(), boost: boost});
 					})
 					.catch(err => $$$.send.error(res, err));
 			},
@@ -448,6 +499,8 @@ module.exports = function() {
 				const boosts = user.game.boosts;
 
 				boosts.slots = [];
+				boosts._currency = [];
+
 				user.save()
 					.then(saved => {
 						mgHelpers.sendFilteredResult(res, boosts);
@@ -456,7 +509,7 @@ module.exports = function() {
 			}
 		},
 
-		traceRoutes: 'boosts',
+		//traceRoutes: 'boosts',
 
 		methods: {
 			updateLoginDetails(which) {
@@ -515,6 +568,18 @@ module.exports = function() {
 				return this.login.token ?
 					$$$.encodeToken(PRIVATE.AUTH_CODE, this.username, this.login.token) :
 					$$$.encodeToken(PRIVATE.AUTH_CODE);
+			},
+
+			getBoostCurrencyKVs() {
+				const results = {};
+				const boostCurrencies = this.game.boosts._currency;
+
+				jsonBoosts.identities.forEach(identity => {
+					const bc = boostCurrencies.find(b => b.identity === identity);
+					results[identity] = !bc ? 0 : bc.amount;
+				});
+
+				return results;
 			}
 		},
 
@@ -589,10 +654,10 @@ module.exports = function() {
 					relicsStaff: CustomTypes.LargeInt(),
 					relicsBow: CustomTypes.LargeInt(),
 
-					boostGold: CustomTypes.Int(),
-					boostXp: CustomTypes.Int(),
-					boostHealth: CustomTypes.Int(),
-					boostMagicfind: CustomTypes.Int(),
+					// boostGold: CustomTypes.Int(),
+					// boostXp: CustomTypes.Int(),
+					// boostHealth: CustomTypes.Int(),
+					// boostMagicfind: CustomTypes.Int(),
 				},
 
 				shopInfo: {
@@ -618,9 +683,11 @@ module.exports = function() {
 
 				boosts: {
 					//TODO: Move boosts from 'currency' to here 'inventory', and dynamically add them.
-					inventory: {
-						// ???
-					},
+					// Prefixed with '_' to keep data private, as it only should be output as a KV pair upon request.
+					_currency: [new Schema({
+						identity: CustomTypes.String128(),
+						amount: CustomTypes.Int(),
+					}, {_id: false})],
 
 					slots: [new Schema({
 						identity: CustomTypes.String128(),
