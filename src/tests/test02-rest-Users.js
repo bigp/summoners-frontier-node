@@ -177,8 +177,11 @@ describe('=REST= User', () => {
 	});
 
 	TEST.OK('put::/boosts/add', 'Add 2nd Boost', boostCost(1), data => {
-		checkBoostData(data.slots[0], {identity: '', isActive: false, count: 0});
-		checkBoostData(data.slots[1], {identity: '', isActive: false, count: 0});
+		checkBoostData(data.boosts.slots[0], {identity: '', isActive: false, count: 0});
+		checkBoostData(data.boosts.slots[1], {identity: '', isActive: false, count: 0});
+		trace(data.boosts.currency);
+		//checkBoostCurrency(data.boosts.currency, 0);
+
 		assert.exists(data.currency, 'Currency exists');
 		assert.isTrue(data.currency.gold < goldNow, 'Is gold < last time when 1st boost-slot added.');
 	});

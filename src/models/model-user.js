@@ -406,7 +406,14 @@ module.exports = function() {
 					return user.save();
 				})
 					.then( saved => {
-						mgHelpers.sendFilteredResult(res, _.assign({currency: currency}, boosts.toJSON()));
+						const result = {
+							currency: currency,
+							boosts: boosts.toJSON()
+						};
+
+						result.boosts.currency = user.getBoostCurrencyKVs();
+
+						mgHelpers.sendFilteredResult(res, result);
 					})
 					.catch(err => $$$.send.error(res, err));
 			},
