@@ -509,3 +509,12 @@ textarea.wide {
   min-width: 120px;
   padding: 10px;
 }
+.examples ul {
+  float: right;
+  padding: 0px 10px;
+}
+.columns-2 {
+  columns: 2;
+  -webkit-columns: 2;
+  -moz-columns: 2;
+}
