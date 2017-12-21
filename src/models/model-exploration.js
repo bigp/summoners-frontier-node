@@ -53,18 +53,12 @@ module.exports = function() {
 						throw 'Invalid ActZone, cannot create -or- update Exploration: ' + actZoneID;
 					}
 
-					if(req.method==='POST') {
-						const explore = req.validActZone = new Model();
-						explore.userId = user.id;
-						explore.game.actZoneID = actZoneID;
-
-						return [explore];
-					}
-
 					return Exploration.find({userId: user.id, 'game.actZoneID': actZoneID});
 				})
 					.then( found => {
 						if(!found || !found.length) {
+							if(req.method==='POST') return next();
+
 							throw 'User does not have an Exploration on ActZoneID: ' + actZoneID;
 						}
 
@@ -73,6 +67,7 @@ module.exports = function() {
 						}
 
 						req.validActZone = found[0];
+
 						return next();
 					})
 					.catch( err => {
@@ -80,46 +75,36 @@ module.exports = function() {
 					});
 			},
 
-			':actZoneID$'(Model, req, res, next, opts) {
+			'get::/:actZoneID$'(Model, req, res, next, opts) {
 				const user = req.auth.user;
 				const validActZone = req.validActZone;
 				if(!validActZone) return next();
 
-				_.promise(() => {
-					if(mgHelpers.isWrongVerb(req, 'GET')) return;
-
-					mgHelpers.sendFilteredResult(res, validActZone);
-				})
-					.catch( err => {
-						$$$.send.error(res, err);
-					})
+				mgHelpers.sendFilteredResult(res, validActZone);
 			},
 
 			/////////////////////////////////////////////////////////
 			///////////////////////////////////////////////////////// vvvvvvvvv
 
-			':actZoneID/start'(Model, req, res, next, opts) {
+			'post::/:actZoneID/start'(Model, req, res, next, opts) {
 				const user = req.auth.user;
-				const validActZone = req.validActZone;
+				const existingExploration = req.validActZone;
 				const exploreData = opts.data.exploration;
 				const party = opts.data.party;
 				const actZoneID = req.params.actZoneID | 0;
 				const q = {userId: user.id}; //id: {$in: party}
 				const results = {};
 
+				const newExploration = new Model();
+				newExploration.userId = user.id;
+				newExploration.game.actZoneID = actZoneID;
+
 				_.promise(() => {
-					if(mgHelpers.isWrongVerb(req, 'POST')) return;
-					if(!validActZone || !validActZone.game || actZoneID<1) {
-						throw	'Invalid ExploreData, it may be missing a valid ActZoneID: ' + JSON.stringify(exploreData);
-					}
-
-					if(!exploreData.dateStarted) {
-						throw	'Missing "dateStarted" field in POST data.';
-					}
-
+					if(existingExploration) throw 'Seems like an exploration already exists for ActZone: ' + actZoneID;
+					if(!exploreData.dateStarted) throw 'Missing "dateStarted" field in POST data.';
 					if(!party || !_.isArray(party) || party.length===0) {
-						throw	'Missing valid party information. '+
-								'Make sure to supply an array of 1 or more valid Hero IDs.';
+						throw 'Missing valid party information. '+
+							  'Make sure to supply an array of 1 or more valid Hero IDs.';
 					}
 
 					return Hero.find(_.merge(q, {'game.exploringActZone': 0}));
@@ -152,15 +137,14 @@ module.exports = function() {
 						results.numHeroes = heroesUpdated.n;
 						results.numHeroesModified = heroesUpdated.nModified;
 
-						validActZone.game.dateStarted = exploreData.dateStarted;
-						validActZone.game.party = party;
+						newExploration.game.dateStarted = exploreData.dateStarted;
+						newExploration.game.party = party;
 
-						return validActZone.save();
+						return newExploration.save();
 					})
 					.then( saved => {
 						results.exploration = saved;
 
-						//trace("Alright, add / update the exploration now");
 						mgHelpers.sendFilteredResult(res, results);
 					})
 					.catch(err => $$$.send.error(res, err));
@@ -169,7 +153,7 @@ module.exports = function() {
 			///////////////////////////////////////////////////////// ^^^^^^^^^^^
 			/////////////////////////////////////////////////////////
 
-			':actZoneID/update'(Model, req, res, next, opts) {
+			'put::/:actZoneID/update'(Model, req, res, next, opts) {
 				const user = req.auth.user;
 				const exploreData = opts.data.exploration;
 
@@ -189,13 +173,12 @@ module.exports = function() {
 					.catch( err => $$$.send.error(res, err));
 			},
 
-			':actZoneID/remove'(Model, req, res, next, opts) {
+			'delete::/:actZoneID/remove'(Model, req, res, next, opts) {
 				const user = req.auth.user;
 				const actZoneID = req.params.actZoneID | 0;
 				const results = {isRemoved: true};
 
 				_.promise(() => {
-					if(mgHelpers.isWrongVerb(req, 'DELETE')) return;
 					if(isNaN(actZoneID) || actZoneID<=0) throw 'Invalid Exploration ID, cannot remove it.';
 
 					return Exploration.remove({userId: user.id, 'game.actZoneID': actZoneID});
@@ -228,12 +211,10 @@ module.exports = function() {
 					.catch( err => $$$.send.error(res, err));
 			},
 
-			'list/'(Model, req, res, next, opts) {
+			'get::/list/'(Model, req, res, next, opts) {
 				const user = req.auth.user;
 
 				_.promise(() => {
-					if(mgHelpers.isWrongVerb(req, 'GET')) return;
-
 					return Model.find({userId: user.id});
 				})
 					.then( results => {
@@ -243,13 +224,11 @@ module.exports = function() {
 
 			},
 
-			'remove-all/'(Model, req, res, next, opts) {
+			'delete::/remove-all/'(Model, req, res, next, opts) {
 				const user = req.auth.user;
 				const results = {};
 
 				_.promise(() => {
-					if(mgHelpers.isWrongVerb(req, 'DELETE')) return;
-
 					return Model.remove({userId: user.id});
 				})
 					.then( removed => {

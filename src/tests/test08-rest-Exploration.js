@@ -12,7 +12,7 @@ const sendAPI = $$$.send.api;
 const TEST = chaiG.makeFailAndOK('exploration');
 
 describe('=REST= Explorations', () => {
-	if(chaiG.filterLevel < 10) return;
+	if(chaiG.filterLevel < 9) return;
 
 	TEST.SET_USER(() => testUsers.chamberlainpi);
 
@@ -72,6 +72,13 @@ describe('=REST= Explorations', () => {
 		assert.equal(explore.game.party[1], 2, 'Party Member: (2).');
 		assert.equal(explore.game.party[2], 3, 'Party Member: (3).');
 	});
+
+	TEST.FAIL('post::/1/start', 'Start! (FAIL Already started this ActZone)', {
+		body: {
+			exploration: { dateStarted: moment() },
+			party: [1,2,3],
+		}
+	}, true);
 
 	TEST.OK('put::/1/update', 'Update...', {
 		body: {
