@@ -103,54 +103,66 @@ _.addProps(p, {
 	}
 });
 
-p.has = function has(str) {
-	return this.indexOf(str)>-1;
-};
+(function() {
+	const _titleCaseRegex = /\w\S*/g;
 
-p.remove = function remove(str, all) {
-	if(all===true) {
-		return this.split(str).join('');
-	}
-	return this.replace(str, '');
-};
-
-p.rep = function rep(obj) {
-	var regex, str = this.toString();
-	
-	if(_.isArray(obj)) {
-		for(var i=obj.length; --i>=0;) {
-			regex = new RegExp("\\$"+i, "g");
-			str = str.replace(regex, obj[i]);
-		}
-	} else {
-		for(var o in obj) {
-			regex = new RegExp("\\$"+o, "g");
-			str = str.replace(regex, obj[o]);
-		}
+	function _titleCaseReplacer(txt) {
+		return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
 	}
 
-	return str;
-};
-
-p.toPath = function() {
-	return {
-		ext: this.substring(this.lastIndexOf('.')),
-		path: this.substring(0, this.lastIndexOf('/')+1),
-		filename: this.substring(this.lastIndexOf('/')+1, this.lastIndexOf('.'))
-	}
-};
-
-if(!"".endsWith) {
-	p.endsWith = function(searchString, position) {
-		var subjectString = this.toString();
-		if (typeof position !== 'number' || !isFinite(position) || Math.floor(position) !== position || position > subjectString.length) {
-			position = subjectString.length;
-		}
-		position -= searchString.length;
-		var lastIndex = subjectString.lastIndexOf(searchString, position);
-		return lastIndex !== -1 && lastIndex === position;
+	p.titleCase = function() {
+		return this.replace(_titleCaseRegex, _titleCaseReplacer);
 	};
-}
+
+	p.has = function has(str) {
+		return this.indexOf(str)>-1;
+	};
+
+	p.remove = function remove(str, all) {
+		if(all===true) {
+			return this.split(str).join('');
+		}
+		return this.replace(str, '');
+	};
+
+	p.rep = function rep(obj) {
+		var regex, str = this.toString();
+
+		if(_.isArray(obj)) {
+			for(var i=obj.length; --i>=0;) {
+				regex = new RegExp("\\$"+i, "g");
+				str = str.replace(regex, obj[i]);
+			}
+		} else {
+			for(var o in obj) {
+				regex = new RegExp("\\$"+o, "g");
+				str = str.replace(regex, obj[o]);
+			}
+		}
+
+		return str;
+	};
+
+	p.toPath = function() {
+		return {
+			ext: this.substring(this.lastIndexOf('.')),
+			path: this.substring(0, this.lastIndexOf('/')+1),
+			filename: this.substring(this.lastIndexOf('/')+1, this.lastIndexOf('.'))
+		}
+	};
+
+	if(!"".endsWith) {
+		p.endsWith = function(searchString, position) {
+			var subjectString = this.toString();
+			if (typeof position !== 'number' || !isFinite(position) || Math.floor(position) !== position || position > subjectString.length) {
+				position = subjectString.length;
+			}
+			position -= searchString.length;
+			var lastIndex = subjectString.lastIndexOf(searchString, position);
+			return lastIndex !== -1 && lastIndex === position;
+		};
+	}
+})();
 
 var regexEmoji = /:([a-z0-9\-\_ ]*):/gi;
 var regexIcon = /\~([a-z0-9\-\_ ]*)\~/gi;

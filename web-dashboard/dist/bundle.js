@@ -1085,6 +1085,8 @@ function init() {
 			helper: {
 				filterByPrefix: 'lt_mail',
 				isFilterByPrefix: false,
+				currencyCategory: 'currency',
+				currencyCategories: ['currency', 'boost'],
 
 				currency: {
 					amount:1,
@@ -1139,6 +1141,13 @@ function init() {
 				});
 
 				return JSON.stringify(results, null, '  ');
+			},
+
+			categoryCurrencyList() {
+				switch(this.helper.currencyCategory) {
+					case 'currency': return __GOOGLEDATA.currency;
+					case 'boost': return __GOOGLEDATA.boosts;
+				}
 			}
 		},
 
@@ -1235,6 +1244,10 @@ function init() {
 						.map(k => k + '=' + lootCrate[k]);
 
 				this.currentJob.reward.item = keys.join('\n');
+			},
+
+			onCurrencyCategoryChange() {
+				this.helper.currency.type = this.categoryCurrencyList[0];
 			}
 		}
 	});
@@ -1243,8 +1256,7 @@ function init() {
 
 	__SPINNER = new Spinner();
 
-	loadCronJobs()
-		.then(() => loadGoogleData())
+	loadGoogleData()
 		.then((data) => {
 			var sheets = data.sheets;
 
@@ -1254,6 +1266,7 @@ function init() {
 			__GOOGLEDATA.currency = __GOOGLEDATA.keys.filter(k => /^(GOLD|GEMS|MAGIC_ORBS|SHARDS|SCROLLS|ESSENCE|RELICS|BOOST)/g.test(k))
 			__GOOGLEDATA.lootTables = getIdentitiesOf('loot-tables');
 			__GOOGLEDATA.crateTypes = getIdentitiesOf('crate-types');
+			__GOOGLEDATA.boosts = getIdentitiesOf('boosts');
 
 			trace(__GOOGLEDATA);
 
@@ -1267,7 +1280,12 @@ function init() {
 			function getIdentitiesOf(field) {
 				return sheets[field]['data'].map(entry => entry.identity);
 			}
-		});
+
+			return loadCronJobs();
+		})
+		.then(() => {
+			$$$.vue.$forceUpdate();
+		})
 }
 
 init();

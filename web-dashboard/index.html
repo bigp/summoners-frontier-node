@@ -149,6 +149,8 @@
                       <textarea class="jobItems" v-model="currentJob.reward.item"></textarea>
                   </vbox>
                     <vbox class="examples v-align-top">
+
+                        <!-- LOOTCRATES SYNTAX HELPER -->
                         <div v-show="currentJob.type == jobTypes[1]">
                             <h2>Syntax Helper for LootCrates:</h2>
 
@@ -209,14 +211,24 @@
                             <btn icon="arrow-left" class="big-button" @click="onHelperUseLootCrate()">&nbsp;&nbsp;Use</btn>
                         </div>
 
+                        <!-- CURRENCY SYNTAX HELPER -->
                         <div v-show="currentJob.type == jobTypes[2]">
                             <h2>Syntax Helper for Currency:</h2>
 
                             <hbox class="first">
-                                <i>Currency Type:</i>
+                                <i>Currency Category:</i>
+                                <vbox style="line-height: 50%;">
+                                    <label class="inline-block" v-for="category in helper.currencyCategories">
+                                        <input type="radio" v-model="helper.currencyCategory" :value="category" @change="onCurrencyCategoryChange">
+                                        {{category}}
+                                    </label>
+                                </vbox>
+                            </hbox>
+                            <hbox class="first">
+                                <i>{{helper.currencyCategory.titleCase()}} Type:</i>
                                 <select class="padded-3" style="width: 300px" v-model="helper.currency.type">
                                     <option disabled>Select one...</option>
-                                    <option v-for="key in googleData.currency">{{key}}</option>
+                                    <option v-for="key in categoryCurrencyList">{{key}}</option>
                                 </select>
                             </hbox>
 
