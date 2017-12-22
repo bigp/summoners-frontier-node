@@ -212,7 +212,7 @@ const mgHelpers = {
 		auto(cost, currency, hasSufficientForBuying) {
 			if(this.isInvalid(cost, currency, hasSufficientForBuying)) return;
 
-			this.modify(cost, currency, hasSufficientForBuying ? 1 : -1);
+			this.modify(cost, currency, hasSufficientForBuying ? -1 : 1);
 		},
 
 		isInvalid(cost, currency, hasSufficientForBuying) {
@@ -237,7 +237,7 @@ const mgHelpers = {
 				}
 
 				if(hasSufficientForBuying && currency[coinType] < value) {
-					throw `Insufficient "${coinType}" to purchase this item, has ${currency[coinType]} but requires ${value}`;
+					throw `Insufficient "${coinType}" to purchase this item, user has ${currency[coinType]} but requires ${value}`;
 				}
 
 				hasAnyData = true;

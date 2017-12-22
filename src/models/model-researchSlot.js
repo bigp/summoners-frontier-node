@@ -191,9 +191,9 @@ module.exports = function() {
 						//currency.scrollsIdentify -= 1;
 
 						return Promise.all([
+							slotStatus.buyStatus(STATUS.BUSY),
 							user.save(),
 							item.save(),
-							slotStatus.buyStatus(STATUS.BUSY)
 						]);
 					})
 					.then(() => slotStatus.send({currency: currency}))

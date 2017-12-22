@@ -420,10 +420,13 @@ module.exports = function() {
 
 			'boosts/:boostID'(Model, req, res, next, opts) {
 				const user = req.auth.user;
-				const boosts = user.game.boosts;
-				const slots = boosts.slots;
 
 				_.promise(() => {
+					if(!user || !user.game) throw 'User may not be properly authenticated!';
+
+					const boosts = user.game.boosts;
+					const slots = boosts.slots;
+
 					if(!slots.length) throw 'Impossible to get boost, no slots available!';
 					const boostID = req.params.boostID | 0;
 					if(isNaN(boostID)) throw `boostID must be defined!`;

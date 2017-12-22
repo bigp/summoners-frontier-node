@@ -37,6 +37,11 @@ describe('=REST= Research Slots', () => {
 	TEST.FAIL('put::/0/0/unlocked', 'Slot == UNLOCKED (FAIL MISSING COST DATA)');
 	TEST.FAIL('get::/0/0/unlocked', 'Slot == UNLOCKED (FAIL WRONG VERB)');
 
+	TEST_USER.OK('put::/currency', `Get the user's currency`, {body:{gold:100, gems:100}}, data => {
+		assert.isTrue(data.gold >= 100, 'Has enough gold.');
+		assert.isTrue(data.gems >= 100, 'Has enough gems.');
+	});
+
 	TEST.OK('put::/0/0/unlocked', 'Slot == UNLOCKED (OK)', cost, data => {
 		assert.exists(data.slot, "data.slot exist");
 		assert.exists(data.currency, "data.currency exist");

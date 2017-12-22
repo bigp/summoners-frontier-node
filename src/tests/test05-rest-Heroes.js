@@ -157,12 +157,18 @@ describe('=REST= Heroes', () => {
 
 	////////////////////////////////////////////////////// SWAP-IDENTITY: ////////////////////////////////////////////////////// TODO: bookmark right here!!!!!
 
-	const swapIdentity = essences => ({body: { identity: 'hero_rareassassin_dark', cost: {essenceHigh: essences} }});
+	const swapIdentity = e => ({body: { identity: 'hero_rareassassin_dark', cost: {essenceHigh: e} }});
+	const addEssence = e => ({body:{essenceLow:e,essenceMid:e, essenceHigh:e}});
 
 	TEST.FAIL(() => `put::/9999/swap-identity/`, 'Swap Identity on a hero (FAIL DOES NOT EXISTS)', swapIdentity(1));
 
 	TEST.FAIL(() => `put::/0/swap-identity/`, 'Swap Identity on a hero (FAIL IS NOT COMPATIBLE)', swapIdentity(1));
 	TEST.FAIL(() => `put::/${heroTestForSwap.id}/swap-identity/`, 'Swap Identity on a hero (FAIL TOO EXPENSIVE)', swapIdentity(9999));
+	TEST.FAIL(() => `put::/${heroTestForSwap.id}/swap-identity/`, 'Swap Identity on a hero (FAIL UNSUFFICIENT ESSENCE)', swapIdentity(1));
+
+	TEST_USER.OK(() => 'put::/currency', 'Add some essences', addEssence(1), data => {
+		assert.equal(data.essenceHigh, 1, 'Has some essenceHigh now.');
+	});
 
 	TEST.OK(() => `put::/${heroTestForSwap.id}/swap-identity/`, 'Swap Identity on a hero (OK)', swapIdentity(1), data => {
 		assert.exists(data, 'data exists');
