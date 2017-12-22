@@ -124,49 +124,4 @@ describe('=REST= Items', () => {
 		item1 = datas[0];
 		item2 = datas[1];
 	});
-
-	/////////////////////////////////////////////////// IDENTIFY THE ITEMS:
-
-	//TEST.FAIL('get::/0/identify', 'Identify item 1 (FAIL wrong Verb)');
-	//TEST.FAIL('get::/9999/identify', 'Identify item 9999 (FAIL wrong Verb)');
-
-	// it('Identify item 1 (chamberlainpi)', done => {
-	// 	chamberlainpi.sendAuth(`/item/${item1.id}/identify`, 'put')
-	// 		.then(data => {
-	// 			assert.exists(data);
-	// 			done();
-	// 		})
-	// 		.catch(err => {
-	// 			done(err);
-	// 		})
-	// });
-	//
-	// it('Identify item 1 (chamberlainpi)', done => {
-	// 	chamberlainpi.sendAuth(`/item/${item1.id}/identify`, 'put')
-	// 		.then(data => {
-	// 			throw 'Should not exists!';
-	// 			done();
-	// 		})
-	// 		.catch(err => {
-	// 			assert.exists(err);
-	// 			done();
-	// 		})
-	// });
-
-	//TEST.FAIL('put::/1/identify', 'Identify item 1 (FAIL ALREADY IDENTIFIED)');
-
-	it('Identify item 1 (FAIL NOT ENOUGH SCROLLS)', done => {
-		chamberlainpi.sendAuth('/user/currency', 'put', {body: {scrollsIdentify:-9999}})
-			.then(datas => {
-				return chamberlainpi.sendAuth(`/item/${item2.id}/identify`, 'put')
-			})
-			.then(datas => {
-				assert.notExists(datas);
-				done(datas);
-			})
-			.catch(err => {
-				assert.exists(err);
-				done();
-			});
-	});
 });
