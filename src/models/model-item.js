@@ -251,34 +251,34 @@ module.exports = function() {
 					});
 			},
 
-			':itemID/identify'(Model, req, res, next, opts) {
-				const user = req.auth.user;
-				const validItem = req.validItem;
-				const debugID = validItem.toDebugID();
-				const results = {};
-
-				return new Promise((resolve, reject) => {
-					if(mgHelpers.isWrongVerb(req, 'PUT')) return;
-
-					if(validItem.game.isIdentified) throw `ERROR ITEM_ALREADY_IDENTIFIED #` + debugID;
-					if(user.game.currency.scrollsIdentify<=0) throw `ERROR CURRENCY_NOT_ENOUGH_SCROLLS #` + debugID;
-
-					user.game.currency.scrollsIdentify -= 1;
-					validItem.game.isIdentified = true;
-
-					const doBoth = Promise.all([validItem.save(), user.save()]);
-					resolve(doBoth);
-				})
-					.then( both => {
-						results.item = both[0];
-						results.user = both[1];
-						//results.scrollsIdentify = user.game.currency.scrollsIdentify;
-						mgHelpers.sendFilteredResult(res, results)
-					})
-					.catch( err => {
-						$$$.send.error(res, err);
-					});
-			},
+			// ':itemID/identify'(Model, req, res, next, opts) {
+			// 	const user = req.auth.user;
+			// 	const validItem = req.validItem;
+			// 	const debugID = validItem.toDebugID();
+			// 	const results = {};
+			//
+			// 	return new Promise((resolve, reject) => {
+			// 		if(mgHelpers.isWrongVerb(req, 'PUT')) return;
+			//
+			// 		if(validItem.game.isIdentified) throw `ERROR ITEM_ALREADY_IDENTIFIED #` + debugID;
+			// 		if(user.game.currency.scrollsIdentify<=0) throw `ERROR CURRENCY_NOT_ENOUGH_SCROLLS #` + debugID;
+			//
+			// 		user.game.currency.scrollsIdentify -= 1;
+			// 		validItem.game.isIdentified = true;
+			//
+			// 		const doBoth = Promise.all([validItem.save(), user.save()]);
+			// 		resolve(doBoth);
+			// 	})
+			// 		.then( both => {
+			// 			results.item = both[0];
+			// 			results.user = both[1];
+			// 			//results.scrollsIdentify = user.game.currency.scrollsIdentify;
+			// 			mgHelpers.sendFilteredResult(res, results)
+			// 		})
+			// 		.catch( err => {
+			// 			$$$.send.error(res, err);
+			// 		});
+			// },
 
 			':itemID/remove'(Model, req, res, next, opts) {
 				const user = req.auth.user;

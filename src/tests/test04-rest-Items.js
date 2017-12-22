@@ -127,31 +127,31 @@ describe('=REST= Items', () => {
 
 	/////////////////////////////////////////////////// IDENTIFY THE ITEMS:
 
-	TEST.FAIL('get::/0/identify', 'Identify item 1 (FAIL wrong Verb)');
-	TEST.FAIL('get::/9999/identify', 'Identify item 9999 (FAIL wrong Verb)');
+	//TEST.FAIL('get::/0/identify', 'Identify item 1 (FAIL wrong Verb)');
+	//TEST.FAIL('get::/9999/identify', 'Identify item 9999 (FAIL wrong Verb)');
 
-	it('Identify item 1 (chamberlainpi)', done => {
-		chamberlainpi.sendAuth(`/item/${item1.id}/identify`, 'put')
-			.then(data => {
-				assert.exists(data);
-				done();
-			})
-			.catch(err => {
-				done(err);
-			})
-	});
-
-	it('Identify item 1 (chamberlainpi)', done => {
-		chamberlainpi.sendAuth(`/item/${item1.id}/identify`, 'put')
-			.then(data => {
-				throw 'Should not exists!';
-				done();
-			})
-			.catch(err => {
-				assert.exists(err);
-				done();
-			})
-	});
+	// it('Identify item 1 (chamberlainpi)', done => {
+	// 	chamberlainpi.sendAuth(`/item/${item1.id}/identify`, 'put')
+	// 		.then(data => {
+	// 			assert.exists(data);
+	// 			done();
+	// 		})
+	// 		.catch(err => {
+	// 			done(err);
+	// 		})
+	// });
+	//
+	// it('Identify item 1 (chamberlainpi)', done => {
+	// 	chamberlainpi.sendAuth(`/item/${item1.id}/identify`, 'put')
+	// 		.then(data => {
+	// 			throw 'Should not exists!';
+	// 			done();
+	// 		})
+	// 		.catch(err => {
+	// 			assert.exists(err);
+	// 			done();
+	// 		})
+	// });
 
 	//TEST.FAIL('put::/1/identify', 'Identify item 1 (FAIL ALREADY IDENTIFIED)');
 
