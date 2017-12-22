@@ -163,12 +163,15 @@ module.exports = function() {
 				const slotStatus = req.slotStatus;
 				const itemID = opts.data.itemID;
 				const trayID = slot.game.trayID;
+				const currency = user.game.currency;
 
-				Item.findOne({userId: user.id, id: itemID})
+				Item.findOne({id: itemID})
 					.then(item => {
-						if(!item) throw 'Item does not exists OR does not belong to this user.';
+						if(!item) throw 'Item does not exists.';
+						if(item.userId !== user.id) throw 'Item does not belong to this user.';
 						if(item.game.isIdentified) throw 'Item is already identified!';
 						if(item.game.isResearched) throw 'Item is already being researched!';
+						if(currency.scrollsIdentify<=0) throw 'Unsufficient scrollsIdentify to start this research.';
 
 						const time = trayTimes[trayID];
 						if(!time) throw 'SF-DEV JSON Globals error: Missing tray-time for tray ID: ' + trayID;
@@ -184,12 +187,16 @@ module.exports = function() {
 						slotStatus.results.item = item;
 						slotStatus.game.itemID = itemID;
 
+						//Spend an identify scroll on this research:
+						//currency.scrollsIdentify -= 1;
+
 						return Promise.all([
+							user.save(),
 							item.save(),
 							slotStatus.buyStatus(STATUS.BUSY)
 						]);
 					})
-					.then(() => slotStatus.send())
+					.then(() => slotStatus.send({currency: currency}))
 					.catch( err => $$$.send.error(res, err) );
 			},
 

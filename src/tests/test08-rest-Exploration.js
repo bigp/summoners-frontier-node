@@ -78,7 +78,7 @@ describe('=REST= Explorations', () => {
 			exploration: { dateStarted: moment() },
 			party: [1,2,3],
 		}
-	}, true);
+	});
 
 	TEST.OK('put::/1/update', 'Update...', {
 		body: {

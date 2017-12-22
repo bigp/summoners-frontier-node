@@ -14,9 +14,10 @@ const TEST_ITEM = chaiG.makeFailAndOK('item');
 const TEST_USER = chaiG.makeFailAndOK('user');
 
 describe('=REST= Research Slots', () => {
-	if(chaiG.filterLevel < 10) return;
+	if(chaiG.filterLevel < 9) return;
 
 	const cost = {body:{cost:{gold:1,gems:1}}};
+	const gems = {now:0, cost: {gems:2} };
 	const itemID = 3;
 	const itemToResearch = {body: {itemID: itemID, cost: {scrollsIdentify:1}}};
 
@@ -61,10 +62,14 @@ describe('=REST= Research Slots', () => {
 
 	TEST.FAIL('put::/0/0/completed', 'Slot == COMPLETED (FAIL, TOO EARLY TO COMPLETE)');
 
-	TEST.OK('put::/0/0/completed', 'Slot == COMPLETED (OK)', {body: {cost:{gems:2}}}, data => {
+	TEST_USER.OK('get::/currency', `View all currencies`, null, data => {
+		gems.now = data.gems;
+	});
+
+	TEST.OK('put::/0/0/completed', 'Slot == COMPLETED (INSTANTLY!!!)', {body: {cost:gems.cost}}, data => {
 		assert.exists(data.slot, "data.slot exist");
 		assert.exists(data.currency, 'Currency exists.');
-		assert.equal(data.currency.gems, 9, 'Gems match.');
+		assert.equal(data.currency.gems, gems.now - gems.cost.gems, 'Gems match.');
 	});
 
 	TEST.OK('get::/list', 'Get list of slots.', null, data => assertSlotList(data, 'completed', itemID));

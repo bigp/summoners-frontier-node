@@ -23,7 +23,6 @@ describe('=GAME= Specific User Actions', () => {
 		assert.exists(data.explorations, 'explorations exists.');
 		assert.exists(data.user.game.boosts, 'boosts info exists.');
 		assert.exists(data.user.game.boosts.currency, 'boosts.currency exists.');
-		trace(data.user.game);
 		assert.equal(data.items.length>0, true, 'Has some items.');
 		assert.equal(data.heroes.length, 3, 'heroes matches..');
 	});
