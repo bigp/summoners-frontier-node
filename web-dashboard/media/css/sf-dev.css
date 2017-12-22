@@ -148,6 +148,9 @@ h5 {
 .v-align-mid-kids > * {
   vertical-align: middle;
 }
+.v-align-top-kids > * {
+  vertical-align: top;
+}
 .v-align-top {
   vertical-align: top;
 }
@@ -440,7 +443,7 @@ hr {
   color: #fff;
   background: linear-gradient(#ffffff, #cde3ff, #c1ddfb);
 }
-.basic-details .hbox > .child:first-child {
+.basic-details .first > .child:first-child {
   width: 150px;
   text-align: right;
   font-weight: bold;
@@ -458,16 +461,14 @@ hr {
   color: #fff;
   background: linear-gradient(#c0ffec, #2cffe6, #077467);
 }
-.basic-details .jobType {
-  background: #fff;
-  border-radius: 5px;
-  width: 200px;
-}
 .basic-details .jobItems {
   position: relative;
   display: inline-block;
   width: 300px;
   height: 200px;
+}
+.basic-details .jobtypes div {
+  vertical-align: top;
 }
 textarea.wide {
   width: 400px;
@@ -509,9 +510,12 @@ textarea.wide {
   min-width: 120px;
   padding: 10px;
 }
-.examples ul {
-  float: right;
-  padding: 0px 10px;
+.disabled {
+  background: #444;
+  color: #888;
+}
+.small-text {
+  font-size: 70%;
 }
 .columns-2 {
   columns: 2;

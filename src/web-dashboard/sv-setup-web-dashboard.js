@@ -28,6 +28,10 @@ function setupWebDashboard() {
 		next();
 	});
 
+	webdash.route.get('/json/sf-dev', (req, res, next) => {
+		res.send({sheets: $$$.jsonLoader.data.sheets, globals: $$$.jsonLoader.globals});
+	});
+
 	webdash.route.use('/json/cron-jobs', (req, res, next) => {
 		if(webdash.JSON_DATA) return next();
 		$$$.send.error(res, 'CRON-Jobs JSON isn\'t loaded yet.');

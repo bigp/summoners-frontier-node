@@ -148,6 +148,9 @@ h5 {
 .v-align-mid-kids > * {
   vertical-align: middle;
 }
+.v-align-top-kids > * {
+  vertical-align: top;
+}
 .v-align-top {
   vertical-align: top;
 }
