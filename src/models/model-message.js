@@ -86,9 +86,10 @@ module.exports = function() {
 									type: g.type,
 									isForEveryone: g.isForEveryone,
 									dateExpires: g.dateExpires,
-									dateSent: msg.dateCreated
+									dateSent: msg.dateCreated,
+									reward: g.reward
 								},
-								hasReceipt: rcp!=null,
+								hasReceipt: rcp!==null,
 								receipt: rcp
 							};
 						}).filter(msg => {
