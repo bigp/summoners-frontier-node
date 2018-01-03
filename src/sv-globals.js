@@ -139,7 +139,7 @@ _.extend($$$, {
 				headers: $$$.send.makeResponseHeader(res),
 				data: data,
 				error: err ? (err.message || err) : '*null-error*',
-				lineNumber: _.isString(err) ? 'n/a' : (`${err.fileName}@${err.lineNumber}:${err.columnNumber}`)
+				stack: _.isString(err) ? 'n/a' : err.stack
 			};
 
 			//$$$.morganLogger.error(JSON.stringify( err ));
