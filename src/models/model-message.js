@@ -76,6 +76,11 @@ module.exports = function() {
 						lists.messages = messages;
 
 						const inbox = messages.map(msg => {
+							if(!msg) {
+								traceError("Oh no, msg is null! WTF: " + msg);
+								throw "msg is null!";
+							}
+
 							var g = msg.game;
 							var rcp = lists.receipts.find(r => r.game.messageId===msg.id);
 							return {
