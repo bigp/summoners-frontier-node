@@ -57,7 +57,7 @@ module.exports = function() {
 							scrollsSummonRare: g.SCROLLS_SUMMON_RARE,
 							scrollsSummonMonsterFire: g.SCROLLS_SUMMON_MONSTER_FIRE,
 							scrollsSummonMonsterWater: g.SCROLLS_SUMMON_MONSTER_WATER,
-							scrollsSummonMonsterWind: g.SCROLLS_SUMMON_MONSTER_WIND,
+							scrollsSummonMonsterNature: g.SCROLLS_SUMMON_MONSTER_NATURE,
 							scrollsSummonMonsterLight: g.SCROLLS_SUMMON_MONSTER_LIGHT,
 							scrollsSummonMonsterDark: g.SCROLLS_SUMMON_MONSTER_DARK,
 
@@ -96,16 +96,16 @@ module.exports = function() {
 
 			'public/login'(Model, req, res, next, opts) {
 				const data = opts.data;
-				opts.data.username = (opts.data.username || '').toLowerCase();
-				opts.data.email = (opts.data.email || '').toLowerCase();
-				const password = (opts.data._password || $$$.md5(opts.data.password)).toLowerCase();
+				data.username = (data.username || '').toLowerCase();
+				data.email = (data.email || '').toLowerCase();
+				const password = (data._password || $$$.md5(data.password)).toLowerCase();
 				const missingFields = [];
 				const LOGIN_FAILED = 'LOGIN FAILED';
 
 				if(!password) {
 					missingFields.push('password');
 				}
-				if(!opts.data.username && !opts.data.email) {
+				if(!data.username && !data.email) {
 					missingFields.push('username/email');
 				}
 
@@ -113,7 +113,7 @@ module.exports = function() {
 					return $$$.send.errorCustom(res, 'Missing fields: ' + missingFields.join(', '), LOGIN_FAILED)
 				}
 
-				const orQuery = mgHelpers.getORsQuery(opts.data, ['username', 'email']);
+				const orQuery = mgHelpers.getORsQuery(data, ['username', 'email']);
 				const andQuery = _.extend(orQuery, {_password: password});
 
 				Model.findOne(andQuery).exec()
@@ -641,7 +641,7 @@ module.exports = function() {
 					scrollsSummonRare: CustomTypes.Int(),
 					scrollsSummonMonsterFire: CustomTypes.Int(),
 					scrollsSummonMonsterWater: CustomTypes.Int(),
-					scrollsSummonMonsterWind: CustomTypes.Int(),
+					scrollsSummonMonsterNature: CustomTypes.Int(),
 					scrollsSummonMonsterLight: CustomTypes.Int(),
 					scrollsSummonMonsterDark: CustomTypes.Int(),
 
@@ -663,11 +663,6 @@ module.exports = function() {
 					relicsShield: CustomTypes.LargeInt(),
 					relicsStaff: CustomTypes.LargeInt(),
 					relicsBow: CustomTypes.LargeInt(),
-
-					// boostGold: CustomTypes.Int(),
-					// boostXp: CustomTypes.Int(),
-					// boostHealth: CustomTypes.Int(),
-					// boostMagicfind: CustomTypes.Int(),
 				},
 
 				shopInfo: {
