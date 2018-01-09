@@ -57,7 +57,7 @@ describe('=REST= Research Slots', () => {
 
 	TEST.OK('put::/1/1/busy', 'Slot == BUSY (OK)', itemToResearch, data => {
 		assert.exists(data.slot, "data.slot exist");
-		assert.exists(data.currency, "data.currency exist");
+		//assert.exists(data.currency, "data.currency exist");
 	});
 
 	TEST.OK('get::/list', 'Get list of slots.', null, data => assertSlotList(data, 'busy', itemID, 1, 1));

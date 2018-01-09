@@ -177,7 +177,7 @@ module.exports = function() {
 						if(item.userId !== user.id) throw 'Item does not belong to this user.';
 						if(item.game.isIdentified) throw 'Item is already identified!';
 						if(item.game.isResearched) throw 'Item is already being researched!';
-						if(currency.scrollsIdentify<=0) throw 'Unsufficient scrollsIdentify to start this research.';
+						//if(currency.scrollsIdentify<=0) throw 'Unsufficient scrollsIdentify to start this research.';
 
 						const time = trayTimes[trayID];
 						if(!time) throw 'SF-DEV JSON Globals error: Missing tray-time for tray ID: ' + trayID;
@@ -197,7 +197,7 @@ module.exports = function() {
 						//currency.scrollsIdentify -= 1;
 
 						return Promise.all([
-							slotStatus.buyStatus(STATUS.BUSY),
+							slotStatus.saveStatus(STATUS.BUSY),
 							user.save(),
 							item.save(),
 						]);
@@ -244,7 +244,6 @@ module.exports = function() {
 
 				Item.findOne({userId: user.id, id: itemID})
 					.then(item => {
-						// CRITICAL ERROR HERE!!!
 						if(!item) throw 'The slot completed research on an item the user does NOT own / exists: ' + itemID;
 						if(!item.game.isResearched) throw 'Item was not being researched: ' + itemID;
 						slotStatus.check(STATUS.COMPLETED);
