@@ -13,13 +13,15 @@ const ObjectId = Types.ObjectId;
 const CONFIG = $$$.env.ini;
 
 module.exports = function() {
-	var User, Shop, Item, Hero, jsonGlobals, trayTimes;
+	var User, Shop, Item, Hero, jsonGlobals, ResearchSlot, trayTimes;
 
 	process.nextTick( () => {
 		User = $$$.models.User;
 		Shop = $$$.models.Shop;
 		Item = $$$.models.Item;
 		Hero = $$$.models.Hero;
+		ResearchSlot = $$$.models.ResearchSlot;
+
 		jsonGlobals = $$$.jsonLoader.globals['preset-1'];
 
 		const trayTimesSplit = decodeURIComponent(jsonGlobals.RESEARCH_TRAY_DURATIONS).split('\n');
@@ -118,7 +120,11 @@ module.exports = function() {
 					if(trayID>=trayMax) throw `Research TRAY_ID must be less-than < ${trayMax}.`;
 					if(slotID>=slotMax) throw `Research SLOT_ID must be less-than < ${slotMax}.`;
 
-					return Model.findOrCreate({userId: user.id, 'game.trayID': trayID, 'game.slotID': slotID});
+					return Model.findOrCreate({
+						userId: user.id,
+						'game.trayID': trayID,
+						'game.slotID': slotID
+					});
 				})
 					.then( slotCreated => {
 						const slot = slotCreated.doc;
@@ -260,9 +266,18 @@ module.exports = function() {
 					.then(() => slotStatus.send())
 					.catch( err => $$$.send.error(res, err) );
 			}
-
-			//////////////////////////////////////////////////////////////
 		},
+
+		//////////////////////////////////////////////////////////////
+
+		methods: {
+			unlock() {
+				this.game.status = STATUS.UNLOCKED;
+				this.game.dateUnlocked = new Date();
+			}
+		},
+
+		//////////////////////////////////////////////////////////////
 
 		schema: {
 			userId: CustomTypes.LargeInt({unique:false, required:true}),

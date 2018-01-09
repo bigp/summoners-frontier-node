@@ -29,64 +29,49 @@ describe('=GAME= Specific User Actions', () => {
 
 	if(chaiG.filterLevel < 10) return;
 
-	var chamberlainpi;
+	TEST.FAIL('post::/completed-act-zone', 'Complete ActZone FAIL', {body: { fail: 1 }});
 
-	it('Complete ActZone FAIL', done => {
-		chamberlainpi = testUsers.chamberlainpi;
+	TEST.OK('post::/completed-act-zone', 'Complete ActZone OK', {body: { actZone: 1 }}, data => {
+		assert.equal(data.exploreSlots, 2, "Explore Slots OK.");
+		assert.equal(data.completed, 1, "Completed Count OK.");
+	});
 
-		chamberlainpi.sendAuth('/user/completed-act-zone', 'post', {
-			body: { fail: 1 }
-		})
+	TEST.OK('post::/logout', 'Logout', null, data => {
+		chaiG.padError(data.yellow);
+		assert.exists(data);
+	});
+
+	it('Login User AGAIN (chamberlainpi)', done => {
+		testUsers.chamberlainpi.sendLogin()
+			.then(data => {
+				assert.exists(data);
+				done();
+			})
+	});
+
+	TEST.OK('delete::/everything/remove', 'REMOVE EVERTHING', null, data => {
+		assert.exists(data, 'data exists.');
+		assert.exists(data.user, 'user exists.');
+		assert.exists(data.user.login, 'login exists.');
+		assert.exists(data.user.login.token, 'token exists.');
+		assert.exists(data.user.game, 'game exists.');
+		assert.exists(data.user.game.currency, 'currency exists.');
+		assert.exists(data.itemsRemoved, 'items exists.');
+		assert.exists(data.heroesRemoved, 'heroes exists.');
+
+		trace(data);
+	});
+
+	it('*FAIL* Login User AFTER DELETED (chamberlainpi)', done => {
+		testUsers.chamberlainpi.sendLogin()
 			.then(data => {
 				assert.notExists(data);
 				done();
 			})
-			.catch(err => {
+			.catch(err =>{
 				assert.exists(err);
 				done();
 			});
-
-	});
-
-	it('Complete ActZone OK', done => {
-		chamberlainpi.sendAuth('/user/completed-act-zone', 'post', {
-			body: { actZone: 1 }
-		})
-			.then(data => {
-				assert.exists(data);
-				done();
-			})
-			.catch(err => done(err));
-
-	});
-
-
-
-	it('REMOVE EVERTHING!', done => {
-		chamberlainpi.sendAuth('/user/everything/remove', 'delete')
-			.then(data => {
-				assert.exists(data, 'data exists.');
-				assert.exists(data.user, 'user exists.');
-				assert.exists(data.user.login, 'login exists.');
-				assert.exists(data.user.login.token, 'token exists.');
-				assert.exists(data.user.game, 'game exists.');
-				assert.exists(data.user.game.currency, 'currency exists.');
-				assert.exists(data.itemsRemoved, 'items exists.');
-				assert.exists(data.heroesRemoved, 'heroes exists.');
-				done();
-			})
-			.catch(err => done(err));
-
-	});
-
-	it('Logout', done => {
-		chamberlainpi.sendAuth('/user/logout', 'post')
-			.then(data => {
-				chaiG.padError(data.yellow);
-				assert.exists(data);
-				done();
-			})
-			.catch(err => done(err));
 	});
 });
 

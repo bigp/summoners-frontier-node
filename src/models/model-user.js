@@ -2,6 +2,7 @@
  * Created by Chamberlain on 8/11/2017.
  */
 
+const firstTimeUser = require('../sv-1st-time-user');
 const gameHelpers = require('../sv-json-helpers');
 const nodemailer = require('../sv-setup-nodemailer');
 const mgHelpers = require('../sv-mongo-helpers');
@@ -14,7 +15,15 @@ const CustomTypes  = mongoose.CustomTypes;
 const changeCase = require('change-case');
 
 module.exports = function() {
-	var User, Item, Hero, Shop, LootCrate, Exploration, jsonBoosts, jsonGlobals;
+	var User,
+		Item,
+		Hero,
+		Shop,
+		LootCrate,
+		Exploration,
+		ResearchSlot,
+		MessageReceipt,
+		jsonBoosts, jsonGlobals;
 
 	process.nextTick(() => {
 		trace("In model-user.js:".magenta);
@@ -26,6 +35,8 @@ module.exports = function() {
 		Item = $$$.models.Item;
 		LootCrate = $$$.models.Lootcrate;
 		Exploration = $$$.models.Exploration;
+		ResearchSlot = $$$.models.ResearchSlot;
+		MessageReceipt = $$$.models.MessageReceipt;
 	});
 
 	$$$.jsonLoader.onAndEmit('json-reloaded', () => {
@@ -37,61 +48,13 @@ module.exports = function() {
 	return {
 		plural: 'users',
 		customRoutes: {
-			'public/add'(Model, req, res, next, opts) {
-				_.promise(() => {
-					if(mgHelpers.isWrongVerb(req, 'POST')) return;
+			'post::/public/add'(Model, req, res, next, opts) {
+				const data = opts.data;
 
-					const g = gameHelpers.getJSONGlobals();
-					const userData = opts.data;
-
-					userData.username = userData.username.toLowerCase();
-					userData._password = (userData._password || $$$.md5(userData.password)).toLowerCase();
-					userData.game = {
-						currency: {
-							gold: g.GOLD,
-							gems: g.GEMS,
-							magicOrbs: g.MAGIC_ORBS,
-
-							scrollsIdentify: g.SCROLLS_IDENTIFY,
-							scrollsSummonCommon: g.SCROLLS_SUMMON_COMMON,
-							scrollsSummonRare: g.SCROLLS_SUMMON_RARE,
-							scrollsSummonMonsterFire: g.SCROLLS_SUMMON_MONSTER_FIRE,
-							scrollsSummonMonsterWater: g.SCROLLS_SUMMON_MONSTER_WATER,
-							scrollsSummonMonsterNature: g.SCROLLS_SUMMON_MONSTER_NATURE,
-							scrollsSummonMonsterLight: g.SCROLLS_SUMMON_MONSTER_LIGHT,
-							scrollsSummonMonsterDark: g.SCROLLS_SUMMON_MONSTER_DARK,
-
-							shardsItemsCommon: g.SHARDS_ITEMS_COMMON,
-							shardsItemsMagic: g.SHARDS_ITEMS_MAGIC,
-							shardsItemsRare: g.SHARDS_ITEMS_RARE,
-							shardsItemsUnique: g.SHARDS_ITEMS_UNIQUE,
-
-							shardsXPCommon: g.SHARDS_XP_COMMON,
-							shardsXPMagic: g.SHARDS_XP_MAGIC,
-							shardsXPRare: g.SHARDS_XP_RARE,
-							shardsXPUnique: g.SHARDS_XP_UNIQUE,
-
-							essenceLow: g.ESSENCE_LOW,
-							essenceMid: g.ESSENCE_MID,
-							essenceHigh: g.ESSENCE_HIGH,
-
-							relicsSword: g.RELIC_SWORD,
-							relicsShield: g.RELIC_SHIELD,
-							relicsStaff: g.RELIC_STAFF,
-							relicsBow: g.RELIC_BOW,
-						}
-					};
-
-					const user = new User();
-					_.extend(user, userData);
-					return user.save();
-				})
-					.then(saved => {
-						mgHelpers.sendFilteredResult(res, saved);
-					})
-					.catch(err => {
-						$$$.send.error(res, err);
-					});
+				_.promise(() => firstTimeUser.preInit(new User(), data))
+					.then(user => firstTimeUser.postInit(user, data))
+					.then(user => mgHelpers.sendFilteredResult(res, user[0]))
+					.catch(err => $$$.send.error(res, err));
 			},
 
 			'public/login'(Model, req, res, next, opts) {
@@ -128,7 +91,7 @@ module.exports = function() {
 
 						user.updateLoginDetails({ping:1, login:1, token:1});
 
-						return user.save();
+						return firstTimeUser.sanitizeUser(user);
 					})
 					.then(user => {
 						var results = _.merge({
@@ -139,7 +102,6 @@ module.exports = function() {
 							}
 						}, user.toJSON());
 
-						//var results = _.assign({mongoID: user._id+''}, user.toJSON());
 						mgHelpers.sendFilteredResult(res, results);
 					})
 					.catch(err => {
@@ -209,7 +171,7 @@ module.exports = function() {
 				mgHelpers.sendFilteredResult(res, user.game);
 			},
 
-			'completed-act-zone'(Model, req, res, next, opts) {
+			'post::/completed-act-zone'(Model, req, res, next, opts) {
 				const user = req.auth.user;
 				const actZone = opts.data.actZone;
 
@@ -281,16 +243,28 @@ module.exports = function() {
 						return Promise.all([
 							Item.remove(q),
 							Hero.remove(q),
+							Shop.remove(q),
 							LootCrate.remove(q),
-							Exploration.remove(q)
+							Exploration.remove(q),
+							ResearchSlot.remove(q),
+							MessageReceipt.remove(q),
 						]);
 					})
 					.then( removals => {
 						results.itemsRemoved = removals[0].toJSON().n;
 						results.heroesRemoved = removals[1].toJSON().n;
-						results.lootCratesRemoved = removals[2].toJSON().n;
-						results.explorationsRemoved = removals[3].toJSON().n;
+						results.shopRemoved = removals[2].toJSON().n;
+						results.lootCratesRemoved = removals[3].toJSON().n;
+						results.explorationsRemoved = removals[4].toJSON().n;
+						results.researchSlotsRemoved = removals[5].toJSON().n;
+						results.messagesRemoved = removals[6].toJSON().n;
 
+						const login = user.login;
+						login.datePing = login.dateLast = login.dateNow = new Date(0);
+
+						return user.remove();
+					})
+					.then(removed => {
 						mgHelpers.sendFilteredResult(res, results);
 					})
 					.catch(err => $$$.send.error(res, err));

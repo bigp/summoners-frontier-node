@@ -27,7 +27,7 @@ describe('=REST= Research Slots', () => {
 
 	TEST.OK('get::/list', 'Get list of slots.', null, data => {
 		assert.exists(data);
-		assert.equal(data.length, 0, 'No slots to list OK.');
+		assert.equal(data.length, 1, 'Should only have 1 slot to begin with.');
 	});
 
 	TEST.FAIL('put::/-1/0/unlocked', 'Slot == UNLOCKED (FAIL BELOW TRAY BOUNDS)');
@@ -42,57 +42,58 @@ describe('=REST= Research Slots', () => {
 		assert.isTrue(data.gems >= 100, 'Has enough gems.');
 	});
 
-	TEST.OK('put::/0/0/unlocked', 'Slot == UNLOCKED (OK)', cost, data => {
+	TEST.OK('put::/1/1/unlocked', 'Slot == UNLOCKED (OK)', cost, data => {
 		assert.exists(data.slot, "data.slot exist");
 		assert.exists(data.currency, "data.currency exist");
 	});
 
 	TEST.OK('get::/list', 'Get list of slots.', null, data => assertSlotList(data, 'unlocked', -1));
 
-	TEST.FAIL('put::/0/0/unlocked', 'Slot == UNLOCKED (FAIL ALREADY UNLOCKED)', cost);
+	TEST.FAIL('put::/1/1/unlocked', 'Slot == UNLOCKED (FAIL ALREADY UNLOCKED)', cost);
 
 	TEST_ITEM.OK('get::/list', 'Get list of items.', null, data => { false && trace(data) });
 
 	TEST_USER.OK('put::/currency', `Add some scrolls`, {body:{scrollsIdentify:100}}, data => { false && trace(data) });
 
-	TEST.OK('put::/0/0/busy', 'Slot == BUSY (OK)', itemToResearch, data => {
+	TEST.OK('put::/1/1/busy', 'Slot == BUSY (OK)', itemToResearch, data => {
 		assert.exists(data.slot, "data.slot exist");
 		assert.exists(data.currency, "data.currency exist");
 	});
 
-	TEST.OK('get::/list', 'Get list of slots.', null, data => assertSlotList(data, 'busy', itemID));
+	TEST.OK('get::/list', 'Get list of slots.', null, data => assertSlotList(data, 'busy', itemID, 1, 1));
 
-	TEST.FAIL('put::/0/0/busy', 'Slot == BUSY (FAIL ALREADY BUSY)', itemToResearch);
-	TEST.FAIL('get::/0/0/busy', 'Slot == BUSY (FAIL WRONG VERB)', itemToResearch);
+	TEST.FAIL('put::/1/1/busy', 'Slot == BUSY (FAIL ALREADY BUSY)', itemToResearch);
+	TEST.FAIL('get::/1/1/busy', 'Slot == BUSY (FAIL WRONG VERB)', itemToResearch);
 
-	TEST.FAIL('put::/0/0/completed', 'Slot == COMPLETED (FAIL, TOO EARLY TO COMPLETE)');
+	TEST.FAIL('put::/1/1/completed', 'Slot == COMPLETED (FAIL, TOO EARLY TO COMPLETE)');
 
 	TEST_USER.OK('get::/currency', `View all currencies`, null, data => {
 		gems.now = data.gems;
 	});
 
-	TEST.OK('put::/0/0/completed', 'Slot == COMPLETED (INSTANTLY!!!)', {body: {cost:gems.cost}}, data => {
+	TEST.OK('put::/1/1/completed', 'Slot == COMPLETED (INSTANTLY!!!)', {body: {cost:gems.cost}}, data => {
 		assert.exists(data.slot, "data.slot exist");
 		assert.exists(data.currency, 'Currency exists.');
 		assert.equal(data.currency.gems, gems.now - gems.cost.gems, 'Gems match.');
 	});
 
-	TEST.OK('get::/list', 'Get list of slots.', null, data => assertSlotList(data, 'completed', itemID));
+	TEST.OK('get::/list', 'Get list of slots.', null, data => assertSlotList(data, 'completed', itemID, 1, 1));
 
-	TEST.FAIL('put::/0/0/completed', 'Slot == COMPLETED (FAIL ALREADY COMPLETED)');
+	TEST.FAIL('put::/1/1/completed', 'Slot == COMPLETED (FAIL ALREADY COMPLETED)');
 
-	TEST.OK('put::/0/0/reset', 'Slot == RESET (OK)', null, data => {
+	TEST.OK('put::/1/1/reset', 'Slot == RESET (OK)', null, data => {
 		assert.exists(data.slot, "data.slot exist");
 	});
 
-	TEST.OK('get::/list', 'Get list of slots.', null, data => assertSlotList(data, 'unlocked', -1));
+	TEST.OK('get::/list', 'Get list of slots.', null, data => assertSlotList(data, 'unlocked', -1, 1, 1));
 
-	TEST.FAIL('put::/0/0/reset', 'Slot == COMPLETED (FAIL ALREADY RESETTED)');
-	TEST.FAIL('put::/0/0/unlocked', 'Slot == COMPLETED (FAIL INVALID STATE CHANGE)');
-	TEST.FAIL('put::/0/0/completed', 'Slot == COMPLETED (FAIL INVALID STATE CHANGE)');
+	TEST.FAIL('put::/1/1/reset', 'Slot == COMPLETED (FAIL ALREADY RESETTED)');
+	TEST.FAIL('put::/1/1/unlocked', 'Slot == COMPLETED (FAIL INVALID STATE CHANGE)');
+	TEST.FAIL('put::/1/1/completed', 'Slot == COMPLETED (FAIL INVALID STATE CHANGE)');
 
-	function assertSlotList(data, status, itemID) {
-		var slot = data[0];
+	function assertSlotList(data, status, itemID, trayID, slotID) {
+		var slot = isNaN(trayID) ? data[0] : data.find(s => s.game.trayID===trayID && s.game.slotID===slotID);
+
 		assert.exists(slot);
 		assert.exists(slot.game);
 		assert.equal(slot.game.status, status, 'status OK.');
