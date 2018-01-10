@@ -198,12 +198,16 @@ module.exports = function() {
 				const currency = user.game.currency;
 				const validItem = req.validItem;
 				const cost = opts.data.cost;
+				const isForced = !!opts.data.force;
 
 				_.promise(() => {
-					if(mgHelpers.currency.isInvalid(cost, currency, true)) return;
+					if(!isForced) {
+						if(mgHelpers.currency.isInvalid(cost, currency, true)) return;
 
-					mgHelpers.currency.modify(cost, currency, -1);
-
+						mgHelpers.currency.modify(cost, currency, -1);
+					} else {
+						return null;
+					}
 					return user.save();
 				})
 					.then( savedUser => {
